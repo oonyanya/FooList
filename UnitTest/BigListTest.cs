@@ -8,7 +8,20 @@ namespace UnitTest
     public sealed class ListTest
     {
         [TestMethod]
-        public void TryGetItemAndAddRangeTest()
+        public void AddRangeFrontTest()
+        {
+            var buf = new FooProject.Collection.BigList<char>();
+            buf.AddRangeToFront("xyz");
+            buf.AddRangeToFront("lqrstuvw");
+            buf.AddRangeToFront("ijklmnop");
+            buf.AddRangeToFront("abcdefgh");
+
+            var output = String.Concat<char>(buf);
+            Assert.AreEqual("abcdefghijklmnoplqrstuvwxyz", output);
+        }
+
+        [TestMethod]
+        public void AddRangeTest()
         {
             var buf = new FooProject.Collection.BigList<char>();
             buf.AddRange("abcdefgh");
@@ -24,6 +37,9 @@ namespace UnitTest
             Assert.AreEqual('w', buf[23]);
             Assert.AreEqual('x', buf[24]);
             Assert.AreEqual('z', buf[26]);
+
+            var output = String.Concat<char>(buf);
+            Assert.AreEqual("abcdefghijklmnoplqrstuvwxyz", output);
         }
 
         [TestMethod]
@@ -49,6 +65,24 @@ namespace UnitTest
             buf.Add('7');
             buf.Add('8');
             buf.Add('9');
+            var output = String.Concat<char>(buf);
+            Assert.AreEqual("0123456789", output);
+        }
+
+        [TestMethod]
+        public void AddFrontTest()
+        {
+            var buf = new FooProject.Collection.BigList<char>();
+            buf.Add('9');
+            buf.AddToFront('8');
+            buf.AddToFront('7');
+            buf.AddToFront('6');
+            buf.AddToFront('5');
+            buf.AddToFront('4');
+            buf.AddToFront('3');
+            buf.AddToFront('2');
+            buf.AddToFront('1');
+            buf.AddToFront('0');
             var output = String.Concat<char>(buf);
             Assert.AreEqual("0123456789", output);
         }
@@ -110,11 +144,43 @@ namespace UnitTest
         {
             var buf = new FooProject.Collection.BigList<char>();
             buf.AddRange("0123456789");
+            var result = buf.Remove('0');
+            var output = String.Concat<char>(buf);
+            Assert.AreEqual("123456789", output);
+            Assert.IsTrue(result);
+            result = buf.Remove('x');
+            Assert.AreEqual("123456789", output);
+            Assert.IsFalse(result);
+        }
+
+        [TestMethod]
+        public void RemoveRangeTest()
+        {
+            var buf = new FooProject.Collection.BigList<char>();
+            buf.AddRange("0123456789");
             buf.InsertRange(5, "abcdef");
             buf.RemoveRange(5, 7);
             var output = String.Concat<char>(buf);
             Assert.AreEqual("012346789", output);
         }
 
+        [TestMethod]
+        public void RemoveAtTest()
+        {
+            var buf = new FooProject.Collection.BigList<char>();
+            buf.AddRange("01234567"+"89");
+            buf.RemoveAt(7);
+            var output = String.Concat<char>(buf);
+            Assert.AreEqual("012345689", output);
+            buf.RemoveAt(7);
+            output = String.Concat<char>(buf);
+            Assert.AreEqual("01234569", output);
+            buf.RemoveAt(0);
+            output = String.Concat<char>(buf);
+            Assert.AreEqual("1234569", output);
+            buf.RemoveAt(6);
+            output = String.Concat<char>(buf);
+            Assert.AreEqual("123456", output);
+        }
     }
 }
