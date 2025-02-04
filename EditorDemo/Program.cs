@@ -5,9 +5,12 @@ using FooProject.Collection;
 using System.Runtime.CompilerServices;
 using System.Diagnostics;
 using System.Globalization;
+using System.Runtime;
+
+GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
 
 Console.WriteLine("benchmark start");
-Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}");
+Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}" + "bytes");
 
 Stopwatch sw = Stopwatch.StartNew();
 var buf = new StringBuffer();
@@ -18,7 +21,7 @@ for(int i = 0; i< 1000000; i++)
 }
 sw.Stop();
 Console.WriteLine(String.Format("add time:{0} ms", sw.ElapsedMilliseconds));
-Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}"); 
+Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}" + "bytes"); 
 Task.Delay(1000).Wait();
 
 sw = Stopwatch.StartNew();
@@ -26,17 +29,17 @@ buf.ReplaceAll("pen", "cat");
 sw.Stop();
 Console.WriteLine(String.Format("replace time:{0} ms",sw.ElapsedMilliseconds));
 Task.Delay(1000).Wait();
-Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}");
+Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}" + "bytes");
 
 sw = Stopwatch.StartNew();
 buf.ReplaceAll("cat", "ratking");
 sw.Stop();
 Console.WriteLine(String.Format("replace time:{0} ms", sw.ElapsedMilliseconds));
-Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}");
+Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}" + "bytes");
 
 buf.Clear();
 Console.WriteLine("clear buffer");
-Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}");
+Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}" + "bytes");
 
 Console.WriteLine("Finished.Hit Any Key");
 Console.ReadLine();
