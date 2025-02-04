@@ -47,8 +47,8 @@ namespace UnitTest
         {
             var buf = new FooProject.Collection.BigList<char>();
             Assert.AreEqual(0, buf.Count);
-            buf.AddRange("0123456789");
-            Assert.AreEqual(10, buf.Count);
+            buf.AddRange("abcdefghijklmnoplqrstuvwxyz");
+            Assert.AreEqual(27, buf.Count);
         }
 
         [TestMethod]
@@ -65,8 +65,19 @@ namespace UnitTest
             buf.Add('7');
             buf.Add('8');
             buf.Add('9');
+            buf.Add('a');
+            buf.Add('b');
+            buf.Add('c');
+            buf.Add('d');
+            buf.Add('e');
+            buf.Add('f');
+            buf.Add('g');
+            buf.Add('h');
+            buf.Add('i');
+            buf.Add('j');
+            buf.Add('k');
             var output = String.Concat<char>(buf);
-            Assert.AreEqual("0123456789", output);
+            Assert.AreEqual("0123456789abcdefghijk", output);
         }
 
         [TestMethod]
@@ -124,9 +135,16 @@ namespace UnitTest
         {
             var buf = new FooProject.Collection.BigList<char>();
             buf.AddRange("0123456789");
+            buf.Insert(8, ';');
             buf.Insert(4, 'a');
+            buf.Insert(5, 'b');
+            buf.Insert(6, 'c');
+            buf.Insert(7, 'd');
+            buf.Insert(8, 'e');
+            buf.Insert(9, 'f');
+            buf.Insert(10, 'g');
             var output = String.Concat<char>(buf);
-            Assert.AreEqual("0123a456789", output);
+            Assert.AreEqual("0123abcdefg4567;89", output);
         }
 
         [TestMethod]
@@ -134,9 +152,11 @@ namespace UnitTest
         {
             var buf = new FooProject.Collection.BigList<char>();
             buf.AddRange("0123456789");
+            buf.InsertRange(8, ";:");
             buf.InsertRange(4, "abcdef");
+            buf.InsertRange(10, "gjiklmn");
             var output = String.Concat<char>(buf);
-            Assert.AreEqual("0123abcdef456789", output);
+            Assert.AreEqual("0123abcdefgjiklmn4567;:89", output);
         }
 
         [TestMethod]
@@ -162,6 +182,9 @@ namespace UnitTest
             buf.RemoveRange(5, 7);
             var output = String.Concat<char>(buf);
             Assert.AreEqual("012346789", output);
+            buf.RemoveRange(0, 7);
+            output = String.Concat<char>(buf);
+            Assert.AreEqual("89", output);
         }
 
         [TestMethod]
