@@ -37,6 +37,15 @@ sw.Stop();
 Console.WriteLine(String.Format("replace time:{0} ms", sw.ElapsedMilliseconds));
 Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}" + "bytes");
 
+sw = Stopwatch.StartNew();
+foreach(var item in buf)
+{
+    var _ = item;
+}
+sw.Stop();
+Console.WriteLine(String.Format("enumratotion time:{0} ms", sw.ElapsedMilliseconds));
+Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}" + "bytes");
+
 buf.Clear();
 Console.WriteLine("clear buffer");
 Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}" + "bytes");
