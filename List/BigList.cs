@@ -55,25 +55,9 @@ namespace FooProject.Collection
                 if (root == null || index < 0 || index >= root.Count)
                     throw new ArgumentOutOfRangeException("index");
 
-                Node<T> current = root;
-                ConcatNode<T> curConcat = current as ConcatNode<T>;
-
-                while (curConcat != null)
-                {
-                    int leftCount = curConcat.Left.Count;
-                    if (index < leftCount)
-                        current = curConcat.Left;
-                    else
-                    {
-                        current = curConcat.Right;
-                        index -= leftCount;
-                    }
-
-                    curConcat = current as ConcatNode<T>;
-                }
-
-                LeafNode<T> curLeaf = (LeafNode<T>)current;
-                return curLeaf.items[index];
+                int relativeIndex;
+                LeafNode<T> curLeaf = (LeafNode<T>)IndexOfNode(index, out relativeIndex);
+                return curLeaf.items[relativeIndex];
             }
             set
             {
@@ -83,28 +67,35 @@ namespace FooProject.Collection
                 if (root == null || index < 0 || index >= root.Count)
                     throw new ArgumentOutOfRangeException("index");
 
-                Node<T> current = root;
-                ConcatNode<T> curConcat = current as ConcatNode<T>;
+                int relativeIndex;
+                LeafNode<T> curLeaf = (LeafNode<T>)IndexOfNode(index,out relativeIndex);
+                curLeaf.items[relativeIndex] = value;
+            }
+        }
 
-                while (curConcat != null)
+        private Node<T> IndexOfNode(int index,out int relativeIndex)
+        {
+            Node<T> current = root;
+            ConcatNode<T> curConcat = current as ConcatNode<T>;
+            relativeIndex = index;
+
+            while (curConcat != null)
+            {
+                int leftCount = curConcat.Left.Count;
+                if (relativeIndex < leftCount)
                 {
-                    int leftCount = curConcat.Left.Count;
-                    if (index < leftCount)
-                    {
-                        current = curConcat.Left;
-                    }
-                    else
-                    {
-                        current = curConcat.Right;
-                        index -= leftCount;
-                    }
-
-                    curConcat = current as ConcatNode<T>;
+                    current = curConcat.Left;
+                }
+                else
+                {
+                    current = curConcat.Right;
+                    relativeIndex -= leftCount;
                 }
 
-                LeafNode<T> curLeaf = (LeafNode<T>)current;
-                curLeaf.items[index] = value;
+                curConcat = current as ConcatNode<T>;
             }
+
+            return current;
         }
 
         public int Count
