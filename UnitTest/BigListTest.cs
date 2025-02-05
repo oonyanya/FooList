@@ -8,6 +8,16 @@ namespace UnitTest
     public sealed class ListTest
     {
         [TestMethod]
+        public void GetEnumratorTest()
+        {
+            var buf = new FooProject.Collection.BigList<char>();
+            for(int i = 0; i < 26; i++)
+                buf.Add('-');
+            foreach (char c in buf)
+                Assert.AreEqual('-',c);
+        }
+
+        [TestMethod]
         public void GetAtTest()
         {
             var buf = new FooProject.Collection.BigList<char>();
