@@ -8,6 +8,59 @@ namespace UnitTest
     public sealed class ListTest
     {
         [TestMethod]
+        public void GetAtTest()
+        {
+            var buf = new FooProject.Collection.BigList<char>();
+            buf.AddRange("abcdefgh");
+            buf.AddRange("ijklmnop");
+            buf.AddRange("lqrstuvw");
+            buf.AddRange("xyz");
+
+            Assert.AreEqual('a', buf[0]);
+            Assert.AreEqual('h', buf[7]);
+            Assert.AreEqual('i', buf[8]);
+            Assert.AreEqual('p', buf[15]);
+            Assert.AreEqual('l', buf[16]);
+            Assert.AreEqual('w', buf[23]);
+            Assert.AreEqual('x', buf[24]);
+            Assert.AreEqual('z', buf[26]);
+        }
+
+        [TestMethod]
+        public void SetAtTest()
+        {
+            var buf = new FooProject.Collection.BigList<char>();
+            buf.AddRange("abcdefgh");
+            buf.AddRange("ijklmnop");
+            buf.AddRange("lqrstuvw");
+            buf.AddRange("xyz");
+
+            buf[0] = '-';
+            Assert.AreEqual('-', buf[0]);
+
+            buf[7] = '-';
+            Assert.AreEqual('-', buf[7]);
+
+            buf[8] = '-';
+            Assert.AreEqual('-', buf[8]);
+
+            buf[15] = '-';
+            Assert.AreEqual('-', buf[15]);
+
+            buf[16] = '-';
+            Assert.AreEqual('-', buf[16]);
+
+            buf[23] = '-';
+            Assert.AreEqual('-', buf[23]);
+
+            buf[24] = '-';
+            Assert.AreEqual('-', buf[24]);
+
+            buf[26] = '-';
+            Assert.AreEqual('-', buf[26]);
+        }
+
+        [TestMethod]
         public void AddRangeFrontTest()
         {
             var buf = new FooProject.Collection.BigList<char>();
@@ -28,15 +81,6 @@ namespace UnitTest
             buf.AddRange("ijklmnop");
             buf.AddRange("lqrstuvw");
             buf.AddRange("xyz");
-
-            Assert.AreEqual('a', buf[0]);
-            Assert.AreEqual('h', buf[7]);
-            Assert.AreEqual('i', buf[8]);
-            Assert.AreEqual('p', buf[15]);
-            Assert.AreEqual('l', buf[16]);
-            Assert.AreEqual('w', buf[23]);
-            Assert.AreEqual('x', buf[24]);
-            Assert.AreEqual('z', buf[26]);
 
             var output = String.Concat<char>(buf);
             Assert.AreEqual("abcdefghijklmnoplqrstuvwxyz", output);
