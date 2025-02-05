@@ -111,6 +111,13 @@ namespace FooProject.Collection
             return current;
         }
 
+        private void ResetFetchCache()
+        {
+            //このメソッドが呼び出された時点で何かしらの操作がされているのでキャッシュはいったんリセットする
+            leastFetchNode = null;
+            totalLeftCount = 0;
+        }
+
         public int Count
         {
             get
@@ -127,10 +134,6 @@ namespace FooProject.Collection
 
         private void CheckBalance()
         {
-            //このメソッドが呼び出された時点で何かしらの操作がされているのでキャッシュはいったんリセットする
-            leastFetchNode = null;
-            totalLeftCount = 0;
-
             if (root != null &&
                 (root.Depth > BALANCEFACTOR && !(root.Depth - BALANCEFACTOR <= MAXFIB && Count >= FIBONACCI[root.Depth - BALANCEFACTOR])))
             {
@@ -287,6 +290,7 @@ namespace FooProject.Collection
                     CheckBalance();
                 }
             }
+            ResetFetchCache();
         }
 
         public void Add(T item)
@@ -305,6 +309,7 @@ namespace FooProject.Collection
                     CheckBalance();
                 }
             }
+            ResetFetchCache();
         }
 
         private static LeafNode<T> LeafFromEnumerator(IEnumerator<T> enumerator)
@@ -377,6 +382,7 @@ namespace FooProject.Collection
                     CheckBalance();
                 }
             }
+            ResetFetchCache();
         }
 
         public void AddRangeToFront(IEnumerable<T> collection)
@@ -404,12 +410,14 @@ namespace FooProject.Collection
                     CheckBalance();
                 }
             }
+            ResetFetchCache();
         }
 
         public void Clear()
         {
             this.root = null;
             this.leafNodeEnumrator.Clear();
+            ResetFetchCache();
         }
 
         public bool Contains(T item)
@@ -501,6 +509,7 @@ namespace FooProject.Collection
                     }
                 }
             }
+            ResetFetchCache();
         }
 
         public void InsertRange(int index, IEnumerable<T> collection)
@@ -537,6 +546,7 @@ namespace FooProject.Collection
                     }
                 }
             }
+            ResetFetchCache();
         }
 
         public bool Remove(T item)
@@ -573,6 +583,7 @@ namespace FooProject.Collection
                 root = newRoot;
                 CheckBalance();
             }
+            ResetFetchCache();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
