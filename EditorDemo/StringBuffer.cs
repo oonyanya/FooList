@@ -236,8 +236,7 @@ namespace FooEditEngine
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
         {
-            for (int i = 0; i < this.Length; i++)
-                yield return this[i];
+            return buf.GetEnumerator();
         }
 
         #endregion

@@ -445,109 +445,15 @@ namespace FooProject.Collection
 
         public IEnumerator<T> GetEnumerator()
         {
-            /*
-             まだ何も追加してない
-            foreach(var node in leafNodeEnumrator)
+            if ((uint)Count + 1 > MAXITEMS)
+                throw new InvalidOperationException("too large");
+
+            //どうせMAXITEMSまでしか保持できないので、インデクサーで取得しても問題はない
+            for (int i = 0; i < this.Count; ++i)
             {
-                foreach (T item in node.items)
-                    yield return item;
-            }
-            */
-            int start = 0, maxItems = int.MaxValue - 1;
-            if (root != null && maxItems > 0)
-            {
-                ConcatNode<T>[] stack = new ConcatNode<T>[root.Depth];
-                bool[] leftStack = new bool[root.Depth];
-                int stackPtr = 0, startIndex = 0;
-                Node<T> current = root;
-                LeafNode<T> currentLeaf;
-                ConcatNode<T> currentConcat;
-
-                if (start != 0)
-                {
-                    // Set current to the node containing start, and set startIndex to
-                    // the index within that node.
-                    if (start < 0 || start >= root.Count)
-                        throw new ArgumentOutOfRangeException("start");
-
-                    currentConcat = current as ConcatNode<T>;
-                    startIndex = start;
-                    while (currentConcat != null)
-                    {
-                        stack[stackPtr] = currentConcat;
-
-                        int leftCount = currentConcat.Left.Count;
-                        if (startIndex < leftCount)
-                        {
-                            leftStack[stackPtr] = true;
-                            current = currentConcat.Left;
-                        }
-                        else
-                        {
-                            leftStack[stackPtr] = false;
-                            current = currentConcat.Right;
-                            startIndex -= leftCount;
-                        }
-
-                        ++stackPtr;
-                        currentConcat = current as ConcatNode<T>;
-                    }
-                }
-
-                for (; ; )
-                {
-                    // If not already at a leaf, walk to the left to find a leaf node.
-                    while ((currentConcat = current as ConcatNode<T>) != null)
-                    {
-                        stack[stackPtr] = currentConcat;
-                        leftStack[stackPtr] = true;
-                        ++stackPtr;
-                        current = currentConcat.Left;
-                    }
-
-                    // Iterate the leaf.
-                    currentLeaf = (LeafNode<T>)current;
-
-                    int limit = currentLeaf.Count;
-                    if (limit > startIndex + maxItems)
-                        limit = startIndex + maxItems;
-
-                    for (int i = startIndex; i < limit; ++i)
-                    {
-                        yield return currentLeaf.items[i];
-                    }
-
-                    // Update the number of items to interate.
-                    maxItems -= limit - startIndex;
-                    if (maxItems <= 0)
-                        yield break;    // Done!
-
-                    // From now on, start enumerating at 0.
-                    startIndex = 0;
-
-                    // Go back up the stack until we find a place to the right
-                    // we didn't just come from.
-                    for (; ; )
-                    {
-                        ConcatNode<T> parent;
-                        if (stackPtr == 0)
-                            yield break;        // iteration is complete.
-
-                        parent = stack[--stackPtr];
-                        if (leftStack[stackPtr])
-                        {
-                            leftStack[stackPtr] = false;
-                            ++stackPtr;
-                            current = parent.Right;
-                            break;
-                        }
-
-                        current = parent;
-                        // And keep going up...
-                    }
-
-                    // current is now a new node we need to visit. Loop around to get it.
-                }
+                int relativeIndex;
+                var node = (LeafNode<T>)IndexOfNode(i, out relativeIndex);
+                yield return node.items[relativeIndex];
             }
         }
 
