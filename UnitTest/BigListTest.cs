@@ -84,7 +84,18 @@ namespace UnitTest
         public void AddFrontTest()
         {
             var buf = new FooProject.Collection.BigList<char>();
-            buf.Add('9');
+            buf.Add('k');
+            buf.AddToFront('j');
+            buf.AddToFront('i');
+            buf.AddToFront('h');
+            buf.AddToFront('g');
+            buf.AddToFront('f');
+            buf.AddToFront('e');
+            buf.AddToFront('d');
+            buf.AddToFront('c');
+            buf.AddToFront('b');
+            buf.AddToFront('a');
+            buf.AddToFront('9');
             buf.AddToFront('8');
             buf.AddToFront('7');
             buf.AddToFront('6');
@@ -95,7 +106,7 @@ namespace UnitTest
             buf.AddToFront('1');
             buf.AddToFront('0');
             var output = String.Concat<char>(buf);
-            Assert.AreEqual("0123456789", output);
+            Assert.AreEqual("0123456789abcdefghijk", output);
         }
 
         [TestMethod]
