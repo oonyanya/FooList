@@ -45,6 +45,9 @@ namespace FooProject.Collection
         Node<T> root;
         LeafNodeEnumrator<T> leafNodeEnumrator = new LeafNodeEnumrator<T>();
 
+        Node<T> leastFetchNode = null;
+        int totalLeftCount = 0;
+
         public T this[int index]
         {
             get
@@ -75,9 +78,17 @@ namespace FooProject.Collection
 
         private Node<T> IndexOfNode(int index,out int relativeIndex)
         {
+            if(leastFetchNode != null)
+            {
+                relativeIndex = index - totalLeftCount;
+                if (relativeIndex >= 0 && relativeIndex < leastFetchNode.Count)
+                    return leastFetchNode;
+            }
+
             Node<T> current = root;
             ConcatNode<T> curConcat = current as ConcatNode<T>;
             relativeIndex = index;
+            leastFetchNode = null;
 
             while (curConcat != null)
             {
@@ -90,8 +101,10 @@ namespace FooProject.Collection
                 {
                     current = curConcat.Right;
                     relativeIndex -= leftCount;
+                    totalLeftCount += leftCount;
                 }
 
+                leastFetchNode = current;
                 curConcat = current as ConcatNode<T>;
             }
 
@@ -114,6 +127,10 @@ namespace FooProject.Collection
 
         private void CheckBalance()
         {
+            //このメソッドが呼び出された時点で何かしらの操作がされているのでキャッシュはいったんリセットする
+            leastFetchNode = null;
+            totalLeftCount = 0;
+
             if (root != null &&
                 (root.Depth > BALANCEFACTOR && !(root.Depth - BALANCEFACTOR <= MAXFIB && Count >= FIBONACCI[root.Depth - BALANCEFACTOR])))
             {

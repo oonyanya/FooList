@@ -24,6 +24,9 @@ namespace UnitTest
             Assert.AreEqual('w', buf[23]);
             Assert.AreEqual('x', buf[24]);
             Assert.AreEqual('z', buf[26]);
+
+            buf.AddRange("-");
+            Assert.AreEqual('-', buf[27]);
         }
 
         [TestMethod]
@@ -58,6 +61,10 @@ namespace UnitTest
 
             buf[26] = '-';
             Assert.AreEqual('-', buf[26]);
+
+            buf.AddRange(";");
+            buf[27] = '-';
+            Assert.AreEqual('-', buf[27]);
         }
 
         [TestMethod]
