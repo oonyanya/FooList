@@ -2,7 +2,7 @@
 
 https://github.com/timdetering/Wintellect.PowerCollections
 
-からIList<T>のメンバーだけ移植しました。
+のBigListからIList<T>のメンバーだけ移植しました。もともとの方ではノードの共有をすることがありますが、テキストエディタだとノートを共有する必要性がまったくないので、あえてこの機能は省きました。
 
 ## ライセンス
 MITライセンスに従ってください。
