@@ -11,8 +11,6 @@ namespace FooProject.Collection
 {
     public abstract class Node<T>
     {
-        public List<T> items;
-
         public Node<T> Left {  get; set; }
 
         public Node<T> Right { get; set; }
@@ -73,6 +71,8 @@ namespace FooProject.Collection
     }
     public class LeafNode<T> : Node<T>
     {
+        public List<T> items;
+
         public LeafNode(T item) : base()
         {
             this.items = new List<T>();
@@ -250,7 +250,6 @@ namespace FooProject.Collection
             this.Right = node.Right;
             this.Count = node.Count;
             this.Depth = node.Depth;
-            this.items = new List<T>(node.items);
         }
 
         public ConcatNode(Node<T> left, Node<T> right) : base(left, right)
