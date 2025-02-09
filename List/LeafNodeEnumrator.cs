@@ -11,10 +11,10 @@ namespace FooProject.Collection
 
     public class LeafNodeEnumrator<T> : IEnumerable<Node<T>>
     {
-        public Node<T> FirstNode { get; set; }
-        public Node<T> LastNode { get; set; }
+        public LeafNode<T> FirstNode { get; set; }
+        public LeafNode<T> LastNode { get; set; }
 
-        public void Replace(Node<T> target, Node<T> replacementNode)
+        public void Replace(LeafNode<T> target, LeafNode<T> replacementNode)
         {
             if (target == null)
                 throw new ArgumentNullException("target");
@@ -46,12 +46,12 @@ namespace FooProject.Collection
             }
         }
 
-        public void AddLast(Node<T> newNode)
+        public void AddLast(LeafNode<T> newNode)
         {
             AddNext(LastNode, newNode);
         }
 
-        public void AddNext(Node<T> target, Node<T> newNode)
+        public void AddNext(LeafNode<T> target, LeafNode<T> newNode)
         {
             if (newNode == null)
                 throw new ArgumentNullException("newNode");
@@ -98,7 +98,7 @@ namespace FooProject.Collection
             }
         }
 
-        public void AddBefore(Node<T> target, Node<T> newNode)
+        public void AddBefore(LeafNode<T> target, LeafNode<T> newNode)
         {
             if (newNode == null)
                 throw new ArgumentNullException("newNode");
@@ -148,13 +148,13 @@ namespace FooProject.Collection
             }
         }
 
-        public void Remove(Node<T> node)
+        public void Remove(LeafNode<T> node)
         {
             if (node == null)
                 throw new ArgumentNullException("node");
 
-            var priviousNode = node.Previous;
-            var nextNode = node.Next;
+            var priviousNode = (LeafNode<T>)node.Previous;
+            var nextNode = (LeafNode<T>)node.Next;
             if (priviousNode != null && nextNode != null)
             {
                 priviousNode.Next = nextNode;

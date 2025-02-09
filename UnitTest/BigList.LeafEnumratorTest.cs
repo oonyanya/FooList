@@ -24,7 +24,7 @@ namespace UnitTest
             foreach(var number in numberList)
             {
                 Assert.AreEqual(number, node.items[0]);
-                node = node.Next;
+                node = (LeafNode<int>)node.Next;
             }
         }
 
@@ -48,16 +48,16 @@ namespace UnitTest
             var node = leafNodeEnumrator.FirstNode;
 
             Assert.AreEqual(1, node.items[0]);
-            node = node.Next;
+            node = (LeafNode<int>)node.Next;
 
             Assert.AreEqual(2, node.items[0]);
-            node = node.Next;
+            node = (LeafNode<int>)node.Next;
 
             Assert.AreEqual(3, node.items[0]);
-            node = node.Next;
+            node = (LeafNode<int>)node.Next;
 
             Assert.AreEqual(4, node.items[0]);
-            node = node.Next;
+            node = (LeafNode<int>)node.Next;
 
             Assert.AreEqual(4, leafNodeEnumrator.LastNode.items[0]);
         }
@@ -82,16 +82,16 @@ namespace UnitTest
             var node = leafNodeEnumrator.FirstNode;
 
             Assert.AreEqual(1, node.items[0]);
-            node = node.Next;
+            node = (LeafNode<int>)node.Next;
 
             Assert.AreEqual(2, node.items[0]);
-            node = node.Next;
+            node = (LeafNode<int>)node.Next;
 
             Assert.AreEqual(3, node.items[0]);
-            node = node.Next;
+            node = (LeafNode<int>)node.Next;
 
             Assert.AreEqual(4, node.items[0]);
-            node = node.Next;
+            node = (LeafNode<int>)node.Next;
 
             Assert.AreEqual(4, leafNodeEnumrator.LastNode.items[0]);
         }
@@ -166,7 +166,7 @@ namespace UnitTest
             while (node != null)
             {
                 Assert.AreEqual(5, node.items[0]);
-                node = node.Next;
+                node = (LeafNode<int>)node.Next;
             }
         }
     }
