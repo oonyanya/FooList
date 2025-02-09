@@ -98,9 +98,10 @@ namespace UnitTest
             buf.AddRange("ijklmnop");
             buf.AddRange("lqrstuvw");
             buf.AddRange("xyz");
+            buf.AddRange("xyz");
 
             var output = String.Concat<char>(buf);
-            Assert.AreEqual("abcdefghijklmnoplqrstuvwxyz", output);
+            Assert.AreEqual("abcdefghijklmnoplqrstuvwxyzxyz", output);
         }
 
         [TestMethod]

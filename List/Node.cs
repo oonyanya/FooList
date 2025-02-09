@@ -99,8 +99,35 @@ namespace FooProject.Collection
                 return new ConcatNode<T>(this, new LeafNode<T>(item));
             }
         }
+        private bool MergeLeafInPlace(Node<T> other)
+        {
+            LeafNode<T> otherLeaf = (other as LeafNode<T>);
+            int newCount;
+            if (otherLeaf != null && (newCount = otherLeaf.Count + this.Count) <= BigList<T>.MAXLEAF)
+            {
+                items.AddRange(otherLeaf.items);
+                Count = newCount;
+                return true;
+            }
+            return false;
+        }
+
+
         public override Node<T> AppendInPlace(Node<T> node, LeafNodeEnumrator<T> leafNodeEnumrator)
         {
+            if (MergeLeafInPlace(node))
+            {
+                return this;
+            }
+
+            /*
+             * 移植下ではマージしていたが、テキストエディタで使うケースだとあまり意味がない
+            ConcatNode<T> otherConcat = (node as ConcatNode<T>);
+            if (otherConcat != null && MergeLeafInPlace(otherConcat.Left))
+            {
+                return new ConcatNode<T>(this, otherConcat.Right);
+            }
+             */
             return new ConcatNode<T>(this, node);
         }
 
