@@ -121,7 +121,7 @@ namespace FooProject.Collection
             }
 
             /*
-             * 移植下ではマージしていたが、テキストエディタで使うケースだとあまり意味がない
+             * 移植元ではマージしていたが、テキストエディタで使うケースだとあまり意味がない
             ConcatNode<T> otherConcat = (node as ConcatNode<T>);
             if (otherConcat != null && MergeLeafInPlace(otherConcat.Left))
             {
