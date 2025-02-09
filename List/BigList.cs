@@ -315,12 +315,12 @@ namespace FooProject.Collection
         private static LeafNode<T> LeafFromEnumerator(IEnumerator<T> enumerator)
         {
             int i = 0;
-            List<T> items = null;
+            FixedList<T> items = null;
 
             while (i < MAXLEAF && enumerator.MoveNext())
             {
                 if (i == 0)
-                    items = new List<T>(MAXLEAF);
+                    items = new FixedList<T>(MAXLEAF);
 
                 if (items != null)
                 {

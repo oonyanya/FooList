@@ -71,16 +71,16 @@ namespace FooProject.Collection
     }
     public class LeafNode<T> : Node<T>
     {
-        public List<T> items;
+        public FixedList<T> items;
 
         public LeafNode(T item) : base()
         {
-            this.items = new List<T>();
+            this.items = new FixedList<T>(BigList<T>.MAXLEAF);
             this.items.Add(item);
             Count = 1;
         }
 
-        public LeafNode(int count, List<T> items)
+        public LeafNode(int count, FixedList<T> items)
         {
             this.items = items;
             Count = count;
@@ -132,12 +132,12 @@ namespace FooProject.Collection
                 else
                 {
                     // Split into two nodes, and put the new item at the end of the first.
-                    List<T> leftItems = new List<T>(BigList<T>.MAXLEAF);
+                    FixedList<T> leftItems = new FixedList<T>(BigList<T>.MAXLEAF);
                     leftItems.AddRange(items.Take(index));
                     leftItems.Add(item);
                     Node<T> leftNode = new LeafNode<T>(index + 1, leftItems);
 
-                    List<T> rightItems = new List<T>(BigList<T>.MAXLEAF);
+                    FixedList<T> rightItems = new FixedList<T>(BigList<T>.MAXLEAF);
                     rightItems.AddRange(items.Skip(index));
                     Node<T> rightNode = new LeafNode<T>(Count - index, rightItems);
 
@@ -171,11 +171,11 @@ namespace FooProject.Collection
             {
                 // Split existing node into two nodes at the insertion point, then concat all three nodes together.
 
-                List<T> leftItems = new List<T>(BigList<T>.MAXLEAF);
+                FixedList<T> leftItems = new FixedList<T>(BigList<T>.MAXLEAF);
                 leftItems.AddRange(items.Take(index));
                 Node<T> leftNode = new LeafNode<T>(index, leftItems);
 
-                List<T> rightItems = new List<T>(BigList<T>.MAXLEAF);
+                FixedList<T> rightItems = new FixedList<T>(BigList<T>.MAXLEAF);
                 rightItems.AddRange(items.Skip(index));
                 Node<T> rightNode = new LeafNode<T>(Count - index, rightItems);
 
@@ -236,7 +236,7 @@ namespace FooProject.Collection
             if (last >= Count)
                 last = Count - 1;
             int n = last - first + 1;
-            List<T> newItems = new List<T>(BigList<T>.MAXLEAF);
+            FixedList<T> newItems = new FixedList<T>(BigList<T>.MAXLEAF);
             newItems.AddRange(items.Skip(first).Take(n));
             return new LeafNode<T>(n, newItems);
         }
