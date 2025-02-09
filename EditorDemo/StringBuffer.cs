@@ -112,8 +112,6 @@ namespace FooEditEngine
     sealed class StringBuffer : IEnumerable<char>, IRandomEnumrator<char>
     {
         Foo.BigList<char> buf = new Foo.BigList<char>();
-        const int MaxSemaphoreCount = 1;
-        AsyncReaderWriterLock rwlock = new AsyncReaderWriterLock();
 
         internal DocumentUpdateEventHandler Update;
 
@@ -142,11 +140,8 @@ namespace FooEditEngine
         {
             StringBuilder temp = new StringBuilder();
             temp.Clear();
-            using (this.rwlock.ReaderLock())
-            {
-                for (int i = index; i < index + length; i++)
-                    temp.Append(buf[i]);
-            }
+            for (int i = index; i < index + length; i++)
+                temp.Append(buf[i]);
             return temp.ToString();
         }
 
@@ -157,23 +152,17 @@ namespace FooEditEngine
 
         internal void Replace(Foo.BigList<char> buf)
         {
-            using (this.rwlock.WriterLock())
-            {
-                this.Clear();
-                this.buf = buf;
-            }
+            this.Clear();
+            this.buf = buf;
 
             this.Update(this, new DocumentUpdateEventArgs(UpdateType.Replace, 0, 0, buf.Count));
         }
 
         internal void Replace(int index, int length, IEnumerable<char> chars, int count)
         {
-            using (this.rwlock.WriterLock())
-            {
-                if (length > 0)
-                    this.buf.RemoveRange(index, length);
-                this.buf.InsertRange(index, chars);
-            }
+            if (length > 0)
+                this.buf.RemoveRange(index, length);
+            this.buf.InsertRange(index, chars);
             this.Update(this, new DocumentUpdateEventArgs(UpdateType.Replace, index, length, count));
         }
 
@@ -186,11 +175,8 @@ namespace FooEditEngine
             {
                 while ((right = ts.IndexOf(this.buf, left, this.buf.Count - 1)) != -1)
                 {
-                    using (this.rwlock.WriterLock())
-                    {
-                        this.buf.RemoveRange(right, target.Length);
-                        this.buf.InsertRange(right, pattern_chars);
-                    }
+                    this.buf.RemoveRange(right, target.Length);
+                    this.buf.InsertRange(right, pattern_chars);
                     left = right + pattern.Length;
                 }
             }
@@ -199,12 +185,9 @@ namespace FooEditEngine
 
         internal int IndexOf(string target, int start, bool ci = false)
         {
-            using (this.rwlock.ReaderLock())
-            {
-                TextSearch ts = new TextSearch(target, ci);
-                int patternIndex = ts.IndexOf(this.buf, start, this.buf.Count);
-                return patternIndex;
-            }
+            TextSearch ts = new TextSearch(target, ci);
+            int patternIndex = ts.IndexOf(this.buf, start, this.buf.Count);
+            return patternIndex;
         }
 
         /// <summary>
