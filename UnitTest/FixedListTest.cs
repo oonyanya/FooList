@@ -23,6 +23,18 @@ namespace UnitTest
             Assert.AreEqual("1234", string.Concat(list));
        }
         [TestMethod]
+        public void GetAtAndSetATTest()
+        {
+            var list = new FixedList<char>();
+            list.AddRange("1234");
+            list[0] = 'a';
+            list[1] = 'a';
+            list[3] = 'a';
+            Assert.AreEqual(4, list.Count);
+            Assert.AreEqual("aa3a", string.Concat(list));
+        }
+
+        [TestMethod]
         public void AddRageTest()
         {
             var list = new FixedList<char>();

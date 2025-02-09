@@ -2,12 +2,17 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace FooProject.Collection
 {
-    public class FixedList<T> : IEnumerable<T>
+    /// <summary>
+    /// Fixed capacity List
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    public class FixedList<T> : IEnumerable<T>,ICollection<T>
     {
         T[] items;
         int size;
@@ -17,7 +22,11 @@ namespace FooProject.Collection
             items = new T[capacity];
         }
 
+        public T this[int i] { get { return items[i]; } set { items[i] = value; } }
+
         public int Count { get { return size; } }
+
+        public bool IsReadOnly => throw new NotImplementedException();
 
         public void Add(T item)
         {
@@ -83,6 +92,26 @@ namespace FooProject.Collection
         {
             for (int i = 0; i < size; i++)
                 yield return items[i];
+        }
+
+        public void Clear()
+        {
+            size = 0;
+        }
+
+        public bool Contains(T item)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void CopyTo(T[] array, int arrayIndex)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool Remove(T item)
+        {
+            throw new NotImplementedException();
         }
     }
 }
