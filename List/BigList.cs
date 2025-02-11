@@ -86,27 +86,35 @@ namespace FooProject.Collection
             }
 
             Node<T> current = root;
-            ConcatNode<T> curConcat = current as ConcatNode<T>;
             relativeIndex = index;
             leastFetchNode = null;
 
-            while (curConcat != null)
+            while (current != null)
             {
-                int leftCount = curConcat.Left.Count;
-                if (relativeIndex < leftCount)
+                if(current.Left != null)
                 {
-                    current = curConcat.Left;
+                    int leftCount = current.Left.Count;
+                    if (relativeIndex < leftCount)
+                    {
+                        current = current.Left;
+                    }
+                    else
+                    {
+                        current = current.Right;
+                        relativeIndex -= leftCount;
+                        totalLeftCount += leftCount;
+                    }
+
+                }else if (current.Right != null)
+                {
+                    throw new InvalidOperationException("Left node is null but right node is not null.somthing wrong.");
                 }
                 else
                 {
-                    current = curConcat.Right;
-                    relativeIndex -= leftCount;
-                    totalLeftCount += leftCount;
+                    break;
                 }
-
-                leastFetchNode = current;
-                curConcat = current as ConcatNode<T>;
             }
+            leastFetchNode = current;
 
             return current;
         }
