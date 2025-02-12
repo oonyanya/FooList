@@ -26,7 +26,7 @@ namespace FooProject.Collection
 
         public int Count { get { return size; } }
 
-        public bool IsReadOnly => throw new NotImplementedException();
+        public bool IsReadOnly => false;
 
         public void Add(T item)
         {
@@ -99,19 +99,65 @@ namespace FooProject.Collection
             size = 0;
         }
 
+        public int IndexOf(T item)
+        {
+            int index = 0;
+            foreach (T x in this)
+            {
+                if (EqualityComparer<T>.Default.Equals(x, item))
+                {
+                    return index;
+                }
+                ++index;
+            }
+
+            // didn't find any item that matches.
+            return -1;
+        }
+
         public bool Contains(T item)
         {
-            throw new NotImplementedException();
+            return (IndexOf(item) >= 0);
         }
 
         public void CopyTo(T[] array, int arrayIndex)
         {
-            throw new NotImplementedException();
+            int count = this.Count;
+
+            if (count == 0)
+                return;
+
+            if (array == null)
+                throw new ArgumentNullException("array");
+            if (arrayIndex < 0)
+                throw new ArgumentOutOfRangeException("arrayIndex must not be negative");
+            if (arrayIndex >= array.Length || count > array.Length - arrayIndex)
+                throw new ArgumentException("array too small");
+
+            int index = arrayIndex, i = 0;
+            foreach (T item in this)
+            {
+                if (i >= count)
+                    break;
+
+                array[index] = item;
+                ++index;
+                ++i;
+            }
         }
 
         public bool Remove(T item)
         {
-            throw new NotImplementedException();
+            int index = IndexOf(item);
+            if (index >= 0)
+            {
+                RemoveAt(index);
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
     }
 }
