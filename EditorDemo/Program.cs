@@ -27,14 +27,20 @@ Task.Delay(1000).Wait();
 sw = Stopwatch.StartNew();
 buf.ReplaceAll("pen", "cat");
 sw.Stop();
-Console.WriteLine(String.Format("replace time:{0} ms",sw.ElapsedMilliseconds));
+Console.WriteLine(String.Format("replace 1 time:{0} ms",sw.ElapsedMilliseconds));
 Task.Delay(1000).Wait();
 Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}" + "bytes");
 
 sw = Stopwatch.StartNew();
 buf.ReplaceAll("cat", "ratking");
 sw.Stop();
-Console.WriteLine(String.Format("replace time:{0} ms", sw.ElapsedMilliseconds));
+Console.WriteLine(String.Format("replace 2 time:{0} ms", sw.ElapsedMilliseconds));
+Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}" + "bytes");
+
+sw = Stopwatch.StartNew();
+buf.ReplaceAll("ratking", "cat");
+sw.Stop();
+Console.WriteLine(String.Format("replace 3 time:{0} ms", sw.ElapsedMilliseconds));
 Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}" + "bytes");
 
 sw = Stopwatch.StartNew();
