@@ -45,8 +45,17 @@ namespace FooProject.Collection
         Node<T> root;
         LeafNodeEnumrator<T> leafNodeEnumrator = new LeafNodeEnumrator<T>();
 
-        Node<T> leastFetchNode = null;
-        int totalLeftCount = 0;
+        struct LeastFetch
+        {
+            public Node<T> Node;
+            public int TotalLeftCount = 0;
+            public LeastFetch(Node<T> node,int totalLeft)
+            {
+                Node= node;
+                TotalLeftCount = totalLeft;
+            }
+        }
+        LeastFetch? leastFetch;
 
         public T this[int index]
         {
@@ -78,16 +87,17 @@ namespace FooProject.Collection
 
         private Node<T> IndexOfNode(int index,out int relativeIndex)
         {
-            if(leastFetchNode != null)
+            if(leastFetch != null)
             {
-                relativeIndex = index - totalLeftCount;
-                if (relativeIndex >= 0 && relativeIndex < leastFetchNode.Count)
-                    return leastFetchNode;
+                relativeIndex = index - leastFetch.Value.TotalLeftCount;
+                if (relativeIndex >= 0 && relativeIndex < leastFetch.Value.Node.Count)
+                    return leastFetch.Value.Node;
             }
 
             Node<T> current = root;
             relativeIndex = index;
-            leastFetchNode = null;
+            leastFetch = null;
+            int totalLeftCount = 0;
 
             while (current != null)
             {
@@ -114,7 +124,7 @@ namespace FooProject.Collection
                     break;
                 }
             }
-            leastFetchNode = current;
+            leastFetch = new LeastFetch(current,totalLeftCount);
 
             return current;
         }
@@ -122,8 +132,7 @@ namespace FooProject.Collection
         private void ResetFetchCache()
         {
             //このメソッドが呼び出された時点で何かしらの操作がされているのでキャッシュはいったんリセットする
-            leastFetchNode = null;
-            totalLeftCount = 0;
+            leastFetch = null;
         }
 
         public int Count
