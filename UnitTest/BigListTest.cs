@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using FooProject.Collection;
 using Microsoft.VisualStudio.TestPlatform.Utilities;
 
@@ -18,57 +19,92 @@ namespace UnitTest
         }
 
         [TestMethod]
-        public void GetAtTest()
+        public void Indexer()
         {
-            var buf = new FooProject.Collection.BigList<char>();
-            buf.AddRange("abcdefghijklmnoplqrstuvwxyz");
+            BigList<int> list1, list2, list3;
+            int i;
 
-            Assert.AreEqual('a', buf[0]);
-            Assert.AreEqual('h', buf[7]);
-            Assert.AreEqual('i', buf[8]);
-            Assert.AreEqual('p', buf[15]);
-            Assert.AreEqual('l', buf[16]);
-            Assert.AreEqual('w', buf[23]);
-            Assert.AreEqual('x', buf[24]);
-            Assert.AreEqual('z', buf[26]);
+            list1 = new BigList<int>();
+            for (i = 0; i < 100; ++i)
+                list1.Add(i);
+            for (i = 99; i >= 0; --i)
+                Assert.AreEqual(i, list1[i]);
 
-            buf.AddRange("-");
-            Assert.AreEqual('-', buf[27]);
-        }
+            list2 = new BigList<int>();
+            list2.AddRange(list1);
+            for (i = 44; i < 88; ++i)
+                list1[i] = i * 2;
+            for (i = 99; i >= 0; --i)
+            {
+                Assert.AreEqual(i, list2[i]);
+                list2[i] = 99 * i;
+            }
+            for (i = 44; i < 88; ++i)
+                Assert.AreEqual(i * 2, list1[i]);
 
-        [TestMethod]
-        public void SetAtTest()
-        {
-            var buf = new FooProject.Collection.BigList<char>();
-            buf.AddRange("abcdefghijklmnoplqrstuvwxyz");
 
-            buf[0] = '-';
-            Assert.AreEqual('-', buf[0]);
+            list1 = new BigList<int>();
+            list2 = new BigList<int>();
+            i = 0;
+            while (i < 55)
+                list1.Add(i++);
+            while (i < 100)
+                list2.Add(i++);
+            list3 = new BigList<int>();
+            list3.AddRange(list1);
+            list3.AddRange(list2);
+            for (i = 0; i < 100; ++i)
+                list3[i] = i * 2;
+            for (i = 0; i < list1.Count; ++i)
+                Assert.AreEqual(i, list1[i]);
+            for (i = 0; i < list2.Count; ++i)
+                Assert.AreEqual(i + 55, list2[i]);
 
-            buf[7] = '-';
-            Assert.AreEqual('-', buf[7]);
+            list1.Clear();
+            i = 0;
+            while (i < 100)
+                list1.Add(i++);
+            list1.AddRange(CreateList(100, 400));
+            for (i = 100; i < 200; ++i)
+                list1[i] = -1;
+            list2 = list1.GetRange(33, 200);
+            for (i = 0; i < list2.Count; ++i)
+            {
+                if (i < 67 || i >= 167)
+                    Assert.AreEqual(i + 33, list2[i]);
+                else
+                    Assert.AreEqual(-1, list2[i]);
+            }
 
-            buf[8] = '-';
-            Assert.AreEqual('-', buf[8]);
+            for (i = 22; i < 169; ++i)
+                list1[i] = 187 * i;
+            for (i = 0; i < list2.Count; ++i)
+            {
+                if (i < 67 || i >= 167)
+                    Assert.AreEqual(i + 33, list2[i]);
+                else
+                    Assert.AreEqual(-1, list2[i]);
+            }
+            for (i = 168; i >= 22; --i)
+                Assert.AreEqual(187 * i, list1[i]);
 
-            buf[15] = '-';
-            Assert.AreEqual('-', buf[15]);
-
-            buf[16] = '-';
-            Assert.AreEqual('-', buf[16]);
-
-            buf[23] = '-';
-            Assert.AreEqual('-', buf[23]);
-
-            buf[24] = '-';
-            Assert.AreEqual('-', buf[24]);
-
-            buf[26] = '-';
-            Assert.AreEqual('-', buf[26]);
-
-            buf.AddRange(";");
-            buf[27] = '-';
-            Assert.AreEqual('-', buf[27]);
+            list1.Clear();
+            list1.Add(1);
+            list1.Add(2);
+            list1.Add(3);
+            Assert.AreEqual(1, list1[0]);
+            Assert.AreEqual(2, list1[1]);
+            Assert.AreEqual(3, list1[2]);
+            list2 = new BigList<int>();
+            list2.AddRange(list1);
+            list1[1] = 4;
+            list2[0] = 11;
+            Assert.AreEqual(11, list2[0]);
+            Assert.AreEqual(2, list2[1]);
+            Assert.AreEqual(3, list2[2]);
+            Assert.AreEqual(1, list1[0]);
+            Assert.AreEqual(4, list1[1]);
+            Assert.AreEqual(3, list1[2]);
         }
 
         [TestMethod]
@@ -138,13 +174,33 @@ namespace UnitTest
         [TestMethod]
         public void CountTest()
         {
-            var buf = new FooProject.Collection.BigList<char>();
-            Assert.AreEqual(0, buf.Count);
-            buf.AddRange("abcdefghijklmnoplqrstuvwxyz");
-            Assert.AreEqual(27, buf.Count);
+            BigList<int> list1, list2, list3, list4, list5, list6, list7, list8;
+
+            list1 = new BigList<int>();
+            list2 = new BigList<int>(new int[0]);
+            list3 = new BigList<int>();
+            list3.AddRange(list2);
+            list3.AddRange(list1);
+            Assert.AreEqual(0, list1.Count);
+            Assert.AreEqual(0, list2.Count);
+            Assert.AreEqual(0, list3.Count);
+            list4 = new BigList<int>(new int[2145]);
+            Assert.AreEqual(2145, list4.Count);
+            list5 = list4.GetRange(1003, 423);
+            Assert.AreEqual(423, list5.Count);
+            list6 = list4.GetRange(1, 5);
+            Assert.AreEqual(5, list6.Count);
+            list7 = new BigList<int>();
+            list7.AddRange(list5);
+            list7.AddRange(list6);
+            Assert.AreEqual(428, list7.Count);
+            list8 = list7.GetRange(77, 0);
+            Assert.AreEqual(0, list8.Count);
+            list6.Clear();
+            Assert.AreEqual(0, list6.Count);
         }
 
-        [TestMethod]
+            [TestMethod]
         public void AddTest()
         {
             const int SIZE = 8000;
@@ -199,25 +255,66 @@ namespace UnitTest
             Assert.AreEqual(false, result);
         }
 
-        [TestMethod]
-        public void CopyToTest()
+        private void CheckArray<T>(T[] actual, T[] expected)
         {
-            var buf = new FooProject.Collection.BigList<char>();
-            char[] result = new char[6];
-            buf.AddRange("012345");
-            buf.CopyTo(result, 0);
-            Assert.AreEqual("012345", String.Concat<char>(result));
+            Assert.AreEqual(expected.Length, actual.Length);
+            for (int i = 0; i < actual.Length; ++i)
+            {
+                Assert.AreEqual(expected[i], actual[i]);
+            }
         }
+
+        [TestMethod]
+        public void CopyTo2()
+        {
+            string[] array1 = { "foo", "bar", "baz", "smell", "the", "glove" };
+            BigList<string> list1 = new BigList<string>(new string[] { "hello", "Sailor" });
+            list1.CopyTo(array1, 3);
+            CheckArray<string>(array1, new string[] { "foo", "bar", "baz", "hello", "Sailor", "glove" });
+
+            BigList<string> list2 = new BigList<string>();
+            list2.CopyTo(array1, 1);
+            CheckArray<string>(array1, new string[] { "foo", "bar", "baz", "hello", "Sailor", "glove" });
+
+            BigList<string> list3 = new BigList<string>(new string[] { "a1", "a2", "a3", "a4" });
+            list3.CopyTo(array1, 2);
+            CheckArray<string>(array1, new string[] { "foo", "bar", "a1", "a2", "a3", "a4" });
+
+            BigList<string> list4 = new BigList<string>(new string[] { "b1", "b2", "b3", "b4", "b5", "b6" });
+            list4.CopyTo(array1, 0);
+            CheckArray<string>(array1, new string[] { "b1", "b2", "b3", "b4", "b5", "b6" });
+
+            list1.CopyTo(array1, 4);
+            CheckArray<string>(array1, new string[] { "b1", "b2", "b3", "b4", "hello", "Sailor" });
+
+            BigList<string> list5 = new BigList<string>();
+            string[] array2 = new string[0];
+            list5.CopyTo(array2, 0);
+            CheckArray<string>(array2, new string[] { });
+        }
+
 
         [TestMethod]
         public void IndexTest()
         {
-            var buf = new FooProject.Collection.BigList<char>();
-            buf.AddRange("0123456789");
-            var result = buf.IndexOf('0');
-            Assert.AreEqual(0, result);
-            result = buf.IndexOf('a');
-            Assert.AreEqual(-1, result);
+            BigList<int> list = new BigList<int>(new int[] { 4, 8, 1, 1, 4, 9, 7, 11, 4, 9, 1, 7, 19, 1, 7 });
+            int index;
+
+            index = list.IndexOf(1);
+            Assert.AreEqual(2, index);
+
+            index = list.IndexOf(4);
+            Assert.AreEqual(0, index);
+
+            index = list.IndexOf(9);
+            Assert.AreEqual(5, index);
+
+            index = list.IndexOf(12);
+            Assert.AreEqual(-1, index);
+
+            list = new BigList<int>();
+            index = list.IndexOf(1);
+            Assert.AreEqual(-1, index);
         }
 
         [TestMethod]

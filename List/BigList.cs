@@ -45,6 +45,16 @@ namespace FooProject.Collection
         Node<T> root;
         LeafNodeEnumrator<T> leafNodeEnumrator = new LeafNodeEnumrator<T>();
 
+        public BigList()
+        {
+            root = null;
+        }
+
+        public BigList(IEnumerable<T> items) : this()
+        {
+            AddRange(items);
+        }
+
         struct LeastFetch
         {
             public Node<T> Node;
@@ -440,6 +450,26 @@ namespace FooProject.Collection
         public bool Contains(T item)
         {
             return (IndexOf(item) >= 0);
+        }
+
+        public BigList<T> GetRange(int index, int count)
+        {
+            if (count == 0)
+                return new BigList<T>();
+
+            if (index < 0 || index >= Count)
+                throw new ArgumentOutOfRangeException("index");
+            if (count < 0 || count > Count - index)
+                throw new ArgumentOutOfRangeException("count");
+
+            var newList = new BigList<T>();
+            int start = index;
+            int end = index + count - 1;
+            for(int i = start; i <= end; i++)
+            {
+                newList.Add(this[i]);
+            }
+            return newList;
         }
 
         public void CopyTo(T[] array, int arrayIndex)
