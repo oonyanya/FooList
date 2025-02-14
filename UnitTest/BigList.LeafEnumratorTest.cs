@@ -62,6 +62,52 @@ namespace UnitTest
             Assert.AreEqual(4, leafNodeEnumrator.LastNode.items[0]);
         }
 
+        private LeafNodeEnumrator<int> CreateList(int start,int end)
+        {
+            var leafNodeEnumrator = new LeafNodeEnumrator<int>();
+            for (int i = start; i <= end; i++)
+            {
+                var node = new LeafNode<int>(i);
+                leafNodeEnumrator.AddLast(node);
+            }
+            return leafNodeEnumrator;
+        }
+
+        private void AssertEuqaltyCollection(LeafNodeEnumrator<int> leafNodeEnumrator, int[] expect)
+        {
+            var node = leafNodeEnumrator.FirstNode;
+            for (int i = 0; i < expect.Length; i++)
+            {
+                Assert.AreEqual(expect[i], node.items[0]);
+                node = (LeafNode<int>)node.Next;
+            }
+        }
+
+        [TestMethod]
+        public void AddNext2()
+        {
+            var leafNodeEnumrator = CreateList(0,3);
+            var otherLeafNodeEnumrator = CreateList(4,7);
+            leafNodeEnumrator.AddNext(leafNodeEnumrator.LastNode, otherLeafNodeEnumrator);
+            AssertEuqaltyCollection(leafNodeEnumrator, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 });
+            Assert.AreEqual(0, leafNodeEnumrator.FirstNode.items[0]);
+            Assert.AreEqual(7, leafNodeEnumrator.LastNode.items[0]);
+
+            leafNodeEnumrator = CreateList(0, 3);
+            otherLeafNodeEnumrator = CreateList(4, 7);
+            leafNodeEnumrator.AddNext(leafNodeEnumrator.FirstNode, otherLeafNodeEnumrator);
+            AssertEuqaltyCollection(leafNodeEnumrator, new int[] { 0, 4, 5, 6, 7, 1, 2, 3 });
+            Assert.AreEqual(0, leafNodeEnumrator.FirstNode.items[0]);
+            Assert.AreEqual(3, leafNodeEnumrator.LastNode.items[0]);
+
+            leafNodeEnumrator = CreateList(0, 3);
+            otherLeafNodeEnumrator = CreateList(4, 7);
+            leafNodeEnumrator.AddNext((LeafNode<int>)leafNodeEnumrator.FirstNode.Next, otherLeafNodeEnumrator);
+            AssertEuqaltyCollection(leafNodeEnumrator, new int[] { 0, 1, 4, 5, 6, 7, 2, 3 });
+            Assert.AreEqual(0, leafNodeEnumrator.FirstNode.items[0]);
+            Assert.AreEqual(3, leafNodeEnumrator.LastNode.items[0]);
+        }
+
         [TestMethod]
         public void AddBefore()
         {
@@ -94,6 +140,32 @@ namespace UnitTest
             node = (LeafNode<int>)node.Next;
 
             Assert.AreEqual(4, leafNodeEnumrator.LastNode.items[0]);
+        }
+
+        [TestMethod]
+        public void AddBefore2()
+        {
+            var leafNodeEnumrator = CreateList(0, 3);
+            var otherLeafNodeEnumrator = CreateList(4, 7);
+            leafNodeEnumrator.AddBefore(leafNodeEnumrator.LastNode, otherLeafNodeEnumrator);
+            AssertEuqaltyCollection(leafNodeEnumrator, new int[] { 0, 1, 2, 4, 5, 6, 7, 3});
+            Assert.AreEqual(0, leafNodeEnumrator.FirstNode.items[0]);
+            Assert.AreEqual(3, leafNodeEnumrator.LastNode.items[0]);
+
+            leafNodeEnumrator = CreateList(0, 3);
+            otherLeafNodeEnumrator = CreateList(4, 7);
+            leafNodeEnumrator.AddBefore(leafNodeEnumrator.FirstNode, otherLeafNodeEnumrator);
+            AssertEuqaltyCollection(leafNodeEnumrator, new int[] { 4, 5, 6, 7, 0, 1, 2, 3 });
+            Assert.AreEqual(4, leafNodeEnumrator.FirstNode.items[0]);
+            Assert.AreEqual(3, leafNodeEnumrator.LastNode.items[0]);
+
+            leafNodeEnumrator = CreateList(0, 3);
+            otherLeafNodeEnumrator = CreateList(4, 7);
+            leafNodeEnumrator.AddBefore((LeafNode<int>)leafNodeEnumrator.FirstNode.Next, otherLeafNodeEnumrator);
+            AssertEuqaltyCollection(leafNodeEnumrator, new int[] { 0, 4, 5, 6, 7, 1, 2, 3 });
+            Assert.AreEqual(0, leafNodeEnumrator.FirstNode.items[0]);
+            Assert.AreEqual(3, leafNodeEnumrator.LastNode.items[0]);
+
         }
 
         [TestMethod]

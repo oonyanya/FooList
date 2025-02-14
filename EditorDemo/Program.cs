@@ -44,10 +44,27 @@ Console.WriteLine(String.Format("replace 3 time:{0} ms", sw.ElapsedMilliseconds)
 Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}" + "bytes");
 
 sw = Stopwatch.StartNew();
+//StreamWriter streamWriter = new StreamWriter("test.txt");
+StreamWriter streamWriter = new StreamWriter(Stream.Null);
+List<char> writeBuffer = new List<char>(4 * 1024 * 1024);
 foreach(var item in buf)
 {
-    var _ = item;
+    if(writeBuffer.Count < writeBuffer.Capacity)
+    {
+        writeBuffer.Add(item);
+    }
+    else
+    {
+        streamWriter.WriteLine(writeBuffer.ToArray());
+        writeBuffer.Clear();
+    }
 }
+if (writeBuffer.Count > 0)
+{
+    streamWriter.WriteLine(writeBuffer.ToArray());
+    writeBuffer.Clear();
+}
+streamWriter.Close();
 sw.Stop();
 Console.WriteLine(String.Format("enumratotion time:{0} ms", sw.ElapsedMilliseconds));
 Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}" + "bytes");
