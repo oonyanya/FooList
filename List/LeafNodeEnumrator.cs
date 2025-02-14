@@ -51,6 +51,50 @@ namespace FooProject.Collection
             AddNext(LastNode, newNode);
         }
 
+        public void AddNext(LeafNode<T> target,LeafNodeEnumrator<T> leafNodes)
+        {
+            if (leafNodes == null)
+                throw new ArgumentNullException("newNode");
+
+            if (target == null)
+            {
+                Debug.Assert(FirstNode == null && LastNode == null);
+                //どちらのnullの場合は何もないとする
+                FirstNode = leafNodes.FirstNode;
+                LastNode = leafNodes.LastNode;
+                return;
+            }
+
+            var nextNode = target.Next;
+
+            if (target.Next == null && target.Previous != null) //最後のノードかどうか
+            {
+                target.Next = leafNodes.FirstNode;
+                leafNodes.FirstNode.Previous = target;
+                LastNode = leafNodes.LastNode;
+            }
+            else if (target.Next != null && target.Previous != null)    //途中のノードかどうか
+            {
+                leafNodes.LastNode.Next = nextNode;
+                leafNodes.FirstNode.Previous = target;
+                target.Next = leafNodes.FirstNode;
+            }
+            else if (target.Next != null && target.Previous == null)    //最初のノードかどうか
+            {
+                leafNodes.LastNode.Next = nextNode;
+                leafNodes.FirstNode.Previous = target;
+                target.Next = leafNodes.FirstNode;
+            }
+            else
+            {
+                //ノードが一つしかない場合
+                Debug.Assert(FirstNode != null && LastNode != null);
+                target.Next = leafNodes.FirstNode;
+                leafNodes.FirstNode.Previous = target;
+                LastNode = leafNodes.LastNode;
+            }
+        }
+
         public void AddNext(LeafNode<T> target, LeafNode<T> newNode)
         {
             if (newNode == null)
@@ -95,6 +139,53 @@ namespace FooProject.Collection
                 target.Next = newNode;
                 newNode.Previous = target;
                 LastNode = newNode;
+            }
+        }
+
+        public void AddBefore(LeafNode<T> target, LeafNodeEnumrator<T> leafNodes)
+        {
+            if (leafNodes == null)
+                throw new ArgumentNullException("newNode");
+
+            if (target == null)
+            {
+                Debug.Assert(FirstNode == null && LastNode == null);
+                //どちらのnullの場合は何もないとする
+                FirstNode = leafNodes.FirstNode;
+                LastNode = leafNodes.LastNode;
+                return;
+            }
+
+            var nextNode = target.Next;
+            var previousNode = target.Previous;
+
+            if (target.Next == null && target.Previous != null) //最後のノードかどうか
+            {
+                leafNodes.LastNode.Next = target;
+                leafNodes.FirstNode.Previous = previousNode;
+                previousNode.Next = leafNodes.FirstNode;
+                target.Previous = leafNodes.LastNode;
+            }
+            else if (target.Next != null && target.Previous != null)    //途中のノードかどうか
+            {
+                leafNodes.LastNode.Next = target;
+                leafNodes.FirstNode.Previous = previousNode;
+                previousNode.Next = leafNodes.FirstNode;
+                target.Previous = leafNodes.LastNode;
+            }
+            else if (target.Next != null && target.Previous == null)    //最初のノードかどうか
+            {
+                leafNodes.LastNode.Next = target;
+                target.Previous = leafNodes.LastNode;
+                FirstNode = leafNodes.FirstNode;
+            }
+            else
+            {
+                //ノードが一つしかない場合
+                Debug.Assert(FirstNode != null && LastNode != null);
+                target.Previous = leafNodes.LastNode;
+                leafNodes.LastNode.Next = target;
+                FirstNode = leafNodes.FirstNode;
             }
         }
 
