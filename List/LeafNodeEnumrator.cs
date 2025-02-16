@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace FooProject.Collection
 {
 
-    public class LeafNodeEnumrator<T> : IEnumerable<Node<T>>
+    public class LeafNodeEnumrator<T> : IEnumerable<LeafNode<T>>
     {
         public LeafNode<T> FirstNode { get; set; }
         public LeafNode<T> LastNode { get; set; }
@@ -246,6 +246,10 @@ namespace FooProject.Collection
 
             var priviousNode = (LeafNode<T>)node.Previous;
             var nextNode = (LeafNode<T>)node.Next;
+
+            if (priviousNode == null && nextNode == null)
+                return;
+
             if (priviousNode != null && nextNode != null)
             {
                 priviousNode.Next = nextNode;
@@ -271,9 +275,9 @@ namespace FooProject.Collection
             LastNode = null;
         }
 
-        public IEnumerator<Node<T>> GetEnumerator()
+        public IEnumerator<LeafNode<T>> GetEnumerator()
         {
-            Node<T> node = FirstNode;
+            LeafNode<T> node = FirstNode;
             while (node != null)
             {
                 yield return node;
