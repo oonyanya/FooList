@@ -519,12 +519,37 @@ namespace FooProject.Collection
                 throw new ArgumentOutOfRangeException("count");
 
             var newList = new BigList<T>();
-            int start = index;
-            int end = index + count - 1;
-            for(int i = start; i <= end; i++)
+
+            int relativeIndex;
+            var node = (LeafNode<T>)IndexOfNode(index, out relativeIndex);
+            var items = node.items.Skip(relativeIndex).ToArray();
+            if(count > items.Length)
             {
-                newList.Add(this[i]);
+                newList.AddRange(items);
             }
+            else
+            {
+                newList.AddRange(items.Take(count));
+                return newList;
+            }
+
+            int leftCount = count - items.Length;
+            LeafNode<T> current = node.Next;
+            while (leftCount > 0 && current != null)
+            {
+                var currentItems  = current.items;
+                if(leftCount > currentItems.Count)
+                {
+                    newList.AddRange(currentItems);
+                }
+                else if(leftCount > 0)
+                {
+                    newList.AddRange(currentItems.Take(leftCount));
+                }
+                leftCount -= currentItems.Count;
+                current = current.Next;
+            }
+
             return newList;
         }
 
