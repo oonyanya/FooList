@@ -108,6 +108,107 @@ namespace UnitTest
         }
 
         [TestMethod]
+        public void PrependAll()
+        {
+            const int SIZE = 8000;
+            BigList<int> biglist1 = new BigList<int>();
+
+            int i = 1, j = 0;
+            while (i <= SIZE)
+            {
+                int[] array = new int[j];
+                for (int x = 0; x < j; ++x)
+                    array[j - x - 1] = i + x;
+                biglist1.AddRangeToFront(array);
+                /*
+                if (i % 13 <= 2)
+                    biglist1.Clone();
+                */
+                i += j;
+                j += 1;
+                if (j == 20)
+                    j = 0;
+            }
+            int size = i - 1;
+
+            Assert.AreEqual(size, biglist1.Count);
+
+            for (i = 1; i <= size; ++i)
+            {
+                Assert.AreEqual(i, biglist1[size - i]);
+            }
+
+            i = size;
+            foreach (int x in biglist1)
+                Assert.AreEqual(i--, x);
+
+            BigList<int> biglist2 = new BigList<int>(biglist1);
+
+            for (i = 1; i <= size; ++i)
+            {
+                Assert.AreEqual(i, biglist1[size - i]);
+            }
+
+            i = size;
+            foreach (int x in biglist2)
+                Assert.AreEqual(i--, x);
+        }
+
+        [TestMethod]
+        public void AppendBigList2()
+        {
+            const int SIZE = 8000;
+            BigList<int> biglist1 = new BigList<int>();
+
+            biglist1.Add(1);
+            biglist1.Add(2);
+            int i = 3, j = 11;
+            while (i <= SIZE)
+            {
+                int[] array = new int[j];
+                BigList<int> biglistOther = new BigList<int>();
+                for (int x = 0; x < j; ++x)
+                    biglistOther.AddToFront(i + (j - x - 1));
+                /*
+                if (j % 7 == 0)
+                    biglistOther.Clone();
+                */
+                biglist1.AddRange(biglistOther);
+                /*
+                if (i % 13 <= 2)
+                    biglist1.Clone();
+                */
+                i += j;
+                j += 1;
+                if (j == 20)
+                    j = 0;
+            }
+            int size = i - 1;
+
+            Assert.AreEqual(size, biglist1.Count);
+
+            for (i = 1; i <= size; ++i)
+            {
+                Assert.AreEqual(i, biglist1[i - 1]);
+            }
+
+            i = 1;
+            foreach (int x in biglist1)
+                Assert.AreEqual(i++, x);
+
+            BigList<int> biglist2 = new BigList<int>(biglist1);
+
+            for (i = 1; i <= size; ++i)
+            {
+                Assert.AreEqual(i, biglist1[i - 1]);
+            }
+
+            i = 1;
+            foreach (int x in biglist2)
+                Assert.AreEqual(i++, x);
+        }
+
+        [TestMethod]
         public void AddRangeFrontTest()
         {
             const int SIZE = 8000;
@@ -262,6 +363,40 @@ namespace UnitTest
             {
                 Assert.AreEqual(expected[i], actual[i]);
             }
+        }
+
+        [TestMethod]
+        public void ConcatLeaf()
+        {
+            BigList<int> list1, list2, list3;
+            list1 = CreateList(0, 5);
+            list2 = CreateList(5, 7);
+            list3 = new BigList<int>();
+            list3.AddRange(list1);
+            list3.AddRange(list2);
+            list1[3] = -1;
+            list2[4] = -1;
+            for (int i = 0; i < list3.Count; ++i)
+                Assert.AreEqual(i, list3[i]);
+        }
+
+        [TestMethod]
+        public void PrependLeaf()
+        {
+            BigList<int> list1, list2, list3;
+
+            list1 = new BigList<int>();
+            for (int i = 2; i < 50; ++i)
+                list1.Add(i);
+            list1.AddToFront(1);
+            list1.AddToFront(0);
+            list3 = new BigList<int>();
+            list3.AddRange(list1);
+            list2 = CreateList(0, 2);
+            list1.AddRangeToFront(list2);
+            list1[17] = -1;
+            for (int i = 0; i < 50; ++i)
+                Assert.AreEqual(i, list3[i]);
         }
 
         [TestMethod]
