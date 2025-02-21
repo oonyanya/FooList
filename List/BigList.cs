@@ -36,7 +36,7 @@ namespace FooProject.Collection
             1346269, 2178309, 3524578, 5702887, 9227465, 14930352, 24157817, 39088169, 63245986,
             102334155, 165580141, 267914296, 433494437, 701408733, 1134903170, 1836311903, int.MaxValue};
         internal const int MAXFIB = 44;  // maximum index in the above, not counting the final MaxValue.
-#if DEBUG
+#if DEBUG_COLLECTION
         internal static int MAXLEAF = 8;
 #else
         internal static int MAXLEAF = 128;
