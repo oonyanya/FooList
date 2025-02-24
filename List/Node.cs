@@ -41,12 +41,6 @@ namespace FooProject.Collection
             return (Depth == 0 || (Depth - 1 <= BigList<T>.MAXFIB && Count >= BigList<T>.FIBONACCI[Depth - 1]));
         }
 
-        public abstract T GetAt(int index, LeafNodeEnumrator<T> leafNodeEnumrator);
-
-        public abstract Node<T> SetAtInPlace(int index, T item, LeafNodeEnumrator<T> leafNodeEnumrator);
-
-        public abstract Node<T> Subrange(int first, int last, LeafNodeEnumrator<T> leafNodeEnumrator);
-
         public abstract Node<T> PrependInPlace(Node<T> node, LeafNodeEnumrator<T> leafNodeEnumrator, LeafNodeEnumrator<T> nodeBelongLeafNodeEnumrator);
 
         public abstract Node<T> PrependInPlace(T item, LeafNodeEnumrator<T> leafNodeEnumrator);
@@ -157,11 +151,6 @@ namespace FooProject.Collection
                 leafNodeEnumrator.AddNext(BigList<T>.GetMostRightNode(this), nodeBelongLeafNodeEnumrator);
             }
             return new ConcatNode<T>(this, node);
-        }
-
-        public override T GetAt(int index, LeafNodeEnumrator<T> leafNodeEnumrator)
-        {
-            return items[index];
         }
 
         public override Node<T> InsertInPlace(int index, T item, LeafNodeEnumrator<T> leafNodeEnumrator)
@@ -289,25 +278,6 @@ namespace FooProject.Collection
             return this;
         }
 
-        public override Node<T> SetAtInPlace(int index, T item, LeafNodeEnumrator<T> leafNodeEnumrator)
-        {
-            items[index] = item;
-            return this;
-        }
-
-        public override Node<T> Subrange(int first, int last, LeafNodeEnumrator<T> leafNodeEnumrator)
-        {
-            Debug.Assert(first <= last);
-            Debug.Assert(last >= 0);
-            if (first < 0)
-                first = 0;
-            if (last >= Count)
-                last = Count - 1;
-            int n = last - first + 1;
-            FixedList<T> newItems = new FixedList<T>(BigList<T>.MAXLEAF);
-            newItems.AddRange(items.Skip(first).Take(n));
-            return new LeafNode<T>(n, newItems);
-        }
     }
 
     public class ConcatNode<T> : Node<T>
@@ -397,15 +367,6 @@ namespace FooProject.Collection
             }
         }
 
-        public override T GetAt(int index, LeafNodeEnumrator<T> leafNodeEnumrator)
-        {
-            int leftCount = Left.Count;
-            if (index < leftCount)
-                return Left.GetAt(index, leafNodeEnumrator);
-            else
-                return Right.GetAt(index - leftCount, leafNodeEnumrator);
-        }
-
         public override Node<T> InsertInPlace(int index, T item, LeafNodeEnumrator<T> leafNodeEnumrator)
         {
             int leftCount = Left.Count;
@@ -470,49 +431,5 @@ namespace FooProject.Collection
             return NewNodeInPlace(newLeft, newRight);
         }
 
-        public override Node<T> SetAtInPlace(int index, T item, LeafNodeEnumrator<T> leafNodeEnumrator)
-        {
-            int leftCount = Left.Count;
-
-            if (index < leftCount)
-            {
-                return Left.SetAtInPlace(index, item, leafNodeEnumrator);
-            }
-            else
-            {
-                return Right.SetAtInPlace(index - leftCount, item, leafNodeEnumrator);
-            }
-        }
-
-        public override Node<T> Subrange(int first, int last, LeafNodeEnumrator<T> leafNodeEnumrator)
-        {
-            Debug.Assert(first < Count);
-            Debug.Assert(last >= 0);
-
-            if (first <= 0 && last >= Count - 1)
-            {
-                return new ConcatNode<T>(this);
-            }
-
-            int leftCount = Left.Count;
-            Node<T> leftPart = null, rightPart = null;
-
-            // Is part of the left included?
-            if (first < leftCount)
-                leftPart = Left.Subrange(first, last, leafNodeEnumrator);
-            // Is part of the right included?
-            if (last >= leftCount)
-                rightPart = Right.Subrange(first - leftCount, last - leftCount, leafNodeEnumrator);
-
-            Debug.Assert(leftPart != null || rightPart != null);
-
-            // Combine the left parts and the right parts.
-            if (leftPart == null)
-                return rightPart;
-            else if (rightPart == null)
-                return leftPart;
-            else
-                return new ConcatNode<T>(leftPart, rightPart);
-        }
     }
 }
