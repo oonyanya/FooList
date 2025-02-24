@@ -39,7 +39,7 @@ namespace FooProject.Collection
 #if DEBUG_COLLECTION
         internal static int MAXLEAF = 8;
 #else
-        internal static int MAXLEAF = 128;
+        internal static int MAXLEAF = 392;
 #endif
         internal const int BALANCEFACTOR = 6;      // how far the root must be in depth from fully balanced to invoke the rebalance operation (min 3).
         Node<T> root;
