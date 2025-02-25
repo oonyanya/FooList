@@ -97,6 +97,18 @@ namespace FooProject.Collection
                 return new ConcatNode<T>(this, newLeafNode);
             }
         }
+        private bool MergeBeforeLeafInPlace(Node<T> other)
+        {
+            LeafNode<T> otherLeaf = (other as LeafNode<T>);
+            int newCount;
+            if (otherLeaf != null && (newCount = otherLeaf.Count + this.Count) <= BigList<T>.MAXLEAF)
+            {
+                items.InsertRange(0, otherLeaf.items);
+                Count = newCount;
+                return true;
+            }
+            return false;
+        }
         private bool MergeLeafInPlace(Node<T> other)
         {
             LeafNode<T> otherLeaf = (other as LeafNode<T>);
@@ -112,6 +124,15 @@ namespace FooProject.Collection
 
         public override Node<T> PrependInPlace(Node<T> node, LeafNodeEnumrator<T> leafNodeEnumrator, LeafNodeEnumrator<T> nodeBelongLeafNodeEnumrator)
         {
+            if (nodeBelongLeafNodeEnumrator != null)
+            {
+                if (MergeBeforeLeafInPlace(node))
+                {
+                    nodeBelongLeafNodeEnumrator.Remove((LeafNode<T>)node);
+                    return this;
+                }
+            }
+
             if (leafNodeEnumrator != null)
             {
                 if (nodeBelongLeafNodeEnumrator == null)
