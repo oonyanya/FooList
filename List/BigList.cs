@@ -508,47 +508,58 @@ namespace FooProject.Collection
             return (IndexOf(item) >= 0);
         }
 
-        public BigList<T> GetRange(int index, int count)
+        public IEnumerable<T> GetRangeEnumerable(int index, int count)
         {
             if (count == 0)
-                return new BigList<T>();
+                yield break;
 
             if (index < 0 || index >= Count)
                 throw new ArgumentOutOfRangeException("index");
             if (count < 0 || count > Count - index)
                 throw new ArgumentOutOfRangeException("count");
 
-            var newList = new BigList<T>();
-
             int relativeIndex;
             var node = (LeafNode<T>)IndexOfNode(index, out relativeIndex);
             var items = node.items.Skip(relativeIndex).ToArray();
-            if(count > items.Length)
+            if (count > items.Length)
             {
-                newList.AddRange(items);
+                foreach (var item in items)
+                    yield return item;
             }
             else
             {
-                newList.AddRange(items.Take(count));
-                return newList;
+                foreach (var item in items.Take(count))
+                    yield return item;
+                yield break;
             }
 
             int leftCount = count - items.Length;
             LeafNode<T> current = node.Next;
             while (leftCount > 0 && current != null)
             {
-                var currentItems  = current.items;
-                if(leftCount > currentItems.Count)
+                var currentItems = current.items;
+                if (leftCount > currentItems.Count)
                 {
-                    newList.AddRange(currentItems);
+                    foreach (var item in currentItems)
+                        yield return item;
                 }
-                else if(leftCount > 0)
+                else if (leftCount > 0)
                 {
-                    newList.AddRange(currentItems.Take(leftCount));
+                    foreach (var item in currentItems.Take(leftCount))
+                        yield return item;
                 }
                 leftCount -= currentItems.Count;
                 current = current.Next;
             }
+        }
+
+        public BigList<T> GetRange(int index, int count)
+        {
+            if (count == 0)
+                return new BigList<T>();
+
+            var newList = new BigList<T>();
+            newList.AddRange(GetRangeEnumerable(index, count));
 
             return newList;
         }
