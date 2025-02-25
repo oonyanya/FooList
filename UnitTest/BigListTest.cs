@@ -19,6 +19,165 @@ namespace UnitTest
         }
 
         [TestMethod]
+        public void GetRangeEnumerable()
+        {
+            BigList<int> list1, list2, list3;
+            IEnumerable<int> list4, list5;
+            list1 = new BigList<int>();
+
+            list2 = list1.GetRange(4, 0);  // 0 length range permitted anywhere.
+            Assert.AreEqual(0, list2.Count);
+
+            list3 = new BigList<int>(new int[] { 1, 2, 3, 4, 5 });
+            list4 = list3.GetRange(2, 3);
+            InterfaceTests.TestEnumerableElements(list4, new int[] { 3, 4, 5 });
+            list5 = list3.GetRange(0, 3);
+            InterfaceTests.TestEnumerableElements(list5, new int[] { 1, 2, 3 });
+        }
+
+        [TestMethod]
+        public void GetRange()
+        {
+            BigList<int> list1, list2, list3, list4, list5;
+            list1 = new BigList<int>();
+
+            list2 = list1.GetRange(4, 0);  // 0 length range permitted anywhere.
+            Assert.AreEqual(0, list2.Count);
+
+            list3 = new BigList<int>(new int[] { 1, 2, 3, 4, 5 });
+            list4 = list3.GetRange(2, 3);
+            InterfaceTests.TestEnumerableElements(list4, new int[] { 3, 4, 5 });
+            list5 = list3.GetRange(0, 3);
+            InterfaceTests.TestEnumerableElements(list5, new int[] { 1, 2, 3 });
+            list3[3] = 7;
+            list4[1] = 2;
+            list5[2] = 9;
+            InterfaceTests.TestEnumerableElements(list4, new int[] { 3, 2, 5 });
+            InterfaceTests.TestEnumerableElements(list5, new int[] { 1, 2, 9 });
+
+            list1 = CreateList(0, 132);
+            list2 = list1.GetRange(27, 53);
+            for (int i = 0; i < 53; ++i)
+                Assert.AreEqual(27 + i, list2[i]);
+            int y = 27;
+            foreach (int x in list2)
+                Assert.AreEqual(y++, x);
+
+            list3 = list2.GetRange(4, 27);
+            for (int i = 0; i < 27; ++i)
+                Assert.AreEqual(31 + i, list3[i]);
+            y = 31;
+            foreach (int x in list3)
+                Assert.AreEqual(y++, x);
+        }
+
+        [TestMethod]
+        public void GetRangeExceptions()
+        {
+            BigList<int> list1 = CreateList(0, 100);
+
+            try
+            {
+                list1.GetRange(3, 98);
+                Assert.Fail("should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+                Assert.AreEqual("count", ((ArgumentOutOfRangeException)e).ParamName);
+            }
+
+            try
+            {
+                list1.GetRange(-1, 1);
+                Assert.Fail("should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+                Assert.AreEqual("index", ((ArgumentOutOfRangeException)e).ParamName);
+            }
+
+            try
+            {
+                list1.GetRange(0, int.MaxValue);
+                Assert.Fail("should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+                Assert.AreEqual("count", ((ArgumentOutOfRangeException)e).ParamName);
+            }
+
+            try
+            {
+                list1.GetRange(1, int.MinValue);
+                Assert.Fail("should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+                Assert.AreEqual("count", ((ArgumentOutOfRangeException)e).ParamName);
+            }
+
+            try
+            {
+                list1.GetRange(45, int.MinValue);
+                Assert.Fail("should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+                Assert.AreEqual("count", ((ArgumentOutOfRangeException)e).ParamName);
+            }
+
+            try
+            {
+                list1.GetRange(0, 101);
+                Assert.Fail("should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+                Assert.AreEqual("count", ((ArgumentOutOfRangeException)e).ParamName);
+            }
+
+            try
+            {
+                list1.GetRange(100, 1);
+                Assert.Fail("should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+                Assert.AreEqual("index", ((ArgumentOutOfRangeException)e).ParamName);
+            }
+
+            try
+            {
+                list1.GetRange(int.MinValue, 1);
+                Assert.Fail("should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+                Assert.AreEqual("index", ((ArgumentOutOfRangeException)e).ParamName);
+            }
+
+            try
+            {
+                list1.GetRange(int.MaxValue, 1);
+                Assert.Fail("should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+                Assert.AreEqual("index", ((ArgumentOutOfRangeException)e).ParamName);
+            }
+
+        }
+
+        [TestMethod]
         public void Indexer()
         {
             BigList<int> list1, list2, list3;
@@ -105,6 +264,120 @@ namespace UnitTest
             Assert.AreEqual(1, list1[0]);
             Assert.AreEqual(4, list1[1]);
             Assert.AreEqual(3, list1[2]);
+        }
+
+        [TestMethod]
+        public void IndexerExceptions()
+        {
+            BigList<int> list1;
+            int x;
+
+            list1 = new BigList<int>();
+            try
+            {
+                list1[0] = 1;
+                Assert.Fail("should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+            }
+
+            try
+            {
+                x = list1[0];
+                Assert.Fail("should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+            }
+
+            list1 = new BigList<int>(new int[] { 1, 2, 3 });
+
+            list1 = new BigList<int>();
+            try
+            {
+                list1[-1] = 1;
+                Assert.Fail("should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+            }
+
+            try
+            {
+                x = list1[-1];
+                Assert.Fail("should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+            }
+
+            list1 = new BigList<int>();
+            try
+            {
+                list1[3] = 1;
+                Assert.Fail("should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+            }
+
+            try
+            {
+                x = list1[3];
+                Assert.Fail("should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+            }
+
+            list1 = new BigList<int>();
+            try
+            {
+                list1[int.MaxValue] = 1;
+                Assert.Fail("should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+            }
+
+            try
+            {
+                x = list1[int.MaxValue];
+                Assert.Fail("should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+            }
+
+            list1 = new BigList<int>();
+            try
+            {
+                list1[int.MinValue] = 1;
+                Assert.Fail("should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+            }
+
+            try
+            {
+                x = list1[int.MinValue];
+                Assert.Fail("should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+            }
         }
 
         [TestMethod]
@@ -496,6 +769,74 @@ namespace UnitTest
         }
 
         [TestMethod]
+        public void InsertExceptions()
+        {
+            BigList<int> list1, list2;
+            list1 = CreateList(0, 10);
+            list2 = CreateList(4, 5);
+
+            try
+            {
+                list1.Insert(-1, 5);
+                Assert.Fail("should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+            }
+
+            try
+            {
+                list1.Insert(11, 5);
+                Assert.Fail("should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+            }
+
+            try
+            {
+                list1.InsertRange(-1, list2);
+                Assert.Fail("should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+            }
+
+            try
+            {
+                list1.InsertRange(11, list2);
+                Assert.Fail("should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+            }
+
+            try
+            {
+                list1.InsertRange(-1, new int[] { 3, 4, 5 });
+                Assert.Fail("should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+            }
+
+            try
+            {
+                list1.InsertRange(11, new int[] { 3, 4, 5 });
+                Assert.Fail("should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+            }
+        }
+
+        [TestMethod]
         public void InserRangetTest()
         {
             BigList<int> list2;
@@ -571,6 +912,111 @@ namespace UnitTest
                 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124,
                 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147, 148, 149, 187, 188, 189,
                 190, 191, 192, 193, 194, 195, 196, 197, 198 });
+        }
+
+        [TestMethod]
+        public void RemoveRangeExceptions()
+        {
+            BigList<int> list1 = CreateList(0, 100);
+
+            try
+            {
+                list1.RemoveRange(3, 98);
+                Assert.Fail("should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+                Assert.AreEqual("count", ((ArgumentOutOfRangeException)e).ParamName);
+            }
+
+            try
+            {
+                list1.RemoveRange(-1, 1);
+                Assert.Fail("should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+                Assert.AreEqual("index", ((ArgumentOutOfRangeException)e).ParamName);
+            }
+
+            try
+            {
+                list1.RemoveRange(0, int.MaxValue);
+                Assert.Fail("should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+                Assert.AreEqual("count", ((ArgumentOutOfRangeException)e).ParamName);
+            }
+
+            try
+            {
+                list1.RemoveRange(1, int.MinValue);
+                Assert.Fail("should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+                Assert.AreEqual("count", ((ArgumentOutOfRangeException)e).ParamName);
+            }
+
+            try
+            {
+                list1.RemoveRange(45, int.MinValue);
+                Assert.Fail("should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+                Assert.AreEqual("count", ((ArgumentOutOfRangeException)e).ParamName);
+            }
+
+            try
+            {
+                list1.RemoveRange(0, 101);
+                Assert.Fail("should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+                Assert.AreEqual("count", ((ArgumentOutOfRangeException)e).ParamName);
+            }
+
+            try
+            {
+                list1.RemoveRange(100, 1);
+                Assert.Fail("should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+                Assert.AreEqual("index", ((ArgumentOutOfRangeException)e).ParamName);
+            }
+
+            try
+            {
+                list1.RemoveRange(int.MinValue, 1);
+                Assert.Fail("should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+                Assert.AreEqual("index", ((ArgumentOutOfRangeException)e).ParamName);
+            }
+
+            try
+            {
+                list1.RemoveRange(int.MaxValue, 1);
+                Assert.Fail("should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+                Assert.AreEqual("index", ((ArgumentOutOfRangeException)e).ParamName);
+            }
         }
 
         BigList<int> CreateList(int start, int length)
