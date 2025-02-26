@@ -1,5 +1,6 @@
 ﻿using FooProject.Collection;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -117,6 +118,25 @@ namespace UnitTest
             list.AddRange("1234");
             list.RemoveRange(1, 3);
             Assert.AreEqual("1", string.Concat(list));
+        }
+
+        [TestMethod]
+        public void GrowTest()
+        {
+            var list = new FixedList<char>(4, 10);
+            list.AddRange("1234");
+            list.AddRange("1234");
+            Assert.IsTrue(list.Count == 8);
+            Assert.AreEqual("12341234", string.Concat(list));
+            try
+            {
+                list.AddRange("1234");
+                Assert.Fail("should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is InvalidOperationException);
+            }
         }
     }
 }

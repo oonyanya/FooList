@@ -17,9 +17,18 @@ namespace FooProject.Collection
         T[] items;
         int size;
 
-        public FixedList(int capacity = 4)
+        public FixedList() : this(4)
+        {
+        }
+
+        public FixedList(int capacity) : this(capacity, capacity) 
         { 
-            items = new T[capacity];
+        }
+
+        public FixedList(int init_capacity = 4,int limit_capacity = int.MaxValue - 1)
+        {
+            items = new T[init_capacity];
+            MaxCapacity = limit_capacity;
         }
 
         public T this[int i] { get { return items[i]; } set { items[i] = value; } }
@@ -28,15 +37,37 @@ namespace FooProject.Collection
 
         public bool IsReadOnly => false;
 
+        public int MaxCapacity { get; private set; }
+
+        private void Grow(int require)
+        {
+            if (require < items.Length)
+                return;
+            if (require > MaxCapacity)
+                throw new InvalidOperationException("max capacity over");
+            int newSize = require * 2;
+            if(newSize > MaxCapacity)
+                newSize = MaxCapacity;
+            var newItems = new T[newSize];
+            Array.Copy(items, newItems,  size);
+            items = newItems;
+        }
+
         public void Add(T item)
         {
             if (size >= items.Length)
                 throw new InvalidOperationException("capacity over");
+            this.Grow(size + 1);
             items[size++] = item;
         }
 
         public void AddRange(IEnumerable<T> collection)
         {
+            int collection_count;
+            if (!collection.TryGetNonEnumeratedCount(out collection_count))
+                collection_count = collection.Count();
+            Grow(size + collection_count);
+
             foreach(var item in collection)
                 Add(item);
         }
@@ -48,22 +79,18 @@ namespace FooProject.Collection
 
         public void InsertRange(int index, ICollection<T> collection)
         {
-            int collection_length = collection.Count;
-            if (size + collection_length > items.Length)
-            {
-                throw new InvalidOperationException("capacity over");
-            }
-            else
-            {
-                Array.Copy(items, index, items, index + collection.Count, size - index);
-            }
+            int collection_count;
+            if (!collection.TryGetNonEnumeratedCount(out collection_count))
+                collection_count = collection.Count();
+            Grow(size + collection_count);
+            Array.Copy(items, index, items, index + collection_count, size - index);
 
             int i = index;
             foreach (var item in collection)
             {
                 items[i++] = item;
             }
-            size += collection_length;
+            size += collection_count;
         }
 
         public void RemoveAt(int index)
