@@ -21,7 +21,7 @@ namespace FooProject.Collection
         {
         }
 
-        public FixedList(int capacity) : this(capacity, capacity) 
+        public FixedList(int limit_capacity) : this(4, limit_capacity) 
         { 
         }
 
