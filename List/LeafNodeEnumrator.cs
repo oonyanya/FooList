@@ -44,6 +44,8 @@ namespace FooProject.Collection
                 priviousNode.Next = replacementNode;
                 LastNode = replacementNode;
             }
+            target.Next = null;
+            target.Previous = null;
         }
 
         public void AddLast(LeafNode<T> newNode)

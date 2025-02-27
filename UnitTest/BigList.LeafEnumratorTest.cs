@@ -216,23 +216,31 @@ namespace UnitTest
 
             var newNode = new LeafNode<int>(5);
             leafNodeEnumrator.Replace(node2,newNode);
-            Assert.IsNotNull(node2.Next);
-            Assert.IsNotNull(node2.Previous);
+            Assert.IsNotNull(newNode.Next);
+            Assert.IsNotNull(newNode.Previous);
+            Assert.IsNull(node2.Next);
+            Assert.IsNull(node2.Previous);
 
             newNode = new LeafNode<int>(5);
             leafNodeEnumrator.Replace(node1, newNode);
-            Assert.IsNotNull(node1.Next);
+            Assert.IsNotNull(newNode.Next);
+            Assert.IsNull(newNode.Previous);
+            Assert.IsNull(node1.Next);
             Assert.IsNull(node1.Previous);
 
             newNode = new LeafNode<int>(5);
             leafNodeEnumrator.Replace(node4, newNode);
-            Assert.IsNotNull(node4.Previous);
+            Assert.IsNotNull(newNode.Previous);
+            Assert.IsNull(newNode.Next);
             Assert.IsNull(node4.Next);
+            Assert.IsNull(node4.Previous);
 
             newNode = new LeafNode<int>(5);
             leafNodeEnumrator.Replace(node3, newNode);
-            Assert.IsNotNull(node3.Previous);
-            Assert.IsNotNull(node3.Next);
+            Assert.IsNotNull(newNode.Previous);
+            Assert.IsNotNull(newNode.Next);
+            Assert.IsNull(node3.Next);
+            Assert.IsNull(node3.Previous);
 
             var node = leafNodeEnumrator.FirstNode;
             while (node != null)
