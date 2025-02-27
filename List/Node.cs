@@ -201,13 +201,15 @@ namespace FooProject.Collection
                 else
                 {
                     // Split into two nodes, and put the new item at the end of the first.
-                    FixedList<T> leftItems = new FixedList<T>(BigList<T>.MAXLEAF);
+                    int leftItemCount = index + 1;
+                    FixedList<T> leftItems = new FixedList<T>(leftItemCount, BigList<T>.MAXLEAF);
                     leftItems.AddRange(items.Take(index));
                     leftItems.Add(item);
                     LeafNode<T> leftNode = new LeafNode<T>(index + 1, leftItems);
                     leafNodeEnumrator.Replace(this, leftNode);
 
-                    FixedList<T> rightItems = new FixedList<T>(BigList<T>.MAXLEAF);
+                    int rightItemCount = items.Count - index;
+                    FixedList<T> rightItems = new FixedList<T>(rightItemCount,BigList<T>.MAXLEAF);
                     rightItems.AddRange(items.Skip(index));
                     LeafNode<T> rightNode = new LeafNode<T>(Count - index, rightItems);
                     leafNodeEnumrator.AddNext(leftNode, rightNode);
@@ -243,12 +245,14 @@ namespace FooProject.Collection
             {
                 // Split existing node into two nodes at the insertion point, then concat all three nodes together.
 
-                FixedList<T> leftItems = new FixedList<T>(BigList<T>.MAXLEAF);
+                int leftItemCount = index;
+                FixedList<T> leftItems = new FixedList<T>(leftItemCount,BigList<T>.MAXLEAF);
                 leftItems.AddRange(items.Take(index));
                 Node<T> leftNode = new LeafNode<T>(index, leftItems);
                 leafNodeEnumrator.Replace(this, (LeafNode<T>)leftNode);
 
-                FixedList<T> rightItems = new FixedList<T>(BigList<T>.MAXLEAF);
+                int rightItemCount = items.Count - index;
+                FixedList<T> rightItems = new FixedList<T>(rightItemCount, BigList<T>.MAXLEAF);
                 rightItems.AddRange(items.Skip(index));
                 Node<T> rightNode = new LeafNode<T>(Count - index, rightItems);
 

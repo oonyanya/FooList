@@ -17,6 +17,13 @@ namespace FooProject.Collection
         T[] items;
         int size;
 
+        //いまの.NETだと512からメンバーと仮想関数テーブルのバイト数を引いたぐらいまではメモリー使用量が大差ないっぽい
+#if DEBUG
+        internal const int INIT_CAPACITY = 4;
+#else
+        internal const int INIT_CAPACITY = 392;
+#endif
+
         public FixedList() : this(4)
         {
         }
@@ -27,7 +34,10 @@ namespace FooProject.Collection
 
         public FixedList(int init_capacity = 4,int limit_capacity = int.MaxValue - 1)
         {
-            items = new T[init_capacity];
+            if(init_capacity < INIT_CAPACITY)
+                items = new T[INIT_CAPACITY];
+            else
+                items = new T[init_capacity];
             MaxCapacity = limit_capacity;
         }
 

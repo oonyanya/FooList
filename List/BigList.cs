@@ -387,7 +387,7 @@ namespace FooProject.Collection
             ResetFetchCache();
         }
 
-        private static LeafNode<T> LeafFromEnumerator(IEnumerator<T> enumerator)
+        private static LeafNode<T> LeafFromEnumerator(IEnumerator<T> enumerator,int collection_count)
         {
             int i = 0;
             FixedList<T> items = null;
@@ -395,7 +395,12 @@ namespace FooProject.Collection
             while (i < MAXLEAF && enumerator.MoveNext())
             {
                 if (i == 0)
-                    items = new FixedList<T>(MAXLEAF);
+                {
+                    if(collection_count < MAXLEAF)
+                        items = new FixedList<T>(collection_count, MAXLEAF);
+                    else
+                        items = new FixedList<T>(MAXLEAF, MAXLEAF);
+                }
 
                 if (items != null)
                 {
@@ -416,7 +421,13 @@ namespace FooProject.Collection
             LeafNode<T> leaf;
             IEnumerator<T> enumerator = collection.GetEnumerator();
 
-            while ((leaf = LeafFromEnumerator(enumerator)) != null)
+            int collection_count;
+            if(collection.TryGetNonEnumeratedCount(out collection_count) == false)
+            {
+                collection_count = collection.Count();
+            }
+
+            while ((leaf = LeafFromEnumerator(enumerator, collection_count)) != null)
             {
                 leafNodeEnumrator.AddLast(leaf);
                 if (node == null)
