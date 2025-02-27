@@ -228,7 +228,7 @@ namespace FooProject.Collection
             else if (target.Next != null && target.Previous == null)    //最初のノードかどうか
             {
                 newNode.Next = target;
-                target.Previous = previousNode;
+                target.Previous = newNode;
                 FirstNode = newNode;
             }
             else
