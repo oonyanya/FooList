@@ -20,12 +20,7 @@ namespace UnitTest
             foreach (var number in numberList)
                 leafNodeEnumrator.AddLast(new LeafNode<int>(number));
 
-            var node = leafNodeEnumrator.FirstNode;
-            foreach(var number in numberList)
-            {
-                Assert.AreEqual(number, node.items[0]);
-                node = (LeafNode<int>)node.Next;
-            }
+            AssertEuqaltyCollection(leafNodeEnumrator, numberList.ToArray());
         }
 
         [TestMethod]
@@ -45,19 +40,8 @@ namespace UnitTest
             var node4 = new LeafNode<int>(3);
             leafNodeEnumrator.AddNext(node3, node4);
 
-            var node = leafNodeEnumrator.FirstNode;
-
-            Assert.AreEqual(1, node.items[0]);
-            node = (LeafNode<int>)node.Next;
-
-            Assert.AreEqual(2, node.items[0]);
-            node = (LeafNode<int>)node.Next;
-
-            Assert.AreEqual(3, node.items[0]);
-            node = (LeafNode<int>)node.Next;
-
-            Assert.AreEqual(4, node.items[0]);
-            node = (LeafNode<int>)node.Next;
+            var expectNumberList = new List<int>() { 1, 2, 3, 4 };
+            AssertEuqaltyCollection(leafNodeEnumrator, expectNumberList.ToArray());
 
             Assert.AreEqual(4, leafNodeEnumrator.LastNode.items[0]);
         }
@@ -125,19 +109,8 @@ namespace UnitTest
             var node4 = new LeafNode<int>(2);
             leafNodeEnumrator.AddBefore(node3, node4);
 
-            var node = leafNodeEnumrator.FirstNode;
-
-            Assert.AreEqual(1, node.items[0]);
-            node = (LeafNode<int>)node.Next;
-
-            Assert.AreEqual(2, node.items[0]);
-            node = (LeafNode<int>)node.Next;
-
-            Assert.AreEqual(3, node.items[0]);
-            node = (LeafNode<int>)node.Next;
-
-            Assert.AreEqual(4, node.items[0]);
-            node = (LeafNode<int>)node.Next;
+            var expectNumberList = new List<int>() { 1, 2, 3, 4 };
+            AssertEuqaltyCollection(leafNodeEnumrator, expectNumberList.ToArray());
 
             Assert.AreEqual(4, leafNodeEnumrator.LastNode.items[0]);
         }
