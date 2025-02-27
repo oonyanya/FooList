@@ -27,7 +27,7 @@ namespace FooProject.Collection
     /// BigList is for only single thread.
     /// </remarks>
     /// <typeparam name="T">The item type of the collection.</typeparam>
-    public class BigList<T> : IList<T>
+    public class BigList<T> : IList<T>, IReadOnlyList<T>,IReadOnlyCollection<T>
     {
         const uint MAXITEMS = int.MaxValue - 1;    // maximum number of items in a BigList.
         // The fibonacci numbers. Used in the rebalancing algorithm. Final MaxValue makes sure we don't go off the end.
