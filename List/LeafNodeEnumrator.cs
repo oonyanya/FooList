@@ -78,12 +78,14 @@ namespace FooProject.Collection
             else if (target.Next != null && target.Previous != null)    //途中のノードかどうか
             {
                 leafNodes.LastNode.Next = nextNode;
+                nextNode.Previous = leafNodes.LastNode;
                 leafNodes.FirstNode.Previous = target;
                 target.Next = leafNodes.FirstNode;
             }
             else if (target.Next != null && target.Previous == null)    //最初のノードかどうか
             {
                 leafNodes.LastNode.Next = nextNode;
+                nextNode.Previous = leafNodes.LastNode;
                 leafNodes.FirstNode.Previous = target;
                 target.Next = leafNodes.FirstNode;
             }
@@ -126,6 +128,7 @@ namespace FooProject.Collection
             {
                 newNode.Next = nextNode;
                 newNode.Previous = target;
+                nextNode.Previous = newNode;
                 target.Next = newNode;
             }
             else if (target.Next != null && target.Previous == null)    //最初のノードかどうか
