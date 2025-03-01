@@ -137,6 +137,35 @@ namespace UnitTest
             {
                 Assert.IsTrue(e is InvalidOperationException);
             }
+
+            try
+            {
+                list.AddRange("12");
+            }
+            catch (Exception e)
+            {
+                Assert.Fail("should not throw");
+            }
+
+            try
+            {
+                list.InsertRange(0,"1234");
+                Assert.Fail("should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is InvalidOperationException);
+            }
+
+            try
+            {
+                list.RemoveRange(0, 2);
+                list.InsertRange(0, "12");
+            }
+            catch (Exception e)
+            {
+                Assert.Fail("should not throw");
+            }
         }
     }
 }
