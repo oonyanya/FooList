@@ -36,6 +36,7 @@ namespace FooProject.Collection
             1346269, 2178309, 3524578, 5702887, 9227465, 14930352, 24157817, 39088169, 63245986,
             102334155, 165580141, 267914296, 433494437, 701408733, 1134903170, 1836311903, int.MaxValue};
         internal const int MAXFIB = 44;  // maximum index in the above, not counting the final MaxValue.
+        // default block size
 #if DEBUG
         internal static int MAXLEAF = 8;
 #else
@@ -53,6 +54,25 @@ namespace FooProject.Collection
         public BigList(IEnumerable<T> items) : this()
         {
             AddRange(items);
+        }
+
+        /// <summary>
+        /// get or set block size
+        /// </summary>
+        /// <remarks>
+        /// It represent block size in each leaf. If you change value, all data is deleted.
+        /// </remarks>
+        public int BlockSize
+        {
+            get
+            {
+                return MAXLEAF;
+            }
+            set
+            {
+                MAXLEAF = value;
+                Clear();
+            }
         }
 
         struct LeastFetch
