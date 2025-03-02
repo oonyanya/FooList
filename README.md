@@ -6,4 +6,4 @@ https://github.com/timdetering/Wintellect.PowerCollections
 
 ## ライセンス
 MITライセンスに従ってください。
-なお、BigList<T>、Node<T>だけは移植元のライセンスを守るものとします。
+なお、BigList<T>、Node<T>、GapBuffer<T>だけは移植元のライセンスを守るものとします。
