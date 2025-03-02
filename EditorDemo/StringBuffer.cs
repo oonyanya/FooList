@@ -117,6 +117,7 @@ namespace FooEditEngine
 
         public StringBuffer()
         {
+            buf.BlockSize = 32768;
             this.Update = (s, e) => { };
         }
 
