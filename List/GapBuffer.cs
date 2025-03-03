@@ -36,8 +36,10 @@ namespace Slusser.Collections.Generic
 	[DebuggerTypeProxy(typeof(CollectionDebugView<>))]
     sealed partial class GapBuffer<T> : IList<T>, IList
 	{
-		#region Fields
+        #region Fields
 
+        private const double TRIM_THRESHOLD = 0.9;
+        
 		private const int MIN_CAPACITY = 4096;
 		
 		private T[] _buffer;
@@ -670,7 +672,6 @@ namespace Slusser.Collections.Generic
 			}
 		}
 
-
 		/// <summary>
 		/// Sets the <see cref="Capacity"/> to the actual number of elements in the <see cref="GapBuffer{T}"/>, 
 		/// if that number is less than a threshold value. 
@@ -678,7 +679,7 @@ namespace Slusser.Collections.Generic
 		public void TrimExcess()
 		{
 			int size = Count;
-			int threshold = (int)(_buffer.Length * 0.9);
+			int threshold = (int)(_buffer.Length * TRIM_THRESHOLD);
 			if (size < threshold)
 			{
 				Capacity = size;
