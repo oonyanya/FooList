@@ -423,7 +423,7 @@ namespace Slusser.Collections.Generic
         {
             if(count > this._gapEnd - this._gapStart)
             {
-                Capacity = count + count;
+                Capacity = count;
             }
         }
 
