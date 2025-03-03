@@ -28,9 +28,7 @@ namespace FooProject.Collection
 
         public FixedList(int init_capacity = 4,int limit_capacity = int.MaxValue - 1)
         {
-            items = new GapBuffer<T>();
-            items.Capacity = init_capacity;
-            items.MaxCapacity = limit_capacity;
+            items = new GapBuffer<T>(init_capacity,limit_capacity);
         }
 
         public T this[int i] { get { return items[i]; } set { items[i] = value; } }

@@ -59,14 +59,33 @@ namespace Slusser.Collections.Generic
 		{
 			this._buffer = new T[MIN_CAPACITY];
 			this._gapEnd = this._buffer.Length;
-		}
+        }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GapBuffer{T}"/> class. 
+        /// </summary>
+        public GapBuffer(int init_capacity)
+        {
+            this._buffer = new T[init_capacity];
+            this._gapEnd = this._buffer.Length;
+        }
+        
+		/// <summary>
+        /// Initializes a new instance of the <see cref="GapBuffer{T}"/> class. 
+        /// </summary>
+        public GapBuffer(int init_capacity,int max_capacity)
+        {
+            this._buffer = new T[init_capacity];
+            this._gapEnd = this._buffer.Length;
+			this.MaxCapacity = max_capacity;
+        }
+        
 		#endregion Constructors
 
 
-		#region Properties
+        #region Properties
 
-		public int MaxCapacity = int.MaxValue - 1;
+        public int MaxCapacity = int.MaxValue - 1;
 
 		/// <summary>
 		/// Gets or sets the total number of elements the internal data structure can hold 
