@@ -39,20 +39,11 @@ namespace FooProject.Collection
 
         public void Add(T item)
         {
-            if (items.Count + 1 > items.MaxCapacity)
-                throw new InvalidOperationException("capacity over");
             items.Add(item);
         }
 
         public void AddRange(IEnumerable<T> collection)
         {
-            int collection_count;
-            if (!collection.TryGetNonEnumeratedCount(out collection_count))
-                collection_count = collection.Count();
-
-            if (items.Count + collection_count > items.MaxCapacity)
-                throw new InvalidOperationException("capacity over");
-
             items.AddRange(collection);
         }
 
@@ -63,13 +54,6 @@ namespace FooProject.Collection
 
         public void InsertRange(int index, IEnumerable<T> collection)
         {
-            int collection_count;
-            if (!collection.TryGetNonEnumeratedCount(out collection_count))
-                collection_count = collection.Count();
-
-            if (items.Count + collection_count > items.MaxCapacity)
-                throw new InvalidOperationException("capacity over");
-
             items.InsertRange(index, collection);
         }
 
@@ -80,11 +64,6 @@ namespace FooProject.Collection
 
         public void RemoveRange(int index, int count)
         {
-            if(index < 0)
-                throw new ArgumentOutOfRangeException("index");
-            if (count < 0)
-                throw new ArgumentOutOfRangeException("count");
-
             items.RemoveRange(index, count);
         }
 
@@ -101,6 +80,11 @@ namespace FooProject.Collection
         public void Clear()
         {
             items.Clear();
+            items.TrimExcess();
+        }
+
+        public void TrimExcess()
+        {
             items.TrimExcess();
         }
 

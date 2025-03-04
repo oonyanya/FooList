@@ -479,18 +479,26 @@ namespace Slusser.Collections.Generic
 			if (index < 0 || index > Count)
 				throw new ArgumentOutOfRangeException("index", "");
 
-			// Prepare the buffer
-			PlaceGapStart(index);
-			EnsureGapCapacity(1);
+            if (this.Count + 1 > this.MaxCapacity)
+                throw new InvalidOperationException("capacity over");
 
-			this._buffer[index] = item;
-			this._gapStart++;
-			this._version++;
-		}
+            // Prepare the buffer
+            PlaceGapStart(index);
+            EnsureGapCapacity(1);
+
+            InsertWithoutEnsureGap(index, item);
+            this._version++;
+        }
+
+        private void InsertWithoutEnsureGap(int index, T item)
+		{
+            this._buffer[index] = item;
+            this._gapStart++;
+        }
 
 
-		// Explicit IList implementation
-		void IList.Insert(int index, object item)
+        // Explicit IList implementation
+        void IList.Insert(int index, object item)
 		{
 			VerifyValueType(item);
 			Insert(index, (T)item);
@@ -556,29 +564,40 @@ namespace Slusser.Collections.Generic
             if (index < 0 || index > Count)
                 throw new ArgumentOutOfRangeException("index", "");
 
+            int collection_count;
+            if (!collection.TryGetNonEnumeratedCount(out collection_count))
+                collection_count = collection.Count();
+
+            if (this.Count + collection_count > this.MaxCapacity)
+                throw new InvalidOperationException("capacity over");
+
             ICollection<T> col = collection as ICollection<T>;
             if (col != null)
             {
-                int count = col.Count;
-                if (count > 0)
+                if (collection_count > 0)
                 {
                     PlaceGapStart(index);
-                    EnsureGapCapacity(count);
+                    EnsureGapCapacity(collection_count);
 
                     // Copy the collection directly into the buffer
                     col.CopyTo(this._buffer, this._gapStart);
-                    this._gapStart += count;
+                    this._gapStart += collection_count;
                 }
             }
             else
             {
-                // Add the items to the buffer one-at-a-time :(
-                using (IEnumerator<T> enumerator = collection.GetEnumerator())
-                {
-                    while (enumerator.MoveNext())
+				if (collection_count > 0)
+				{
+                    PlaceGapStart(index);
+                    EnsureGapCapacity(collection_count);
+
+                    using (IEnumerator<T> enumerator = collection.GetEnumerator())
                     {
-                        Insert(index, enumerator.Current);
-                        index++;
+                        while (enumerator.MoveNext())
+                        {
+                            InsertWithoutEnsureGap(index, enumerator.Current);
+                            index++;
+                        }
                     }
                 }
             }

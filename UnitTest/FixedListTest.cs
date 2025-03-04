@@ -147,6 +147,9 @@ namespace UnitTest
                 Assert.Fail("should not throw");
             }
 
+            Assert.AreEqual(10, list.Count);
+            Assert.AreEqual("1234123412", string.Concat(list));
+
             try
             {
                 list.InsertRange(0,"1234");
@@ -160,12 +163,22 @@ namespace UnitTest
             try
             {
                 list.RemoveRange(0, 2);
+                list.TrimExcess();
                 list.InsertRange(0, "12");
             }
             catch (Exception e)
             {
                 Assert.Fail("should not throw");
             }
+            Assert.AreEqual(10, list.Count);
+            Assert.AreEqual("1234123412", string.Concat(list));
+
+            list = new FixedList<char>(4, 10);
+            list.AddRange("1234");
+            list.TrimExcess();
+            list.InsertRange(2, "12");
+            list.InsertRange(4, "34");
+            Assert.AreEqual("12123434", string.Concat(list));
         }
     }
 }
