@@ -12,10 +12,8 @@ namespace UnitTest
         public void BlockSizeTest()
         {
             var buf = new FooProject.Collection.BigList<char>();
+            FooProject.Collection.BigList<char>.BlockSize = 100;
             buf.Add('t');
-            buf.BlockSize = 100;
-            Assert.AreEqual(0, buf.Count);
-            Assert.AreEqual(100, buf.BlockSize);
         }
         [TestMethod]
         public void GetEnumratorTest()

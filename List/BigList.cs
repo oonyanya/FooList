@@ -60,9 +60,9 @@ namespace FooProject.Collection
         /// get or set block size
         /// </summary>
         /// <remarks>
-        /// It represent block size in each leaf. If you change value, all data is deleted.
+        /// It represent block size in each leaf. 
         /// </remarks>
-        public int BlockSize
+        public static int BlockSize
         {
             get
             {
@@ -71,7 +71,6 @@ namespace FooProject.Collection
             set
             {
                 MAXLEAF = value;
-                Clear();
             }
         }
 

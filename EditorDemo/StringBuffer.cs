@@ -20,6 +20,7 @@ using Nito.AsyncEx;
 using System.Threading;
 using System.Threading.Tasks;
 using Foo=FooProject.Collection;
+using FooProject.Collection;
 
 namespace FooEditEngine
 {
@@ -117,7 +118,7 @@ namespace FooEditEngine
 
         public StringBuffer()
         {
-            buf.BlockSize = 32768;
+            BigList<char>.BlockSize = 32768;
             this.Update = (s, e) => { };
         }
 
