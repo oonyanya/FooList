@@ -13,6 +13,16 @@ namespace UnitTest
     public class FixedListTest
     {
         [TestMethod]
+        public void GetRangeTest()
+        {
+            var list = new FixedList<char>(20);
+            list.AddRange("123456789");
+            list.InsertRange(1, "ab");
+            var sublist = list.GetRange(1, 3);
+            Assert.AreEqual("ab2", string.Concat(sublist));
+        }
+
+        [TestMethod]
         public void AddTest()
         {
             var list = new FixedList<char>();

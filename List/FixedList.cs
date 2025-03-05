@@ -67,6 +67,11 @@ namespace FooProject.Collection
             items.RemoveRange(index, count);
         }
 
+        public IEnumerable<T> GetRange(int index,int count)
+        {
+            return items.GetRage(index, count);
+        }
+
         public IEnumerator<T> GetEnumerator()
         {
             return items.GetEnumerator();

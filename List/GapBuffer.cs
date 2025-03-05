@@ -21,6 +21,7 @@ using System.Text;
 using System.Threading;
 using System.Globalization;
 using System.Diagnostics;
+using System.Net.NetworkInformation;
 
 #endregion Using Directives
 
@@ -195,29 +196,24 @@ namespace Slusser.Collections.Generic
 			}
 		}
 
-
-		/// <summary>
-		/// Gets or sets the element at the specified index. 
-		/// </summary>
-		/// <param name="index">The zero-based index of the element to get or set.</param>
-		/// <value>The element at the specified index.</value>
-		/// <exception cref="ArgumentOutOfRangeException">
-		/// <paramref name="index"/> is less than 0.
-		/// <para>-or-</para>
-		/// <paramref name="index"/> is equal to or greater than <see cref="Count"/>.
-		/// </exception>
-		public T this[int index]
+        /// <summary>
+        /// Gets or sets the element at the specified index. 
+        /// </summary>
+        /// <param name="index">The zero-based index of the element to get or set.</param>
+        /// <value>The element at the specified index.</value>
+        /// <exception cref="ArgumentOutOfRangeException">
+        /// <paramref name="index"/> is less than 0.
+        /// <para>-or-</para>
+        /// <paramref name="index"/> is equal to or greater than <see cref="Count"/>.
+        /// </exception>
+        public T this[int index]
 		{
 			get
 			{
 				if (index < 0 || index >= Count)
 					throw new ArgumentOutOfRangeException("index", "");
 
-				// Find the correct span and get the item
-				if (index >= this._gapStart)
-					index += (this._gapEnd - this._gapStart);
-
-				return this._buffer[index];
+				return GetAt(index);
 			}
 			set
 			{
@@ -245,17 +241,26 @@ namespace Slusser.Collections.Generic
 			}
 		}
 
-		#endregion Properties
+        #endregion Properties
 
 
-		#region Methods
+        #region Methods
 
+        private T GetAt(int index)
+        {
+            // Find the correct span and get the item
+            if (index >= this._gapStart)
+                index += (this._gapEnd - this._gapStart);
+
+            return this._buffer[index];
+        }
+        
 		/// <summary>
-		/// Adds an object to the end of the <see cref="GapBuffer{T}"/>.
-		/// </summary>
-		/// <param name="item">The object to be added to the end of the <see cref="GapBuffer{T}"/>. 
-		/// The value can be null for reference types.</param>
-		public void Add(T item)
+        /// Adds an object to the end of the <see cref="GapBuffer{T}"/>.
+        /// </summary>
+        /// <param name="item">The object to be added to the end of the <see cref="GapBuffer{T}"/>. 
+        /// The value can be null for reference types.</param>
+        public void Add(T item)
 		{
 			Insert(Count, item);
 		}
@@ -426,6 +431,20 @@ namespace Slusser.Collections.Generic
                 Capacity = count;
             }
         }
+
+		public IEnumerable<T> GetRage(int index,int count)
+		{
+            if (index < 0 || index >= Count)
+                throw new ArgumentOutOfRangeException("index", "");
+            
+			int end = index + count - 1;
+
+            if (end < 0 || end >= Count)
+                throw new ArgumentOutOfRangeException("end", "");
+
+            for (int i = index; i <= end; i++)
+				yield return GetAt(i);
+		}
 
 		/// <summary>
 		/// Searches for the specified object and returns the zero-based index of the first 
