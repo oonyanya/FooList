@@ -42,9 +42,9 @@ namespace FooProject.Collection
             items.Add(item);
         }
 
-        public void AddRange(IEnumerable<T> collection)
+        public void AddRange(IEnumerable<T> collection, int collection_length = -1)
         {
-            items.AddRange(collection);
+            items.AddRange(collection,collection_length);
         }
 
         public void Insert(int index, T item)
@@ -52,9 +52,9 @@ namespace FooProject.Collection
             InsertRange(index, new T[1] { item });
         }
 
-        public void InsertRange(int index, IEnumerable<T> collection)
+        public void InsertRange(int index, IEnumerable<T> collection, int collection_length = -1)
         {
-            items.InsertRange(index, collection);
+            items.InsertRange(index, collection, collection_length);
         }
 
         public void RemoveAt(int index)

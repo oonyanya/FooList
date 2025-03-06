@@ -103,7 +103,7 @@ namespace FooProject.Collection
             int newCount;
             if (otherLeaf != null && (newCount = otherLeaf.Count + this.Count) <= BigList<T>.MAXLEAF)
             {
-                items.InsertRange(0, otherLeaf.items);
+                items.InsertRange(0, otherLeaf.items, otherLeaf.Count);
                 Count = newCount;
                 return true;
             }
@@ -115,7 +115,7 @@ namespace FooProject.Collection
             int newCount;
             if (otherLeaf != null && (newCount = otherLeaf.Count + this.Count) <= BigList<T>.MAXLEAF)
             {
-                items.AddRange(otherLeaf.items);
+                items.AddRange(otherLeaf.items, otherLeaf.Count);
                 Count = newCount;
                 return true;
             }
@@ -204,14 +204,14 @@ namespace FooProject.Collection
                     int leftItemCount = index + 1;
                     int splitLength = index;
                     FixedList<T> leftItems = new FixedList<T>(leftItemCount, BigList<T>.MAXLEAF);
-                    leftItems.AddRange(items.GetRange(0, splitLength));
+                    leftItems.AddRange(items.GetRange(0, splitLength),splitLength);
                     leftItems.Add(item);
                     LeafNode<T> leftNode = new LeafNode<T>(index + 1, leftItems);
                     leafNodeEnumrator.Replace(this, leftNode);
 
                     int rightItemCount = items.Count - index;
                     FixedList<T> rightItems = new FixedList<T>(rightItemCount,BigList<T>.MAXLEAF);
-                    rightItems.AddRange(items.GetRange(splitLength, items.Count - splitLength));
+                    rightItems.AddRange(items.GetRange(splitLength, rightItemCount), rightItemCount);
                     LeafNode<T> rightNode = new LeafNode<T>(Count - index, rightItems);
                     leafNodeEnumrator.AddNext(leftNode, rightNode);
 
@@ -249,13 +249,13 @@ namespace FooProject.Collection
                 int leftItemCount = index;
                 int splitLength = index;
                 FixedList<T> leftItems = new FixedList<T>(leftItemCount,BigList<T>.MAXLEAF);
-                leftItems.AddRange(items.GetRange(0, splitLength));
+                leftItems.AddRange(items.GetRange(0, splitLength),splitLength);
                 Node<T> leftNode = new LeafNode<T>(index, leftItems);
                 leafNodeEnumrator.Replace(this, (LeafNode<T>)leftNode);
 
                 int rightItemCount = items.Count - index;
                 FixedList<T> rightItems = new FixedList<T>(rightItemCount, BigList<T>.MAXLEAF);
-                rightItems.AddRange(items.GetRange(splitLength,items.Count - splitLength));
+                rightItems.AddRange(items.GetRange(splitLength, rightItemCount), rightItemCount);
                 Node<T> rightNode = new LeafNode<T>(Count - index, rightItems);
 
                 leftNode = leftNode.AppendInPlace(node, leafNodeEnumrator, nodeBelongLeafNodeEnumrator);

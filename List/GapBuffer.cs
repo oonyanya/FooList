@@ -281,10 +281,11 @@ namespace Slusser.Collections.Generic
 		/// <param name="collection">The collection whose elements should be inserted into the <see cref="GapBuffer{T}"/>. 
 		/// The collection itself cannot be null, but it can contain elements that are null, if 
 		/// type <typeparamref name="T"/> is a reference type.</param>
+		/// <param name="collection_length">Collection count.Can be -1 but it is slowly.</param>
         /// <exception cref="ArgumentNullException"><paramref name="collection"/> is a null reference.</exception>
-		public void AddRange(IEnumerable<T> collection)
+		public void AddRange(IEnumerable<T> collection,int collection_length = -1)
 		{
-			InsertRange(Count, collection);
+			InsertRange(Count, collection,collection_length);
 		}
 
 
@@ -574,8 +575,9 @@ namespace Slusser.Collections.Generic
 		/// <paramref name="index"/> is less than 0.
 		/// <para>-or-</para>
 		/// <paramref name="index"/> is greater than <see cref="Count"/>.
+		/// <paramref name="collection_length">Collection count.can be -1 but it is slow</paramref>
 		/// </exception>
-        public void InsertRange(int index, IEnumerable<T> collection)
+        public void InsertRange(int index, IEnumerable<T> collection,int collection_length = -1)
         {
             if (collection == null)
                 throw new ArgumentNullException("collection");
@@ -584,8 +586,15 @@ namespace Slusser.Collections.Generic
                 throw new ArgumentOutOfRangeException("index", "");
 
             int collection_count;
-            if (!collection.TryGetNonEnumeratedCount(out collection_count))
-                collection_count = collection.Count();
+            if (collection_length == -1)
+			{
+                if (!collection.TryGetNonEnumeratedCount(out collection_count))
+                    collection_count = collection.Count();
+			}
+			else
+			{
+				collection_count = collection_length;
+			}
 
             if (this.Count + collection_count > this.MaxCapacity)
                 throw new InvalidOperationException("capacity over");
