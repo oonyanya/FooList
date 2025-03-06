@@ -38,6 +38,11 @@ namespace FooProject.Collection
                 replacementNode.Next = nextNode;
                 FirstNode = replacementNode;
             }
+            else if(priviousNode == null && nextNode == null)
+            {
+                FirstNode = replacementNode;
+                LastNode = replacementNode;
+            }
             else if (priviousNode.Next != null && nextNode == null)
             {
                 replacementNode.Previous = priviousNode;

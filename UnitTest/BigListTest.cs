@@ -738,6 +738,11 @@ namespace UnitTest
             BigList<int> list1, list2, list3;
 
             list1 = new BigList<int>();
+            list1.AddRange(new int[] { 1, 2, 3, 4, 5, 6, 7 ,8 });
+            list1.Insert(1, 2);
+            InterfaceTests.TestEnumerableElements<int>(list1, new int[] { 1, 2, 2, 3, 4, 5, 6, 7, 8 });
+
+            list1 = new BigList<int>();
             list1.Insert(0, 34);
             Assert.AreEqual(1, list1.Count);
             Assert.AreEqual(34, list1[0]);
