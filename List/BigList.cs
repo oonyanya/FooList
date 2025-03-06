@@ -77,7 +77,7 @@ namespace FooProject.Collection
         struct LeastFetch
         {
             public Node<T> Node;
-            public int TotalLeftCount = 0;
+            public int TotalLeftCount;
             public LeastFetch(Node<T> node,int totalLeft)
             {
                 Node= node;
@@ -441,10 +441,14 @@ namespace FooProject.Collection
             IEnumerator<T> enumerator = collection.GetEnumerator();
 
             int collection_count;
+#if NET8_0_OR_GREATER
             if(collection.TryGetNonEnumeratedCount(out collection_count) == false)
             {
                 collection_count = collection.Count();
             }
+#else
+                collection_count = collection.Count();
+#endif
 
             while ((leaf = LeafFromEnumerator(enumerator, collection_count)) != null)
             {

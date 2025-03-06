@@ -22,6 +22,7 @@ using System.Threading;
 using System.Globalization;
 using System.Diagnostics;
 using System.Net.NetworkInformation;
+using System.Linq;
 
 #endregion Using Directives
 
@@ -588,10 +589,16 @@ namespace Slusser.Collections.Generic
             int collection_count;
             if (collection_length == -1)
 			{
-                if (!collection.TryGetNonEnumeratedCount(out collection_count))
+#if NET8_0_OR_GREATER
+                if (collection.TryGetNonEnumeratedCount(out collection_count) == false)
+                {
                     collection_count = collection.Count();
-			}
-			else
+                }
+#else
+                collection_count = collection.Count();
+#endif
+            }
+            else
 			{
 				collection_count = collection_length;
 			}
