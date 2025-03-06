@@ -202,15 +202,16 @@ namespace FooProject.Collection
                 {
                     // Split into two nodes, and put the new item at the end of the first.
                     int leftItemCount = index + 1;
+                    int splitLength = index;
                     FixedList<T> leftItems = new FixedList<T>(leftItemCount, BigList<T>.MAXLEAF);
-                    leftItems.AddRange(items.Take(index));
+                    leftItems.AddRange(items.GetRange(0, splitLength));
                     leftItems.Add(item);
                     LeafNode<T> leftNode = new LeafNode<T>(index + 1, leftItems);
                     leafNodeEnumrator.Replace(this, leftNode);
 
                     int rightItemCount = items.Count - index;
                     FixedList<T> rightItems = new FixedList<T>(rightItemCount,BigList<T>.MAXLEAF);
-                    rightItems.AddRange(items.Skip(index));
+                    rightItems.AddRange(items.GetRange(splitLength, items.Count - splitLength));
                     LeafNode<T> rightNode = new LeafNode<T>(Count - index, rightItems);
                     leafNodeEnumrator.AddNext(leftNode, rightNode);
 
@@ -246,14 +247,15 @@ namespace FooProject.Collection
                 // Split existing node into two nodes at the insertion point, then concat all three nodes together.
 
                 int leftItemCount = index;
+                int splitLength = index;
                 FixedList<T> leftItems = new FixedList<T>(leftItemCount,BigList<T>.MAXLEAF);
-                leftItems.AddRange(items.Take(index));
+                leftItems.AddRange(items.GetRange(0, splitLength));
                 Node<T> leftNode = new LeafNode<T>(index, leftItems);
                 leafNodeEnumrator.Replace(this, (LeafNode<T>)leftNode);
 
                 int rightItemCount = items.Count - index;
                 FixedList<T> rightItems = new FixedList<T>(rightItemCount, BigList<T>.MAXLEAF);
-                rightItems.AddRange(items.Skip(index));
+                rightItems.AddRange(items.GetRange(splitLength,items.Count - splitLength));
                 Node<T> rightNode = new LeafNode<T>(Count - index, rightItems);
 
                 leftNode = leftNode.AppendInPlace(node, leafNodeEnumrator, nodeBelongLeafNodeEnumrator);
