@@ -12,6 +12,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\UnitTest\BigList.LeafEnumratorTest.cs" Link="BigList.LeafEnumratorTest.cs" />
+    <Compile Include="..\UnitTest\BigListTest.cs" Link="BigListTest.cs" />
+    <Compile Include="..\UnitTest\FixedListTest.cs" Link="FixedListTest.cs" />
+    <Compile Include="..\UnitTest\InterfaceTests.cs" Link="InterfaceTests.cs" />
+    <Compile Include="..\UnitTest\MSTestSettings.cs" Link="MSTestSettings.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
     <PackageReference Include="MSTest" Version="3.6.1" />
   </ItemGroup>
