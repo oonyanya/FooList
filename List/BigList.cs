@@ -27,7 +27,7 @@ namespace FooProject.Collection
     /// BigList is for only single thread.
     /// </remarks>
     /// <typeparam name="T">The item type of the collection.</typeparam>
-    public class BigList<T> : IList<T>, IReadOnlyList<T>,IReadOnlyCollection<T>
+    public class BigList<T> : ReadOnlyList<T>, IList<T>
     {
         const uint MAXITEMS = int.MaxValue - 1;    // maximum number of items in a BigList.
         // The fibonacci numbers. Used in the rebalancing algorithm. Final MaxValue makes sure we don't go off the end.
@@ -164,7 +164,7 @@ namespace FooProject.Collection
             leastFetch = null;
         }
 
-        public int Count
+        public override int Count
         {
             get
             {
@@ -176,7 +176,8 @@ namespace FooProject.Collection
             }
         }
 
-        public bool IsReadOnly { get { return false; } }
+        //ReadOnlyCollectionにキャストしたときはtrueにしたいのでこうする
+        public new bool IsReadOnly { get { return false; } }
 
         private void CheckBalance()
         {
@@ -537,11 +538,6 @@ namespace FooProject.Collection
             ResetFetchCache();
         }
 
-        public bool Contains(T item)
-        {
-            return (IndexOf(item) >= 0);
-        }
-
         public IEnumerable<T> GetRangeEnumerable(int index, int count)
         {
             if (count == 0)
@@ -598,33 +594,12 @@ namespace FooProject.Collection
             return newList;
         }
 
-        public void CopyTo(T[] array, int arrayIndex)
+        public ReadOnlyList<T> AsReadOnly()
         {
-            int count = this.Count;
-
-            if (count == 0)
-                return;
-
-            if (array == null)
-                throw new ArgumentNullException("array");
-            if (arrayIndex < 0)
-                throw new ArgumentOutOfRangeException("arrayIndex must not be negative");
-            if (arrayIndex >= array.Length || count > array.Length - arrayIndex)
-                throw new ArgumentException("array too small");
-
-            int index = arrayIndex, i = 0;
-            foreach (T item in this)
-            {
-                if (i >= count)
-                    break;
-
-                array[index] = item;
-                ++index;
-                ++i;
-            }
+            return (ReadOnlyList<T>)this;
         }
 
-        public IEnumerator<T> GetEnumerator()
+        public override IEnumerator<T> GetEnumerator()
         {
             if ((uint)Count + 1 > MAXITEMS)
                 throw new InvalidOperationException("too large");
@@ -637,22 +612,6 @@ namespace FooProject.Collection
                     yield return item;
                 }
             }
-        }
-
-        public int IndexOf(T item)
-        {
-            int index = 0;
-            foreach (T x in this)
-            {
-                if (EqualityComparer<T>.Default.Equals(x, item))
-                {
-                    return index;
-                }
-                ++index;
-            }
-
-            // didn't find any item that matches.
-            return -1;
         }
 
         public void Insert(int index, T item)

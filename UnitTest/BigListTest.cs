@@ -1081,5 +1081,40 @@ namespace UnitTest
 
             InterfaceTests.TestEnumerableElements<int>(list1, new int[] { 1, 3, 4, 6, 7, 9, 10, 12, 13, 15, 16, 18, 19, 21, 22, 24, 25, 27, 28, 30, 31, 33, 34, 36, 37, 39, 40, 42, 43, 45, 46, 48, 49 });
         }
+
+        [TestMethod]
+        public void AsReadOnly()
+        {
+            BigList<int> list1 = CreateList(0, 400);
+            int[] elements = new int[400];
+            ReadOnlyList<int> list2 = list1.AsReadOnly();
+
+            for (int i = 0; i < 400; ++i)
+                elements[i] = i;
+
+            InterfaceTests.TestReadOnlyListGeneric<int>(list2, elements, null);
+
+            list1.Add(27);
+            list1.AddToFront(98);
+            list1[17] = 9;
+
+            elements = new int[402];
+            list2 = list1.AsReadOnly();
+
+            for (int i = 0; i < 401; ++i)
+                elements[i] = i - 1;
+
+            elements[0] = 98;
+            elements[401] = 27;
+            elements[17] = 9;
+
+            InterfaceTests.TestReadOnlyListGeneric<int>(list2, elements, null);
+
+            list1 = new BigList<int>();
+            list2 = list1.AsReadOnly();
+            InterfaceTests.TestReadOnlyListGeneric<int>(list2, new int[0], null);
+            list1.Add(4);
+            InterfaceTests.TestReadOnlyListGeneric<int>(list2, new int[] { 4 }, null);
+        }
     }
 }
