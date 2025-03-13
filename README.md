@@ -6,7 +6,8 @@ https://github.com/timdetering/Wintellect.PowerCollections
 
 ## 計算量
 
-|---|---|
+| 操作 | BigList |
+| --- | --- |
 | 取得 | O(1) or O(Log N) |
 | 追加・挿入・削除 | O(Log N) |
 | 列挙 | O(N) |
