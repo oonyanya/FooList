@@ -75,27 +75,27 @@ namespace FooProject.Collection
                 yield return this[i];
         }
 
-        public void Insert(int index, T item)
+        public virtual void Insert(int index, T item)
         {
             throw new NotSupportedException();
         }
 
-        public void RemoveAt(int index)
+        public virtual void RemoveAt(int index)
         {
             throw new NotSupportedException();
         }
 
-        public void Add(T item)
+        public virtual void Add(T item)
         {
             throw new NotSupportedException();
         }
 
-        public void Clear()
+        public virtual void Clear()
         {
             throw new NotSupportedException();
         }
 
-        public bool Remove(T item)
+        public virtual bool Remove(T item)
         {
             throw new NotSupportedException();
         }

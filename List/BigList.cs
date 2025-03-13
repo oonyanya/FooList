@@ -49,6 +49,7 @@ namespace FooProject.Collection
         public BigList()
         {
             root = null;
+            CustomConverter = new DefaultCustomConverter<T>();
         }
 
         public BigList(IEnumerable<T> items) : this()
@@ -74,6 +75,8 @@ namespace FooProject.Collection
             }
         }
 
+        public ICustomConverter<T> CustomConverter { get; set; }
+
         struct LeastFetch
         {
             public Node<T> Node;
@@ -86,7 +89,7 @@ namespace FooProject.Collection
         }
         LeastFetch? leastFetch;
 
-        public T this[int index]
+        public new T this[int index]
         {
             get
             {
@@ -142,6 +145,7 @@ namespace FooProject.Collection
                         current = current.Right;
                         relativeIndex -= leftCount;
                         totalLeftCount += leftCount;
+                        CustomConverter.NodeWalk(current);
                     }
 
                 }else if (current.Right != null)
@@ -230,7 +234,7 @@ namespace FooProject.Collection
                     if (result == null)
                         result = n;
                     else
-                        result = result.PrependInPlace(n, null, null);
+                        result = result.PrependInPlace(n, null, null, CustomConverter);
                 }
             }
 
@@ -251,7 +255,7 @@ namespace FooProject.Collection
         {
             if (node.IsBalanced())
             {
-                AddBalancedNodeToRebalanceArray(rebalanceArray, node);
+                AddBalancedNodeToRebalanceArray(rebalanceArray, node, CustomConverter);
             }
             else
             {
@@ -266,7 +270,7 @@ namespace FooProject.Collection
         /// </summary>
         /// <param name="rebalanceArray">Rebalance array to insert into.</param>
         /// <param name="balancedNode">Node to add.</param>
-        private static void AddBalancedNodeToRebalanceArray(Node<T>[] rebalanceArray, Node<T> balancedNode)
+        private static void AddBalancedNodeToRebalanceArray(Node<T>[] rebalanceArray, Node<T> balancedNode, ICustomConverter<T> customConverter)
         {
             int slot;
             int count;
@@ -284,7 +288,7 @@ namespace FooProject.Collection
                     if (accum == null)
                         accum = n;
                     else
-                        accum = accum.PrependInPlace(n, null, null);
+                        accum = accum.PrependInPlace(n, null, null, customConverter);
                 }
                 ++slot;
             }
@@ -292,14 +296,14 @@ namespace FooProject.Collection
             // slot is the location where balancedNode originally ended up, but possibly
             // not the final resting place.
             if (accum != null)
-                balancedNode = balancedNode.PrependInPlace(accum, null, null);
+                balancedNode = balancedNode.PrependInPlace(accum, null, null, customConverter);
             for (; ; )
             {
                 Node<T> n = rebalanceArray[slot];
                 if (n != null)
                 {
                     rebalanceArray[slot] = null;
-                    balancedNode = balancedNode.PrependInPlace(n,null, null);
+                    balancedNode = balancedNode.PrependInPlace(n,null, null, customConverter);
                 }
 
                 if (balancedNode.Count < FIBONACCI[slot + 1])
@@ -365,16 +369,17 @@ namespace FooProject.Collection
             if ((uint)Count + 1 > MAXITEMS)
                 throw new InvalidOperationException("too large");
 
+            T convertedItem = CustomConverter.Convert(item);
             if (root == null)
             {
-                var newLeaf = new LeafNode<T>(item);
+                var newLeaf = CustomConverter.CreateLeafNode(convertedItem);
                 root = newLeaf;
                 leafNodeEnumrator.AddLast(newLeaf);
 
             }
             else
             {
-                Node<T> newRoot = root.PrependInPlace(item, leafNodeEnumrator);
+                Node<T> newRoot = root.PrependInPlace(convertedItem, leafNodeEnumrator, CustomConverter);
                 if (newRoot != root)
                 {
                     root = newRoot;
@@ -384,20 +389,21 @@ namespace FooProject.Collection
             ResetFetchCache();
         }
 
-        public void Add(T item)
+        public new void Add(T item)
         {
             if ((uint)Count + 1 > MAXITEMS)
                 throw new InvalidOperationException("too large");
 
+            T convertedItem = CustomConverter.Convert(item);
             if (root == null)
             {
-                var newLeaf = new LeafNode<T>(item);
+                var newLeaf = CustomConverter.CreateLeafNode(convertedItem);
                 root = newLeaf;
                 leafNodeEnumrator.AddLast(newLeaf);
             }
             else
             {
-                Node<T> newRoot = root.AppendInPlace(item, leafNodeEnumrator);
+                Node<T> newRoot = root.AppendInPlace(convertedItem, leafNodeEnumrator, CustomConverter);
                 if (newRoot != root)
                 {
                     root = newRoot;
@@ -407,7 +413,7 @@ namespace FooProject.Collection
             ResetFetchCache();
         }
 
-        private static LeafNode<T> LeafFromEnumerator(IEnumerator<T> enumerator,int collection_count)
+        private static LeafNode<T> LeafFromEnumerator(IEnumerator<T> enumerator,int collection_count,ICustomConverter<T> customConverter)
         {
             int i = 0;
             FixedList<T> items = null;
@@ -424,18 +430,18 @@ namespace FooProject.Collection
 
                 if (items != null)
                 {
-                    items.Add(enumerator.Current);
+                    items.Add(customConverter.Convert(enumerator.Current));
                     i++;
                 }
             }
 
             if (items != null)
-                return new LeafNode<T>(i, items);
+                return customConverter.CreateLeafNode(i, items);
             else
                 return null;
         }
 
-        private static Node<T> NodeFromEnumerable(IEnumerable<T> collection, LeafNodeEnumrator<T> leafNodeEnumrator)
+        private static Node<T> NodeFromEnumerable(IEnumerable<T> collection, LeafNodeEnumrator<T> leafNodeEnumrator,ICustomConverter<T> customConverter)
         {
             Node<T> node = null;
             LeafNode<T> leaf;
@@ -451,7 +457,7 @@ namespace FooProject.Collection
                 collection_count = collection.Count();
 #endif
 
-            while ((leaf = LeafFromEnumerator(enumerator, collection_count)) != null)
+            while ((leaf = LeafFromEnumerator(enumerator, collection_count, customConverter)) != null)
             {
                 leafNodeEnumrator.AddLast(leaf);
                 if (node == null)
@@ -464,7 +470,7 @@ namespace FooProject.Collection
                         throw new InvalidOperationException("too large");
 
                     //このメソッドでもリンクドリストに追加されるがこのメソッドで追加すると後の処理が面倒になる
-                    node = node.AppendInPlace(leaf, null, null);
+                    node = node.AppendInPlace(leaf, null, null, customConverter);
                 }
             }
 
@@ -477,7 +483,7 @@ namespace FooProject.Collection
                 throw new ArgumentNullException("collection");
 
             var tempLeafNodeEnumrator = new LeafNodeEnumrator<T>();
-            Node<T> node = NodeFromEnumerable(collection, tempLeafNodeEnumrator);
+            Node<T> node = NodeFromEnumerable(collection, tempLeafNodeEnumrator, CustomConverter);
             if (node == null)
                 return;
             else if (root == null)
@@ -491,7 +497,7 @@ namespace FooProject.Collection
                 if ((uint)Count + (uint)node.Count > MAXITEMS)
                     throw new InvalidOperationException("too large");
 
-                Node<T> newRoot = root.AppendInPlace(node, leafNodeEnumrator,tempLeafNodeEnumrator);
+                Node<T> newRoot = root.AppendInPlace(node, leafNodeEnumrator,tempLeafNodeEnumrator, CustomConverter);
                 if (newRoot != root)
                 {
                     root = newRoot;
@@ -507,7 +513,7 @@ namespace FooProject.Collection
                 throw new ArgumentNullException("collection");
 
             var tempLeafNodeEnumrator = new LeafNodeEnumrator<T>();
-            Node<T> node = NodeFromEnumerable(collection, tempLeafNodeEnumrator);
+            Node<T> node = NodeFromEnumerable(collection, tempLeafNodeEnumrator, CustomConverter);
             if (node == null)
                 return;
             else if (root == null)
@@ -521,7 +527,7 @@ namespace FooProject.Collection
                 if ((uint)Count + (uint)node.Count > MAXITEMS)
                     throw new InvalidOperationException("too large");
 
-                Node<T> newRoot = root.PrependInPlace(node, leafNodeEnumrator, tempLeafNodeEnumrator);
+                Node<T> newRoot = root.PrependInPlace(node, leafNodeEnumrator, tempLeafNodeEnumrator, CustomConverter);
                 if (newRoot != root)
                 {
                     root = newRoot;
@@ -531,7 +537,7 @@ namespace FooProject.Collection
             ResetFetchCache();
         }
 
-        public void Clear()
+        public new void Clear()
         {
             this.root = null;
             this.leafNodeEnumrator.Clear();
@@ -614,7 +620,7 @@ namespace FooProject.Collection
             }
         }
 
-        public void Insert(int index, T item)
+        public new void Insert(int index, T item)
         {
             if ((uint)Count + 1 > MAXITEMS)
                 throw new InvalidOperationException("too large");
@@ -630,15 +636,16 @@ namespace FooProject.Collection
             }
             else
             {
+                T convertedItem = CustomConverter.Convert(item);
                 if (root == null)
                 {
-                    var newLeafNode = new LeafNode<T>(item);
+                    var newLeafNode = CustomConverter.CreateLeafNode(convertedItem);
                     root = newLeafNode;
                     leafNodeEnumrator.AddLast(newLeafNode);
                 }
                 else
                 {
-                    Node<T> newRoot = root.InsertInPlace(index, item, leafNodeEnumrator);
+                    Node<T> newRoot = root.InsertInPlace(index, item, leafNodeEnumrator, CustomConverter);
                     if (newRoot != root)
                     {
                         root = newRoot;
@@ -666,7 +673,7 @@ namespace FooProject.Collection
             else
             {
                 var tempLeafNodeEnumrator = new LeafNodeEnumrator<T>();
-                Node<T> node = NodeFromEnumerable(collection, tempLeafNodeEnumrator);
+                Node<T> node = NodeFromEnumerable(collection, tempLeafNodeEnumrator, CustomConverter);
                 if (node == null)
                     return;
                 else if (root == null)
@@ -676,7 +683,7 @@ namespace FooProject.Collection
                     if ((uint)Count + (uint)node.Count > MAXITEMS)
                         throw new InvalidOperationException("too large");
 
-                    Node<T> newRoot = root.InsertInPlace(index, node, leafNodeEnumrator, tempLeafNodeEnumrator);
+                    Node<T> newRoot = root.InsertInPlace(index, node, leafNodeEnumrator, tempLeafNodeEnumrator, CustomConverter);
                     if (newRoot != root)
                     {
                         root = newRoot;
@@ -687,7 +694,7 @@ namespace FooProject.Collection
             ResetFetchCache();
         }
 
-        public bool Remove(T item)
+        public new bool Remove(T item)
         {
             int index = IndexOf(item);
             if (index >= 0)
@@ -701,7 +708,7 @@ namespace FooProject.Collection
             }
         }
 
-        public void RemoveAt(int index)
+        public new void RemoveAt(int index)
         {
             RemoveRange(index, 1);
         }
@@ -715,7 +722,7 @@ namespace FooProject.Collection
             if (count < 0 || count > Count - index)
                 throw new ArgumentOutOfRangeException("count");
 
-            Node<T> newRoot = root.RemoveRangeInPlace(index, index + count - 1, leafNodeEnumrator);
+            Node<T> newRoot = root.RemoveRangeInPlace(index, index + count - 1, leafNodeEnumrator, CustomConverter);
             if (newRoot != root)
             {
                 root = newRoot;

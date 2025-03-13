@@ -40,19 +40,19 @@ namespace FooProject.Collection
             return (Depth == 0 || (Depth - 1 <= BigList<T>.MAXFIB && Count >= BigList<T>.FIBONACCI[Depth - 1]));
         }
 
-        public abstract Node<T> PrependInPlace(Node<T> node, LeafNodeEnumrator<T> leafNodeEnumrator, LeafNodeEnumrator<T> nodeBelongLeafNodeEnumrator);
+        public abstract Node<T> PrependInPlace(Node<T> node, LeafNodeEnumrator<T> leafNodeEnumrator, LeafNodeEnumrator<T> nodeBelongLeafNodeEnumrator, ICustomConverter<T> customConverter);
 
-        public abstract Node<T> PrependInPlace(T item, LeafNodeEnumrator<T> leafNodeEnumrator);
+        public abstract Node<T> PrependInPlace(T item, LeafNodeEnumrator<T> leafNodeEnumrator, ICustomConverter<T> customConverter);
 
-        public abstract Node<T> AppendInPlace(T item, LeafNodeEnumrator<T> leafNodeEnumrator);
+        public abstract Node<T> AppendInPlace(T item, LeafNodeEnumrator<T> leafNodeEnumrator, ICustomConverter<T> customConverter);
 
-        public abstract Node<T> AppendInPlace(Node<T> node, LeafNodeEnumrator<T> leafNodeEnumrator, LeafNodeEnumrator<T> nodeBelongLeafNodeEnumrator);
+        public abstract Node<T> AppendInPlace(Node<T> node, LeafNodeEnumrator<T> leafNodeEnumrator, LeafNodeEnumrator<T> nodeBelongLeafNodeEnumrator, ICustomConverter<T> customConverter);
 
-        public abstract Node<T> RemoveRangeInPlace(int first, int last, LeafNodeEnumrator<T> leafNodeEnumrator);
+        public abstract Node<T> RemoveRangeInPlace(int first, int last, LeafNodeEnumrator<T> leafNodeEnumrator, ICustomConverter<T> customConverter);
 
-        public abstract Node<T> InsertInPlace(int index, T item, LeafNodeEnumrator<T> leafNodeEnumrator);
+        public abstract Node<T> InsertInPlace(int index, T item, LeafNodeEnumrator<T> leafNodeEnumrator, ICustomConverter<T> customConverter);
 
-        public abstract Node<T> InsertInPlace(int index, Node<T> node, LeafNodeEnumrator<T> leafNodeEnumrator, LeafNodeEnumrator<T> nodeBelongLeafNodeEnumrator);
+        public abstract Node<T> InsertInPlace(int index, Node<T> node, LeafNodeEnumrator<T> leafNodeEnumrator, LeafNodeEnumrator<T> nodeBelongLeafNodeEnumrator, ICustomConverter<T> customConverter);
     }
     public class LeafNode<T> : Node<T>
     {
@@ -81,7 +81,7 @@ namespace FooProject.Collection
             Count = count;
         }
 
-        public override Node<T> AppendInPlace(T item, LeafNodeEnumrator<T> leafNodeEnumrator)
+        public override Node<T> AppendInPlace(T item, LeafNodeEnumrator<T> leafNodeEnumrator, ICustomConverter<T> customConverter)
         {
             if (Count < BigList<T>.MAXLEAF)
             {
@@ -91,9 +91,9 @@ namespace FooProject.Collection
             }
             else
             {
-                var newLeafNode = new LeafNode<T>(item);
+                var newLeafNode = customConverter.CreateLeafNode(item);
                 leafNodeEnumrator.AddNext(this,newLeafNode);
-                return new ConcatNode<T>(this, newLeafNode);
+                return customConverter.CreateConcatNode(this, newLeafNode);
             }
         }
         private bool MergeBeforeLeafInPlace(Node<T> other)
@@ -121,7 +121,7 @@ namespace FooProject.Collection
             return false;
         }
 
-        public override Node<T> PrependInPlace(Node<T> node, LeafNodeEnumrator<T> leafNodeEnumrator, LeafNodeEnumrator<T> nodeBelongLeafNodeEnumrator)
+        public override Node<T> PrependInPlace(Node<T> node, LeafNodeEnumrator<T> leafNodeEnumrator, LeafNodeEnumrator<T> nodeBelongLeafNodeEnumrator, ICustomConverter<T> customConverter)
         {
             if (nodeBelongLeafNodeEnumrator != null)
             {
@@ -143,11 +143,11 @@ namespace FooProject.Collection
                     leafNodeEnumrator.AddBefore(BigList<T>.GetMostLeftNode(this), nodeBelongLeafNodeEnumrator);
                 }
             }
-            return new ConcatNode<T>(node, this);
+            return customConverter.CreateConcatNode(node, this);
 
         }
 
-        public override Node<T> AppendInPlace(Node<T> node, LeafNodeEnumrator<T> leafNodeEnumrator, LeafNodeEnumrator<T> nodeBelongLeafNodeEnumrator)
+        public override Node<T> AppendInPlace(Node<T> node, LeafNodeEnumrator<T> leafNodeEnumrator, LeafNodeEnumrator<T> nodeBelongLeafNodeEnumrator, ICustomConverter<T> customConverter)
         {
             if (nodeBelongLeafNodeEnumrator != null)
             {
@@ -163,17 +163,17 @@ namespace FooProject.Collection
             ConcatNode<T> otherConcat = (node as ConcatNode<T>);
             if (otherConcat != null && MergeLeafInPlace(otherConcat.Left))
             {
-                return new ConcatNode<T>(this, otherConcat.Right);
+                return customConverter.CreateConcatNode(this, otherConcat.Right);
             }
              */
             if (leafNodeEnumrator != null && nodeBelongLeafNodeEnumrator != null)
             {
                 leafNodeEnumrator.AddNext(BigList<T>.GetMostRightNode(this), nodeBelongLeafNodeEnumrator);
             }
-            return new ConcatNode<T>(this, node);
+            return customConverter.CreateConcatNode(this, node);
         }
 
-        public override Node<T> InsertInPlace(int index, T item, LeafNodeEnumrator<T> leafNodeEnumrator)
+        public override Node<T> InsertInPlace(int index, T item, LeafNodeEnumrator<T> leafNodeEnumrator, ICustomConverter<T> customConverter)
         {
             if (Count < BigList<T>.MAXLEAF)
             {
@@ -185,17 +185,17 @@ namespace FooProject.Collection
             {
                 if (index == Count)
                 {
-                    var newLeafNode = new LeafNode<T>(item);
+                    var newLeafNode = customConverter.CreateLeafNode(item);
                     leafNodeEnumrator.AddNext(this, newLeafNode);
                     // Inserting at count is just an appending operation.
-                    return new ConcatNode<T>(this, newLeafNode);
+                    return customConverter.CreateConcatNode(this, newLeafNode);
                 }
                 else if (index == 0)
                 {
-                    var newLeafNode = new LeafNode<T>(item);
+                    var newLeafNode = customConverter.CreateLeafNode(item);
                     leafNodeEnumrator.AddBefore(this, newLeafNode);
                     // Inserting at 0 is just a prepending operation.
-                    return new ConcatNode<T>(new LeafNode<T>(item), this);
+                    return customConverter.CreateConcatNode(newLeafNode, this);
                 }
                 else
                 {
@@ -205,21 +205,21 @@ namespace FooProject.Collection
                     FixedList<T> leftItems = new FixedList<T>(leftItemCount, BigList<T>.MAXLEAF);
                     leftItems.AddRange(items.GetRange(0, splitLength),splitLength);
                     leftItems.Add(item);
-                    LeafNode<T> leftNode = new LeafNode<T>(index + 1, leftItems);
+                    LeafNode<T> leftNode = customConverter.CreateLeafNode(index + 1, leftItems);
                     leafNodeEnumrator.Replace(this, leftNode);
 
                     int rightItemCount = items.Count - index;
                     FixedList<T> rightItems = new FixedList<T>(rightItemCount,BigList<T>.MAXLEAF);
                     rightItems.AddRange(items.GetRange(splitLength, rightItemCount), rightItemCount);
-                    LeafNode<T> rightNode = new LeafNode<T>(Count - index, rightItems);
+                    LeafNode<T> rightNode = customConverter.CreateLeafNode(Count - index, rightItems);
                     leafNodeEnumrator.AddNext(leftNode, rightNode);
 
-                    return new ConcatNode<T>(leftNode, rightNode);
+                    return customConverter.CreateConcatNode(leftNode, rightNode);
                 }
             }
         }
 
-        public override Node<T> InsertInPlace(int index, Node<T> node, LeafNodeEnumrator<T> leafNodeEnumrator, LeafNodeEnumrator<T> nodeBelongLeafNodeEnumrator)
+        public override Node<T> InsertInPlace(int index, Node<T> node, LeafNodeEnumrator<T> leafNodeEnumrator, LeafNodeEnumrator<T> nodeBelongLeafNodeEnumrator, ICustomConverter<T> customConverter)
         {
             LeafNode<T> otherLeaf = (node as LeafNode<T>);
             int newCount;
@@ -234,12 +234,12 @@ namespace FooProject.Collection
             else if (index == 0)
             {
                 // Inserting at 0 is a prepend.
-                return PrependInPlace(node,leafNodeEnumrator, nodeBelongLeafNodeEnumrator);
+                return PrependInPlace(node,leafNodeEnumrator, nodeBelongLeafNodeEnumrator,customConverter);
             }
             else if (index == Count)
             {
                 // Inserting at count is an append.
-                return AppendInPlace(node, leafNodeEnumrator, nodeBelongLeafNodeEnumrator);
+                return AppendInPlace(node, leafNodeEnumrator, nodeBelongLeafNodeEnumrator, customConverter);
             }
             else
             {
@@ -249,23 +249,23 @@ namespace FooProject.Collection
                 int splitLength = index;
                 FixedList<T> leftItems = new FixedList<T>(leftItemCount,BigList<T>.MAXLEAF);
                 leftItems.AddRange(items.GetRange(0, splitLength),splitLength);
-                Node<T> leftNode = new LeafNode<T>(index, leftItems);
+                Node<T> leftNode = customConverter.CreateLeafNode(index, leftItems);
                 leafNodeEnumrator.Replace(this, (LeafNode<T>)leftNode);
 
                 int rightItemCount = items.Count - index;
                 FixedList<T> rightItems = new FixedList<T>(rightItemCount, BigList<T>.MAXLEAF);
                 rightItems.AddRange(items.GetRange(splitLength, rightItemCount), rightItemCount);
-                Node<T> rightNode = new LeafNode<T>(Count - index, rightItems);
+                Node<T> rightNode = customConverter.CreateLeafNode(Count - index, rightItems);
 
-                leftNode = leftNode.AppendInPlace(node, leafNodeEnumrator, nodeBelongLeafNodeEnumrator);
+                leftNode = leftNode.AppendInPlace(node, leafNodeEnumrator, nodeBelongLeafNodeEnumrator, customConverter);
 
                 leafNodeEnumrator.AddNext(BigList<T>.GetMostRightNode(leftNode), (LeafNode<T>)rightNode);
-                leftNode = leftNode.AppendInPlace(rightNode, null, null);
+                leftNode = leftNode.AppendInPlace(rightNode, null, null, customConverter);
                 return leftNode;
             }
         }
 
-        public override Node<T> PrependInPlace(T item, LeafNodeEnumrator<T> leafNodeEnumrator)
+        public override Node<T> PrependInPlace(T item, LeafNodeEnumrator<T> leafNodeEnumrator, ICustomConverter<T> customConverter)
         {
             // Add into the current leaf, if possible.
             if (Count < BigList<T>.MAXLEAF)
@@ -277,13 +277,13 @@ namespace FooProject.Collection
             }
             else
             {
-                var newLeafNode = new LeafNode<T>(item);
+                var newLeafNode = customConverter.CreateLeafNode(item);
                 leafNodeEnumrator.AddBefore(this, newLeafNode);
-                return new ConcatNode<T>(newLeafNode, this);
+                return customConverter.CreateConcatNode(newLeafNode, this);
             }
         }
 
-        public override Node<T> RemoveRangeInPlace(int first, int last, LeafNodeEnumrator<T> leafNodeEnumrator)
+        public override Node<T> RemoveRangeInPlace(int first, int last, LeafNodeEnumrator<T> leafNodeEnumrator, ICustomConverter<T> customConverter)
         {
             Debug.Assert(first <= last);
             Debug.Assert(last >= 0);
@@ -328,7 +328,7 @@ namespace FooProject.Collection
                 this.Depth = (short)(right.Depth + 1);
         }
 
-        private Node<T> NewNodeInPlace(Node<T> newLeft, Node<T> newRight)
+        protected virtual Node<T> NewNodeInPlace(Node<T> newLeft, Node<T> newRight)
         {
             if (newLeft == null)
                 return newRight;
@@ -345,10 +345,10 @@ namespace FooProject.Collection
             return this;
         }
 
-        public override Node<T> PrependInPlace(Node<T> node, LeafNodeEnumrator<T> leafNodeEnumrator, LeafNodeEnumrator<T> nodeBelongLeafNodeEnumrator)
+        public override Node<T> PrependInPlace(Node<T> node, LeafNodeEnumrator<T> leafNodeEnumrator, LeafNodeEnumrator<T> nodeBelongLeafNodeEnumrator, ICustomConverter<T> customConverter)
         {
             if (Left.Count + node.Count <= BigList<T>.MAXLEAF && Left is LeafNode<T> && node is LeafNode<T>)
-                return NewNodeInPlace(Left.PrependInPlace(node, leafNodeEnumrator, nodeBelongLeafNodeEnumrator), Right);
+                return NewNodeInPlace(Left.PrependInPlace(node, leafNodeEnumrator, nodeBelongLeafNodeEnumrator, customConverter), Right);
             if (leafNodeEnumrator != null)
             {
                 var rightLeafNode = node as LeafNode<T>;
@@ -357,13 +357,13 @@ namespace FooProject.Collection
                 else if (rightLeafNode != null)
                     leafNodeEnumrator.AddBefore(BigList<T>.GetMostLeftNode(this), rightLeafNode);
             }
-            return new ConcatNode<T>(node, this);
+            return customConverter.CreateConcatNode(node, this);
         }
 
-        public override Node<T> AppendInPlace(Node<T> node, LeafNodeEnumrator<T> leafNodeEnumrator, LeafNodeEnumrator<T> nodeBelongLeafNodeEnumrator)
+        public override Node<T> AppendInPlace(Node<T> node, LeafNodeEnumrator<T> leafNodeEnumrator, LeafNodeEnumrator<T> nodeBelongLeafNodeEnumrator, ICustomConverter<T> customConverter)
         {
             if (Right.Count + node.Count <= BigList<T>.MAXLEAF && Right is LeafNode<T> && node is LeafNode<T>)
-                return NewNodeInPlace(Left, Right.AppendInPlace(node, leafNodeEnumrator, nodeBelongLeafNodeEnumrator));
+                return NewNodeInPlace(Left, Right.AppendInPlace(node, leafNodeEnumrator, nodeBelongLeafNodeEnumrator, customConverter));
             if (leafNodeEnumrator != null)
             {
                 var rightLeafNode = node as LeafNode<T>;
@@ -372,10 +372,10 @@ namespace FooProject.Collection
                 else if(rightLeafNode != null)
                     leafNodeEnumrator.AddNext(BigList<T>.GetMostRightNode(this), rightLeafNode);
             }
-            return new ConcatNode<T>(this, node);
+            return customConverter.CreateConcatNode(this, node);
         }
 
-        public override Node<T> AppendInPlace(T item, LeafNodeEnumrator<T> leafNodeEnumrator)
+        public override Node<T> AppendInPlace(T item, LeafNodeEnumrator<T> leafNodeEnumrator, ICustomConverter<T> customConverter)
         {
             LeafNode<T> rightLeaf;
             if (Right.Count < BigList<T>.MAXLEAF && (rightLeaf = Right as LeafNode<T>) != null)
@@ -387,31 +387,31 @@ namespace FooProject.Collection
             }
             else
             {
-                var newLeafNode = new LeafNode<T>(item);
+                var newLeafNode = customConverter.CreateLeafNode(item);
                 leafNodeEnumrator.AddNext(BigList<T>.GetMostRightNode(this), newLeafNode);
-                return new ConcatNode<T>(this, newLeafNode);
+                return customConverter.CreateConcatNode(this, newLeafNode);
             }
         }
 
-        public override Node<T> InsertInPlace(int index, T item, LeafNodeEnumrator<T> leafNodeEnumrator)
+        public override Node<T> InsertInPlace(int index, T item, LeafNodeEnumrator<T> leafNodeEnumrator, ICustomConverter<T> customConverter)
         {
             int leftCount = Left.Count;
             if (index <= leftCount)
-                return NewNodeInPlace(Left.InsertInPlace(index, item, leafNodeEnumrator), Right);
+                return NewNodeInPlace(Left.InsertInPlace(index, item, leafNodeEnumrator, customConverter), Right);
             else
-                return NewNodeInPlace(Left, Right.InsertInPlace(index - leftCount, item, leafNodeEnumrator));
+                return NewNodeInPlace(Left, Right.InsertInPlace(index - leftCount, item, leafNodeEnumrator,customConverter));
         }
 
-        public override Node<T> InsertInPlace(int index, Node<T> node, LeafNodeEnumrator<T> leafNodeEnumrator, LeafNodeEnumrator<T> nodeBelongLeafNodeEnumrator)
+        public override Node<T> InsertInPlace(int index, Node<T> node, LeafNodeEnumrator<T> leafNodeEnumrator, LeafNodeEnumrator<T> nodeBelongLeafNodeEnumrator, ICustomConverter<T> customConverter)
         {
             int leftCount = Left.Count;
             if (index < leftCount)
-                return NewNodeInPlace(Left.InsertInPlace(index, node, leafNodeEnumrator,nodeBelongLeafNodeEnumrator), Right);
+                return NewNodeInPlace(Left.InsertInPlace(index, node, leafNodeEnumrator,nodeBelongLeafNodeEnumrator,customConverter), Right);
             else
-                return NewNodeInPlace(Left, Right.InsertInPlace(index - leftCount, node, leafNodeEnumrator, nodeBelongLeafNodeEnumrator));
+                return NewNodeInPlace(Left, Right.InsertInPlace(index - leftCount, node, leafNodeEnumrator, nodeBelongLeafNodeEnumrator, customConverter));
         }
 
-        public override Node<T> PrependInPlace(T item, LeafNodeEnumrator<T> leafNodeEnumrator)
+        public override Node<T> PrependInPlace(T item, LeafNodeEnumrator<T> leafNodeEnumrator, ICustomConverter<T> customConverter)
         {
             LeafNode<T> leftLeaf;
             if (Left.Count < BigList<T>.MAXLEAF && (leftLeaf = Left as LeafNode<T>) != null)
@@ -425,13 +425,13 @@ namespace FooProject.Collection
             }
             else
             {
-                var newLeaf = new LeafNode<T>(item);
+                var newLeaf = customConverter.CreateLeafNode(item);
                 leafNodeEnumrator.AddBefore(BigList<T>.GetMostLeftNode(this), newLeaf);
-                return new ConcatNode<T>(newLeaf, this);
+                return customConverter.CreateConcatNode(newLeaf, this);
             }
         }
 
-        public override Node<T> RemoveRangeInPlace(int first, int last, LeafNodeEnumrator<T> leafNodeEnumrator)
+        public override Node<T> RemoveRangeInPlace(int first, int last, LeafNodeEnumrator<T> leafNodeEnumrator, ICustomConverter<T> customConverter)
         {
             Debug.Assert(first < Count);
             Debug.Assert(last >= 0);
@@ -449,10 +449,10 @@ namespace FooProject.Collection
 
             // Is part of the left being removed?
             if (first < leftCount)
-                newLeft = Left.RemoveRangeInPlace(first, last, leafNodeEnumrator);
+                newLeft = Left.RemoveRangeInPlace(first, last, leafNodeEnumrator, customConverter);
             // Is part of the right being remove?
             if (last >= leftCount)
-                newRight = Right.RemoveRangeInPlace(first - leftCount, last - leftCount, leafNodeEnumrator);
+                newRight = Right.RemoveRangeInPlace(first - leftCount, last - leftCount, leafNodeEnumrator, customConverter);
 
             return NewNodeInPlace(newLeft, newRight);
         }
