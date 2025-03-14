@@ -82,7 +82,7 @@ namespace UnitTest
     {
         int absoluteIndex = 0;
 
-        public ILeastFetch<int> LeastFetch { get; }
+        public ILeastFetch<int> LeastFetch { get; private set; }
 
         public int Convert(int item)
         {

@@ -55,7 +55,7 @@ namespace FooProject.Collection
 
     public class DefaultCustomConverter<T> : ICustomConverter<T>
     {
-        public ILeastFetch<T> LeastFetch { get; }
+        public ILeastFetch<T> LeastFetch { get; private set; }
 
         public T Convert(T item)
         {
