@@ -82,7 +82,7 @@ namespace UnitTest
     {
         int absoluteIndex = 0;
 
-        public ILeastFetch<int> LeastFetch { get; set; }
+        public ILeastFetch<int> LeastFetch { get; }
 
         public int Convert(int item)
         {
@@ -128,8 +128,14 @@ namespace UnitTest
             }
         }
 
+        public void SetState(Node<int> current, int totalLeftCountInList)
+        {
+            this.LeastFetch = new LeastFetch<int>(current, totalLeftCountInList);
+        }
+
         public void ResetState()
         {
+            this.LeastFetch = null;
         }
     }
 }

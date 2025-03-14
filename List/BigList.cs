@@ -77,17 +77,6 @@ namespace FooProject.Collection
 
         public ICustomConverter<T> CustomConverter { get; set; }
 
-        struct LeastFetch : ILeastFetch<T>
-        {
-            public Node<T> Node { get; private set; }
-            public int TotalLeftCount { get; private set; }
-            public LeastFetch(Node<T> node,int totalLeft)
-            {
-                Node= node;
-                TotalLeftCount = totalLeft;
-            }
-        }
-
         public new T this[int index]
         {
             get
@@ -127,7 +116,7 @@ namespace FooProject.Collection
 
             Node<T> current = root;
             relativeIndex = index;
-            CustomConverter.LeastFetch = null;
+            CustomConverter.ResetState();
             int totalLeftCount = 0;
 
             while (current != null)
@@ -157,7 +146,7 @@ namespace FooProject.Collection
                     break;
                 }
             }
-            CustomConverter.LeastFetch = new LeastFetch(current, totalLeftCount);
+            CustomConverter.SetState(current, totalLeftCount);
 
             return current;
         }
@@ -165,7 +154,7 @@ namespace FooProject.Collection
         private void ResetFetchCache()
         {
             //このメソッドが呼び出された時点で何かしらの操作がされているのでキャッシュはいったんリセットする
-            CustomConverter.LeastFetch = null;
+            CustomConverter.ResetState();
         }
 
         public override int Count

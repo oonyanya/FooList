@@ -19,8 +19,7 @@ namespace FooProject.Collection
     }
     public interface ICustomConverter<T>
     {
-        ILeastFetch<T> LeastFetch { get; set; }
-
+        ILeastFetch<T> LeastFetch { get; }
 
         void ResetState();
 
@@ -39,11 +38,24 @@ namespace FooProject.Collection
         ConcatNode<T> CreateConcatNode(ConcatNode<T> node);
 
         ConcatNode<T> CreateConcatNode(Node<T> left, Node<T> right);
+
+        void SetState(Node<T> current, int totalLeftCountInList);
+    }
+
+    public struct LeastFetch<T> : ILeastFetch<T>
+    {
+        public Node<T> Node { get; private set; }
+        public int TotalLeftCount { get; private set; }
+        public LeastFetch(Node<T> node, int totalLeft)
+        {
+            Node = node;
+            TotalLeftCount = totalLeft;
+        }
     }
 
     public class DefaultCustomConverter<T> : ICustomConverter<T>
     {
-        public ILeastFetch<T> LeastFetch { get; set; }
+        public ILeastFetch<T> LeastFetch { get; }
 
         public T Convert(T item)
         {
@@ -82,6 +94,11 @@ namespace FooProject.Collection
 
         public void NodeWalk(Node<T> current, NodeWalkDirection dir)
         {
+        }
+
+        public void SetState(Node<T> current, int totalLeftCountInList)
+        {
+            this.LeastFetch = new LeastFetch<T>(current, totalLeftCountInList);
         }
 
         public void ResetState()
