@@ -7,11 +7,24 @@ using System.Xml.Linq;
 
 namespace FooProject.Collection
 {
+    public interface ILeastFetch<T>
+    {
+        Node<T> Node { get; }
+        int TotalLeftCount { get; }
+    }
+    public enum NodeWalkDirection
+    {
+        Left,
+        Right
+    }
     public interface ICustomConverter<T>
     {
+        ILeastFetch<T> LeastFetch { get; set; }
+
+
         void ResetState();
 
-        void NodeWalk(Node<T> current);
+        void NodeWalk(Node<T> current, NodeWalkDirection dir);
 
         T Convert(T item);
 
@@ -30,6 +43,8 @@ namespace FooProject.Collection
 
     public class DefaultCustomConverter<T> : ICustomConverter<T>
     {
+        public ILeastFetch<T> LeastFetch { get; set; }
+
         public T Convert(T item)
         {
             return item;
@@ -65,7 +80,7 @@ namespace FooProject.Collection
             return new LeafNode<T>(count, items);
         }
 
-        public void NodeWalk(Node<T> current)
+        public void NodeWalk(Node<T> current, NodeWalkDirection dir)
         {
         }
 

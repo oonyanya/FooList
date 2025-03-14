@@ -16,17 +16,18 @@ namespace UnitTest
         {
             BigList<int> list = new BigList<int>();
             list.CustomConverter = new CustomConverter();
-            for(int i = 0; i<24; i++)
+            for(int i = 0; i < 8; i++)
             {
                 list.Add(3);
             }
             list.Insert(0, 3);
             list.Insert(list.Count, 3);
 
-            for(int i=0; i < 26; i++)
+            var expected = new int[] { 3, 6, 6, 6, 6, 6, 6, 6, 6, 9, };
+            for(int i=0; i < 10; i++)
             {
                 var n = list[i];
-                Assert.AreEqual(3, list.CustomConverter.ConvertBack(n));
+                Assert.AreEqual(expected[i], list.CustomConverter.ConvertBack(n));
             }
         }
     }
@@ -79,16 +80,18 @@ namespace UnitTest
 
     class CustomConverter : ICustomConverter<int>
     {
-        int totalSumIndex = 10;
+        int absoluteIndex = 0;
+
+        public ILeastFetch<int> LeastFetch { get; set; }
 
         public int Convert(int item)
         {
-            return item + totalSumIndex;
+            return item;
         }
 
         public int ConvertBack(int item)
         {
-            return item - totalSumIndex;
+            return item + absoluteIndex;
         }
 
         public ConcatNode<int> CreateConcatNode(ConcatNode<int> node)
@@ -116,8 +119,13 @@ namespace UnitTest
             return new CustomLeafNode<int>(count,items);
         }
 
-        public void NodeWalk(Node<int> current)
+        public void NodeWalk(Node<int> current, NodeWalkDirection dir)
         {
+            var customNode = (ICustomeNode)current;
+            if (dir == NodeWalkDirection.Right)
+            {
+                absoluteIndex += customNode.TotalSumCount;
+            }
         }
 
         public void ResetState()

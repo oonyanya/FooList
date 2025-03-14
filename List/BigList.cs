@@ -77,17 +77,16 @@ namespace FooProject.Collection
 
         public ICustomConverter<T> CustomConverter { get; set; }
 
-        struct LeastFetch
+        struct LeastFetch : ILeastFetch<T>
         {
-            public Node<T> Node;
-            public int TotalLeftCount;
+            public Node<T> Node { get; private set; }
+            public int TotalLeftCount { get; private set; }
             public LeastFetch(Node<T> node,int totalLeft)
             {
                 Node= node;
                 TotalLeftCount = totalLeft;
             }
         }
-        LeastFetch? leastFetch;
 
         public new T this[int index]
         {
@@ -119,16 +118,16 @@ namespace FooProject.Collection
 
         private Node<T> IndexOfNode(int index,out int relativeIndex)
         {
-            if(leastFetch != null)
+            if(CustomConverter.LeastFetch != null)
             {
-                relativeIndex = index - leastFetch.Value.TotalLeftCount;
-                if (relativeIndex >= 0 && relativeIndex < leastFetch.Value.Node.Count)
-                    return leastFetch.Value.Node;
+                relativeIndex = index - CustomConverter.LeastFetch.TotalLeftCount;
+                if (relativeIndex >= 0 && relativeIndex < CustomConverter.LeastFetch.Node.Count)
+                    return CustomConverter.LeastFetch.Node;
             }
 
             Node<T> current = root;
             relativeIndex = index;
-            leastFetch = null;
+            CustomConverter.LeastFetch = null;
             int totalLeftCount = 0;
 
             while (current != null)
@@ -139,13 +138,14 @@ namespace FooProject.Collection
                     if (relativeIndex < leftCount)
                     {
                         current = current.Left;
+                        CustomConverter.NodeWalk(current, NodeWalkDirection.Left);
                     }
                     else
                     {
                         current = current.Right;
                         relativeIndex -= leftCount;
                         totalLeftCount += leftCount;
-                        CustomConverter.NodeWalk(current);
+                        CustomConverter.NodeWalk(current,NodeWalkDirection.Right);
                     }
 
                 }else if (current.Right != null)
@@ -157,7 +157,7 @@ namespace FooProject.Collection
                     break;
                 }
             }
-            leastFetch = new LeastFetch(current,totalLeftCount);
+            CustomConverter.LeastFetch = new LeastFetch(current, totalLeftCount);
 
             return current;
         }
@@ -165,7 +165,7 @@ namespace FooProject.Collection
         private void ResetFetchCache()
         {
             //このメソッドが呼び出された時点で何かしらの操作がされているのでキャッシュはいったんリセットする
-            leastFetch = null;
+            CustomConverter.LeastFetch = null;
         }
 
         public override int Count
