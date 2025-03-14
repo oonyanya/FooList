@@ -12,22 +12,39 @@ namespace UnitTest
     public class CustomConverterTest
     {
         [TestMethod]
-        public void TotalTest()
+        public void AddTest()
         {
             BigList<int> list = new BigList<int>();
             list.CustomConverter = new CustomConverter();
-            for(int i = 0; i < 8; i++)
+            for (int i = 0; i < 8; i++)
             {
                 list.Add(3);
             }
             list.Insert(0, 3);
             list.Insert(list.Count, 3);
 
-            var expected = new int[] { 3, 6, 6, 6, 6, 6, 6, 6, 6, 9, };
-            for(int i=0; i < 10; i++)
+            var expected = new int[] { 3, 6, 6, 6, 6, 6, 6, 6, 6, 30, };
+            for (int i = 0; i < 10; i++)
             {
-                var n = list[i];
-                Assert.AreEqual(expected[i], list.CustomConverter.ConvertBack(n));
+                var n = list.CustomConverter.ConvertBack(list[i]);
+                Assert.AreEqual(expected[i], n);
+            }
+        }
+
+        [TestMethod]
+        public void AddRangeTest()
+        {
+            var list = new BigList<int>();
+            list.CustomConverter = new CustomConverter();
+            list.AddRange(new int[] { 3, 3, 3, 3, 3, 3, 3, 3 });
+            list.Insert(0, 3);
+            list.Insert(list.Count, 3);
+
+            var expected = new int[] { 3, 6, 6, 6, 6, 6, 6, 6, 6, 30, };
+            for (int i = 0; i < 10; i++)
+            {
+                var n = list.CustomConverter.ConvertBack(list[i]);
+                Assert.AreEqual(expected[i], n);
             }
         }
     }
@@ -44,6 +61,9 @@ namespace UnitTest
         }
         public CustomConcatNode(Node<T> left, Node<T> right) : base(left,right)
         {
+            var customNodeLeft = (ICustomeNode)left;
+            var customNodeRight = (ICustomeNode)right;
+            TotalSumCount = customNodeLeft.TotalSumCount + customNodeRight.TotalSumCount;
         }
 
         public int TotalSumCount { get; private set; }
@@ -71,6 +91,12 @@ namespace UnitTest
 
         public CustomLeafNode(int count, FixedList<T> items) : base(count, items)
         {
+            NotifyUpdate();
+        }
+
+        public override void NotifyUpdate()
+        {
+            TotalSumCount = 0;
             foreach (var item in items)
                 TotalSumCount += Convert.ToInt32(item);
         }
@@ -135,7 +161,7 @@ namespace UnitTest
 
         public void NodeWalk(Node<int> current, NodeWalkDirection dir)
         {
-            var customNode = (ICustomeNode)current;
+            var customNode = (ICustomeNode)current.Left;
             if (dir == NodeWalkDirection.Right)
             {
                 absoluteIndex += customNode.TotalSumCount;
@@ -150,6 +176,7 @@ namespace UnitTest
         public void ResetState()
         {
             this.LeastFetch = null;
+            this.absoluteIndex = 0;
         }
     }
 }

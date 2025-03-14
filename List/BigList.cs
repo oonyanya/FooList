@@ -126,15 +126,15 @@ namespace FooProject.Collection
                     int leftCount = current.Left.Count;
                     if (relativeIndex < leftCount)
                     {
-                        current = current.Left;
                         CustomConverter.NodeWalk(current, NodeWalkDirection.Left);
+                        current = current.Left;
                     }
                     else
                     {
+                        CustomConverter.NodeWalk(current, NodeWalkDirection.Right);
                         current = current.Right;
                         relativeIndex -= leftCount;
                         totalLeftCount += leftCount;
-                        CustomConverter.NodeWalk(current,NodeWalkDirection.Right);
                     }
 
                 }else if (current.Right != null)

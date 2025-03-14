@@ -25,13 +25,7 @@ namespace FooProject.Collection
 
         void NodeWalk(Node<T> current, NodeWalkDirection dir);
 
-        T Convert(T item);
-
         T ConvertBack(T item);
-
-        FixedList<T> Convert(FixedList<T> item);
-
-        FixedList<T> ConvertBack(FixedList<T> item);
 
         LeafNode<T> CreateLeafNode();
 
