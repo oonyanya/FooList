@@ -358,17 +358,16 @@ namespace FooProject.Collection
             if ((uint)Count + 1 > MAXITEMS)
                 throw new InvalidOperationException("too large");
 
-            T convertedItem = CustomConverter.Convert(item);
             if (root == null)
             {
-                var newLeaf = CustomConverter.CreateLeafNode(convertedItem);
+                var newLeaf = CustomConverter.CreateLeafNode(item);
                 root = newLeaf;
                 leafNodeEnumrator.AddLast(newLeaf);
 
             }
             else
             {
-                Node<T> newRoot = root.PrependInPlace(convertedItem, leafNodeEnumrator, CustomConverter);
+                Node<T> newRoot = root.PrependInPlace(item, leafNodeEnumrator, CustomConverter);
                 if (newRoot != root)
                 {
                     root = newRoot;
@@ -383,16 +382,15 @@ namespace FooProject.Collection
             if ((uint)Count + 1 > MAXITEMS)
                 throw new InvalidOperationException("too large");
 
-            T convertedItem = CustomConverter.Convert(item);
             if (root == null)
             {
-                var newLeaf = CustomConverter.CreateLeafNode(convertedItem);
+                var newLeaf = CustomConverter.CreateLeafNode(item);
                 root = newLeaf;
                 leafNodeEnumrator.AddLast(newLeaf);
             }
             else
             {
-                Node<T> newRoot = root.AppendInPlace(convertedItem, leafNodeEnumrator, CustomConverter);
+                Node<T> newRoot = root.AppendInPlace(item, leafNodeEnumrator, CustomConverter);
                 if (newRoot != root)
                 {
                     root = newRoot;
@@ -419,7 +417,7 @@ namespace FooProject.Collection
 
                 if (items != null)
                 {
-                    items.Add(customConverter.Convert(enumerator.Current));
+                    items.Add(enumerator.Current);
                     i++;
                 }
             }
@@ -625,10 +623,9 @@ namespace FooProject.Collection
             }
             else
             {
-                T convertedItem = CustomConverter.Convert(item);
                 if (root == null)
                 {
-                    var newLeafNode = CustomConverter.CreateLeafNode(convertedItem);
+                    var newLeafNode = CustomConverter.CreateLeafNode(item);
                     root = newLeafNode;
                     leafNodeEnumrator.AddLast(newLeafNode);
                 }

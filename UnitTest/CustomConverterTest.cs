@@ -94,6 +94,20 @@ namespace UnitTest
             return item + absoluteIndex;
         }
 
+        public FixedList<int> Convert(FixedList<int> items)
+        {
+            return items;
+        }
+
+        public FixedList<int> ConvertBack(FixedList<int> items)
+        {
+            for (int i = 0; i < items.Count; i++)
+            {
+                items[i] += absoluteIndex;
+            }
+            return items;
+        }
+
         public ConcatNode<int> CreateConcatNode(ConcatNode<int> node)
         {
             return new CustomConcatNode<int>(node);

@@ -29,6 +29,10 @@ namespace FooProject.Collection
 
         T ConvertBack(T item);
 
+        FixedList<T> Convert(FixedList<T> item);
+
+        FixedList<T> ConvertBack(FixedList<T> item);
+
         LeafNode<T> CreateLeafNode();
 
         LeafNode<T> CreateLeafNode(T item);
@@ -63,6 +67,16 @@ namespace FooProject.Collection
         }
 
         public T ConvertBack(T item)
+        {
+            return item;
+        }
+
+        public FixedList<T> Convert(FixedList<T> item)
+        {
+            return item;
+        }
+
+        public FixedList<T> ConvertBack(FixedList<T> item)
         {
             return item;
         }
