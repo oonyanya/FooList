@@ -14,6 +14,7 @@
   <ItemGroup>
     <Compile Include="..\UnitTest\BigList.LeafEnumratorTest.cs" Link="BigList.LeafEnumratorTest.cs" />
     <Compile Include="..\UnitTest\BigListTest.cs" Link="BigListTest.cs" />
+    <Compile Include="..\UnitTest\BigRangeListTest.cs" Link="BigRangeListTest.cs" />
     <Compile Include="..\UnitTest\FixedListTest.cs" Link="FixedListTest.cs" />
     <Compile Include="..\UnitTest\InterfaceTests.cs" Link="InterfaceTests.cs" />
     <Compile Include="..\UnitTest\MSTestSettings.cs" Link="MSTestSettings.cs" />
