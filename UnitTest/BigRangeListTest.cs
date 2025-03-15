@@ -11,6 +11,16 @@ namespace UnitTest
     [TestClass]
     public class BigRangeListTest
     {
+        private void AssertAreRangeEqual(int[] expected, BigRangeList<MyRange> list)
+        {
+            for (int i = 0; i < list.Count; i++)
+            {
+                var range = new MyRange(list[i]);
+                var n = list.CustomConverter.ConvertBack(range);
+                Assert.AreEqual(expected[i], n.Index);
+            }
+        }
+
         [TestMethod]
         public void AddTest()
         {
@@ -23,12 +33,7 @@ namespace UnitTest
             list.Insert(list.Count, new MyRange(0, 3));
 
             var expected = new int[] { 0, 3, 6, 9, 12, 15, 18, 21, 24, 27, };
-            for (int i = 0; i < 10; i++)
-            {
-                var range = new MyRange(list[i]);
-                var n = list.CustomConverter.ConvertBack(range);
-                Assert.AreEqual(expected[i], n.Index);
-            }
+            AssertAreRangeEqual(expected, list);
         }
 
         [TestMethod]
@@ -45,13 +50,9 @@ namespace UnitTest
             list.Insert(list.Count, new MyRange(0,3));
 
             var expected = new int[] { 0, 3, 6, 9, 12, 15, 18, 21, 24, 27, };
-            for (int i = 0; i < 10; i++)
-            {
-                var range = new MyRange(list[i]);
-                var n = list.CustomConverter.ConvertBack(range);
-                Assert.AreEqual(expected[i], n.Index);
-            }
+            AssertAreRangeEqual(expected, list);
         }
+
     }
 
     class MyRange : IRange
