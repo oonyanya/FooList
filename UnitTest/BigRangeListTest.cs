@@ -17,15 +17,16 @@ namespace UnitTest
             BigRangeList<MyRange> list = new BigRangeList<MyRange>();
             for (int i = 0; i < 8; i++)
             {
-                list.Add(new MyRange(3));
+                list.Add(new MyRange(0,3));
             }
-            list.Insert(0, new MyRange(3));
-            list.Insert(list.Count, new MyRange(3));
+            list.Insert(0, new MyRange(0, 3));
+            list.Insert(list.Count, new MyRange(0, 3));
 
-            var expected = new int[] { 0, 3, 3, 3, 3, 3, 3, 3, 3, 27, };
+            var expected = new int[] { 0, 3, 6, 9, 12, 15, 18, 21, 24, 27, };
             for (int i = 0; i < 10; i++)
             {
-                var n = list.CustomConverter.ConvertBack(list[i]);
+                var range = new MyRange(list[i]);
+                var n = list.CustomConverter.ConvertBack(range);
                 Assert.AreEqual(expected[i], n.Index);
             }
         }
@@ -37,16 +38,17 @@ namespace UnitTest
             var rangeList = new List<MyRange>();
             for (int i = 0; i < 8; i++)
             {
-                rangeList.Add(new MyRange(3));
+                rangeList.Add(new MyRange(0,3));
             }
             list.AddRange(rangeList);
-            list.Insert(0, new MyRange(3));
-            list.Insert(list.Count, new MyRange(3));
+            list.Insert(0, new MyRange(0,3));
+            list.Insert(list.Count, new MyRange(0,3));
 
-            var expected = new int[] { 0, 3, 3, 3, 3, 3, 3, 3, 3, 27, };
+            var expected = new int[] { 0, 3, 6, 9, 12, 15, 18, 21, 24, 27, };
             for (int i = 0; i < 10; i++)
             {
-                var n = list.CustomConverter.ConvertBack(list[i]);
+                var range = new MyRange(list[i]);
+                var n = list.CustomConverter.ConvertBack(range);
                 Assert.AreEqual(expected[i], n.Index);
             }
         }
@@ -57,10 +59,15 @@ namespace UnitTest
         public int Index { get; set; }
         public int Length { get; set; }
 
-        public MyRange(int length)
+        public MyRange(int index, int length)
         {
-            Index = 0; 
+            Index = index; 
             Length = length;
+        }
+        public MyRange(MyRange range)
+        {
+            Index = range.Index;
+            Length = range.Length;
         }
     }
 }

@@ -67,9 +67,15 @@ namespace FooProject.Collection
 
         public override void NotifyUpdate()
         {
-            TotalSumCount = 0;
-            foreach (var item in items)
-                TotalSumCount += item.Length;
+            int index = 0, totalLength = 0;
+            for(int i =0; i< items.Count; i++)
+            {
+                items[i].Index = index;
+                var length = items[i].Length;
+                totalLength += length;
+                index += length;
+            }
+            TotalSumCount = totalLength;
         }
 
         public int TotalSumCount { get; private set; }
