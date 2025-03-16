@@ -15,7 +15,7 @@ namespace FooProject.Collection
     {
         public BigRangeList() :base()
         {
-            this.CustomConverter = new CustomConverter<T>();
+            this.CustomConverter = new RangeConverter<T>();
         }
 
         public T GetIndexIntoRange(int index)
@@ -32,7 +32,7 @@ namespace FooProject.Collection
                 }
             }
 
-            CustomConverter<T> myCustomConverter = (CustomConverter<T>)CustomConverter;
+            RangeConverter<T> myCustomConverter = (RangeConverter<T>)CustomConverter;
             relativeIndex = index;
             var node = WalkNode((current, leftCount) => {
                 if (relativeIndex < leftCount)
@@ -42,7 +42,7 @@ namespace FooProject.Collection
                 else
                 {
                     relativeIndex -= leftCount;
-                    var customNode = (ICustomeNode)current.Left;
+                    var customNode = (IRangeNode)current.Left;
                     myCustomConverter.customLeastFetch.absoluteIndex += customNode.TotalSumCount;
                     return NodeWalkDirection.Right;
                 }
@@ -54,20 +54,20 @@ namespace FooProject.Collection
 
     }
 
-    internal interface ICustomeNode
+    internal interface IRangeNode
     {
         int TotalSumCount { get; }
     }
 
-    internal class CustomConcatNode<T> : ConcatNode<T>, ICustomeNode where T : IRange
+    internal class RangeConcatNode<T> : ConcatNode<T>, IRangeNode where T : IRange
     {
-        public CustomConcatNode(ConcatNode<T> node) : base(node)
+        public RangeConcatNode(ConcatNode<T> node) : base(node)
         {
         }
-        public CustomConcatNode(Node<T> left, Node<T> right) : base(left, right)
+        public RangeConcatNode(Node<T> left, Node<T> right) : base(left, right)
         {
-            var customNodeLeft = (ICustomeNode)left;
-            var customNodeRight = (ICustomeNode)right;
+            var customNodeLeft = (IRangeNode)left;
+            var customNodeRight = (IRangeNode)right;
             TotalSumCount = customNodeLeft.TotalSumCount + customNodeRight.TotalSumCount;
         }
 
@@ -75,26 +75,26 @@ namespace FooProject.Collection
 
         protected override Node<T> NewNodeInPlace(Node<T> newLeft, Node<T> newRight)
         {
-            var customNodeLeft = (ICustomeNode)newLeft;
-            var customNodeRight = (ICustomeNode)newRight;
+            var customNodeLeft = (IRangeNode)newLeft;
+            var customNodeRight = (IRangeNode)newRight;
             TotalSumCount = customNodeLeft.TotalSumCount + customNodeRight.TotalSumCount;
             return base.NewNodeInPlace(newLeft, newRight);
         }
     }
 
-    internal class CustomLeafNode<T> : LeafNode<T>, ICustomeNode where T: IRange
+    internal class RangeLeafNode<T> : LeafNode<T>, IRangeNode where T: IRange
     {
-        public CustomLeafNode() : base()
+        public RangeLeafNode() : base()
         {
             TotalSumCount = 0;
         }
 
-        public CustomLeafNode(T item) : base(item)
+        public RangeLeafNode(T item) : base(item)
         {
             TotalSumCount = item.Length;
         }
 
-        public CustomLeafNode(int count, FixedList<T> items) : base(count, items)
+        public RangeLeafNode(int count, FixedList<T> items) : base(count, items)
         {
             NotifyUpdate();
         }
@@ -115,7 +115,7 @@ namespace FooProject.Collection
         public int TotalSumCount { get; private set; }
     }
 
-    internal class CustomLeastFetch<T> : ILeastFetch<T> where T : IRange
+    internal class RangeLeastFetch<T> : ILeastFetch<T> where T : IRange
     {
         public Node<T> Node { get; set; }
 
@@ -123,16 +123,16 @@ namespace FooProject.Collection
 
         public int absoluteIndex { get; set; }
 
-        public CustomLeastFetch()
+        public RangeLeastFetch()
         {
         }
     }
 
-    internal class CustomConverter<T> : ICustomConverter<T> where T : IRange, new()
+    internal class RangeConverter<T> : ICustomConverter<T> where T : IRange, new()
     {
         public ILeastFetch<T> LeastFetch { get { return customLeastFetch; } }
 
-        public CustomLeastFetch<T> customLeastFetch { get; set; }
+        public RangeLeastFetch<T> customLeastFetch { get; set; }
 
         public T Convert(T item)
         {
@@ -149,34 +149,34 @@ namespace FooProject.Collection
 
         public ConcatNode<T> CreateConcatNode(ConcatNode<T> node)
         {
-            return new CustomConcatNode<T>(node);
+            return new RangeConcatNode<T>(node);
         }
 
         public ConcatNode<T> CreateConcatNode(Node<T> left, Node<T> right)
         {
-            return new CustomConcatNode<T>(left, right);
+            return new RangeConcatNode<T>(left, right);
         }
 
         public LeafNode<T> CreateLeafNode()
         {
-            return new CustomLeafNode<T>();
+            return new RangeLeafNode<T>();
         }
 
         public LeafNode<T> CreateLeafNode(T item)
         {
-            return new CustomLeafNode<T>(item);
+            return new RangeLeafNode<T>(item);
         }
 
         public LeafNode<T> CreateLeafNode(int count, FixedList<T> items)
         {
-            return new CustomLeafNode<T>(count, items);
+            return new RangeLeafNode<T>(count, items);
         }
 
         public void SetState(Node<T> current, int totalLeftCountInList)
         {
             if (current == null)
             {
-                this.customLeastFetch = new CustomLeastFetch<T>();
+                this.customLeastFetch = new RangeLeastFetch<T>();
             }
             else
             {
