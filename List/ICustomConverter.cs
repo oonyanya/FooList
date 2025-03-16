@@ -23,8 +23,7 @@ namespace FooProject.Collection
 
         void ResetState();
 
-        [Obsolete]
-        void NodeWalk(Node<T> current, NodeWalkDirection dir);
+        T Convert(T item);
 
         T ConvertBack(T item);
 
@@ -38,6 +37,11 @@ namespace FooProject.Collection
 
         ConcatNode<T> CreateConcatNode(Node<T> left, Node<T> right);
 
+        /// <summary>
+        /// Set State
+        /// </summary>
+        /// <param name="current">Node. If current is node, it have to create empty state.</param>
+        /// <param name="totalLeftCountInList">Total sum of count in left node's item.</param>
         void SetState(Node<T> current, int totalLeftCountInList);
     }
 
@@ -99,10 +103,6 @@ namespace FooProject.Collection
         public LeafNode<T> CreateLeafNode(int count, FixedList<T> items)
         {
             return new LeafNode<T>(count, items);
-        }
-
-        public void NodeWalk(Node<T> current, NodeWalkDirection dir)
-        {
         }
 
         public void SetState(Node<T> current, int totalLeftCountInList)

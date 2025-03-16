@@ -11,11 +11,45 @@ namespace FooProject.Collection
         int Index { get; set; }
         int Length { get; set; }
     }
-    public class BigRangeList<T> : BigList<T> where T : IRange
+    public class BigRangeList<T> : BigList<T> where T : IRange,new()
     {
         public BigRangeList() :base()
         {
             this.CustomConverter = new CustomConverter<T>();
+        }
+
+        public T GetIndexIntoRange(int index)
+        {
+            int relativeIndex;
+            LeafNode<T> leafNode;
+            if (CustomConverter.LeastFetch != null)
+            {
+                relativeIndex = index - CustomConverter.LeastFetch.TotalLeftCount;
+                if (relativeIndex >= 0 && relativeIndex < CustomConverter.LeastFetch.Node.Count)
+                {
+                    leafNode = (LeafNode<T>)CustomConverter.LeastFetch.Node;
+                    return CustomConverter.ConvertBack(leafNode.items[relativeIndex]);
+                }
+            }
+
+            CustomConverter<T> myCustomConverter = (CustomConverter<T>)CustomConverter;
+            relativeIndex = index;
+            var node = WalkNode((current, leftCount) => {
+                if (relativeIndex < leftCount)
+                {
+                    return NodeWalkDirection.Left;
+                }
+                else
+                {
+                    relativeIndex -= leftCount;
+                    var customNode = (ICustomeNode)current.Left;
+                    myCustomConverter.customLeastFetch.absoluteIndex += customNode.TotalSumCount;
+                    return NodeWalkDirection.Right;
+                }
+            });
+
+            leafNode = (LeafNode<T>)CustomConverter.LeastFetch.Node;
+            return CustomConverter.ConvertBack(leafNode.items[relativeIndex]);
         }
 
     }
@@ -94,11 +128,11 @@ namespace FooProject.Collection
         }
     }
 
-    internal class CustomConverter<T> : ICustomConverter<T> where T : IRange
+    internal class CustomConverter<T> : ICustomConverter<T> where T : IRange, new()
     {
-        public ILeastFetch<T> LeastFetch { get { return _leastFetch; } }
+        public ILeastFetch<T> LeastFetch { get { return customLeastFetch; } }
 
-        CustomLeastFetch<T> _leastFetch = null;
+        public CustomLeastFetch<T> customLeastFetch { get; set; }
 
         public T Convert(T item)
         {
@@ -107,19 +141,10 @@ namespace FooProject.Collection
 
         public T ConvertBack(T item)
         {
-            var customLeastFetch = (CustomLeastFetch<T>)LeastFetch;
-            item.Index += customLeastFetch.absoluteIndex;
-            return item;
-        }
-
-        public FixedList<T> Convert(FixedList<T> items)
-        {
-            return items;
-        }
-
-        public FixedList<T> ConvertBack(FixedList<T> items)
-        {
-            return items;
+            var result = new T();
+            result.Index = item.Index + customLeastFetch.absoluteIndex;
+            result.Length = item.Length;
+            return result;
         }
 
         public ConcatNode<T> CreateConcatNode(ConcatNode<T> node)
@@ -147,30 +172,22 @@ namespace FooProject.Collection
             return new CustomLeafNode<T>(count, items);
         }
 
-        public void NodeWalk(Node<T> current, NodeWalkDirection dir)
-        {
-            if(this._leastFetch == null)
-            {
-                this._leastFetch = new CustomLeastFetch<T>();
-            }
-
-            var customNode = (ICustomeNode)current.Left;
-            if (dir == NodeWalkDirection.Right)
-            {
-                var customLeastFetch = (CustomLeastFetch<T>)LeastFetch;
-                customLeastFetch.absoluteIndex += customNode.TotalSumCount;
-            }
-        }
-
         public void SetState(Node<T> current, int totalLeftCountInList)
         {
-            this._leastFetch.Node = current;
-            this._leastFetch.TotalLeftCount = totalLeftCountInList;
+            if (current == null)
+            {
+                this.customLeastFetch = new CustomLeastFetch<T>();
+            }
+            else
+            {
+                this.customLeastFetch.Node = current;
+                this.customLeastFetch.TotalLeftCount = totalLeftCountInList;
+            }
         }
 
         public void ResetState()
         {
-            this._leastFetch = null;
+            this.customLeastFetch = null;
         }
     }
 }

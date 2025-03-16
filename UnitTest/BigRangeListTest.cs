@@ -15,8 +15,7 @@ namespace UnitTest
         {
             for (int i = 0; i < list.Count; i++)
             {
-                var range = new MyRange(list[i]);
-                var n = list.CustomConverter.ConvertBack(range);
+                var n = list.GetIndexIntoRange(i);
                 Assert.AreEqual(expected[i], n.Index);
             }
         }
@@ -171,10 +170,8 @@ namespace UnitTest
             Index = index; 
             Length = length;
         }
-        public MyRange(MyRange range)
+        public MyRange()
         {
-            Index = range.Index;
-            Length = range.Length;
         }
     }
 }

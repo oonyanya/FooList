@@ -140,6 +140,7 @@ namespace FooProject.Collection
         {
             Node<T> current = root;
             CustomConverter.ResetState();
+            CustomConverter.SetState(null, 0);
             int totalLeftCount = 0;
 
             while (current != null)
@@ -150,12 +151,10 @@ namespace FooProject.Collection
                     var direction = fn(current, leftCount);
                     if (direction == NodeWalkDirection.Left)
                     {
-                        CustomConverter.NodeWalk(current, direction);
                         current = current.Left;
                     }
                     else
                     {
-                        CustomConverter.NodeWalk(current, direction);
                         totalLeftCount += leftCount;
                         current = current.Right;
                     }
