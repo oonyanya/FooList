@@ -119,7 +119,7 @@ namespace FooProject.Collection
             }
 
             relativeIndex = index;
-            var node =  WalkNode(root, (current, leftCount) => {
+            var node =  WalkNode((current, leftCount) => {
                 if (relativeIndex < leftCount)
                 {
                     return NodeWalkDirection.Left;
@@ -136,9 +136,9 @@ namespace FooProject.Collection
             return node;
         }
 
-        protected Node<T> WalkNode(Node<T> node,Func<Node<T>,int,NodeWalkDirection> fn)
+        protected Node<T> WalkNode(Func<Node<T>,int,NodeWalkDirection> fn)
         {
-            Node<T> current = node;
+            Node<T> current = root;
             CustomConverter.ResetState();
             int totalLeftCount = 0;
 
