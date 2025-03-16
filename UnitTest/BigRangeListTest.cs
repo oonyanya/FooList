@@ -158,6 +158,27 @@ namespace UnitTest
             var expected = new int[] { 0, 3, 6, 9, 12, 15, };
             AssertAreRangeEqual(expected, list);
         }
+
+        [TestMethod]
+        public void GetIndexFromIndexIntoRangeTest()
+        {
+            var rangeList = new List<MyRange>();
+            for (int i = 0; i < 10; i++)
+            {
+                rangeList.Add(new MyRange(0, 3));
+            }
+
+            var list = new BigRangeList<MyRange>();
+            list.AddRange(rangeList);
+
+            var expected = new int[] { 0, 3, 6, 9, 12, 15, 18, 21, 24, 27, };
+            foreach(var item in expected)
+            {
+                var index = list.GetIndexFromIndexIntoRange(item);
+                var range = list.GetIndexIntoRange(index);
+                Assert.AreEqual(item, range.Index);
+            }
+        }
     }
 
     class MyRange : IRange

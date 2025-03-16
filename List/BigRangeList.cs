@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -20,6 +21,7 @@ namespace FooProject.Collection
 
         public T GetIndexIntoRange(int index)
         {
+            RangeConverter<T> myCustomConverter = (RangeConverter<T>)CustomConverter;
             int relativeIndex;
             LeafNode<T> leafNode;
             if (CustomConverter.LeastFetch != null)
@@ -32,7 +34,6 @@ namespace FooProject.Collection
                 }
             }
 
-            RangeConverter<T> myCustomConverter = (RangeConverter<T>)CustomConverter;
             relativeIndex = index;
             var node = WalkNode((current, leftCount) => {
                 if (relativeIndex < leftCount)
@@ -43,7 +44,7 @@ namespace FooProject.Collection
                 {
                     relativeIndex -= leftCount;
                     var customNode = (IRangeNode)current.Left;
-                    myCustomConverter.customLeastFetch.absoluteIndex += customNode.TotalSumCount;
+                    myCustomConverter.customLeastFetch.absoluteIndexIntoRange += customNode.TotalRangeCount;
                     return NodeWalkDirection.Right;
                 }
             });
@@ -52,11 +53,82 @@ namespace FooProject.Collection
             return CustomConverter.ConvertBack(leafNode.items[relativeIndex]);
         }
 
+        public int GetIndexFromIndexIntoRange(int indexIntoRange)
+        {
+            RangeConverter<T> myCustomConverter = (RangeConverter<T>)CustomConverter;
+            int relativeIndexIntoRange = indexIntoRange;
+
+            var node = WalkNode((current, leftCount) => {
+                var rangeLeftNode = (IRangeNode)current.Left;
+                int leftTotalSumCount = rangeLeftNode.TotalRangeCount;
+
+                if (relativeIndexIntoRange < leftTotalSumCount)
+                {
+                    return NodeWalkDirection.Left;
+                }
+                else
+                {
+                    relativeIndexIntoRange -= leftTotalSumCount;
+                    myCustomConverter.customLeastFetch.TotalLeftCount += leftCount;
+                    myCustomConverter.customLeastFetch.absoluteIndexIntoRange += leftTotalSumCount;
+                    return NodeWalkDirection.Right;
+                }
+            });
+
+            int relativeIndex, relativeNearIndex;
+            var leafNode = (LeafNode<T>)node;
+            relativeIndex = this.IndexOfNearest(leafNode.items, relativeIndexIntoRange, out relativeNearIndex);
+
+            return relativeIndex + myCustomConverter.customLeastFetch.TotalLeftCount;
+        }
+
+        int IndexOfNearest(IList<T> collection,int start, out int nearIndex)
+        {
+            if (start < 0)
+                throw new ArgumentOutOfRangeException("indexに負の値を設定することはできません");
+
+            nearIndex = -1;
+            if (collection.Count == 0)
+                return -1;
+
+            if (start == 0 && collection.Count > 0)
+                return 0;
+
+            T line;
+            int lineHeadIndex;
+
+            int left = 0, right = collection.Count - 1, mid;
+            while (left <= right)
+            {
+                mid = (left + right) / 2;
+                line = collection[mid];
+                lineHeadIndex = line.Index;
+                if (start >= lineHeadIndex && start < lineHeadIndex + line.Length)
+                {
+                    return mid;
+                }
+                if (start < lineHeadIndex)
+                {
+                    right = mid - 1;
+                }
+                else
+                {
+                    left = mid + 1;
+                }
+            }
+
+            System.Diagnostics.Debug.Assert(left >= 0 || right >= 0);
+            nearIndex = left >= 0 ? left : right;
+            if (nearIndex > collection.Count - 1)
+                nearIndex = right;
+
+            return -1;
+        }
     }
 
     internal interface IRangeNode
     {
-        int TotalSumCount { get; }
+        int TotalRangeCount { get; }
     }
 
     internal class RangeConcatNode<T> : ConcatNode<T>, IRangeNode where T : IRange
@@ -68,16 +140,16 @@ namespace FooProject.Collection
         {
             var customNodeLeft = (IRangeNode)left;
             var customNodeRight = (IRangeNode)right;
-            TotalSumCount = customNodeLeft.TotalSumCount + customNodeRight.TotalSumCount;
+            TotalRangeCount = customNodeLeft.TotalRangeCount + customNodeRight.TotalRangeCount;
         }
 
-        public int TotalSumCount { get; private set; }
+        public int TotalRangeCount { get; private set; }
 
         protected override Node<T> NewNodeInPlace(Node<T> newLeft, Node<T> newRight)
         {
             var customNodeLeft = (IRangeNode)newLeft;
             var customNodeRight = (IRangeNode)newRight;
-            TotalSumCount = customNodeLeft.TotalSumCount + customNodeRight.TotalSumCount;
+            TotalRangeCount = customNodeLeft.TotalRangeCount + customNodeRight.TotalRangeCount;
             return base.NewNodeInPlace(newLeft, newRight);
         }
     }
@@ -86,12 +158,12 @@ namespace FooProject.Collection
     {
         public RangeLeafNode() : base()
         {
-            TotalSumCount = 0;
+            TotalRangeCount = 0;
         }
 
         public RangeLeafNode(T item) : base(item)
         {
-            TotalSumCount = item.Length;
+            TotalRangeCount = item.Length;
         }
 
         public RangeLeafNode(int count, FixedList<T> items) : base(count, items)
@@ -109,10 +181,10 @@ namespace FooProject.Collection
                 totalLength += length;
                 index += length;
             }
-            TotalSumCount = totalLength;
+            TotalRangeCount = totalLength;
         }
 
-        public int TotalSumCount { get; private set; }
+        public int TotalRangeCount { get; private set; }
     }
 
     internal class RangeLeastFetch<T> : ILeastFetch<T> where T : IRange
@@ -121,7 +193,7 @@ namespace FooProject.Collection
 
         public int TotalLeftCount { get; set; }
 
-        public int absoluteIndex { get; set; }
+        public int absoluteIndexIntoRange { get; set; }
 
         public RangeLeastFetch()
         {
@@ -142,7 +214,7 @@ namespace FooProject.Collection
         public T ConvertBack(T item)
         {
             var result = new T();
-            result.Index = item.Index + customLeastFetch.absoluteIndex;
+            result.Index = item.Index + customLeastFetch.absoluteIndexIntoRange;
             result.Length = item.Length;
             return result;
         }

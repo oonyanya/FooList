@@ -13,7 +13,7 @@ namespace FooProject.Collection
     /// Fixed capacity List
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class FixedList<T> : IEnumerable<T>,ICollection<T>
+    public class FixedList<T> : IEnumerable<T>,IList<T>
     {
         GapBuffer<T> items;
 
