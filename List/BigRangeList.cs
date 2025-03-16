@@ -79,6 +79,11 @@ namespace FooProject.Collection
             var leafNode = (LeafNode<T>)node;
             relativeIndex = this.IndexOfNearest(leafNode.items, relativeIndexIntoRange, out relativeNearIndex);
 
+            if (relativeIndex == -1)
+            {
+                myCustomConverter.ResetState();
+                return -1;
+            }
             return relativeIndex + myCustomConverter.customLeastFetch.TotalLeftCount;
         }
 
