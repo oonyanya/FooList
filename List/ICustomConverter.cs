@@ -23,6 +23,7 @@ namespace FooProject.Collection
 
         void ResetState();
 
+        [Obsolete]
         void NodeWalk(Node<T> current, NodeWalkDirection dir);
 
         T ConvertBack(T item);

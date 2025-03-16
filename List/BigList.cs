@@ -105,39 +105,62 @@ namespace FooProject.Collection
             }
         }
 
-        private Node<T> IndexOfNode(int index,out int relativeIndex)
+        private Node<T> IndexOfNode(int index,out int resultRelativeIndex)
         {
-            if(CustomConverter.LeastFetch != null)
+            int relativeIndex;
+            if (CustomConverter.LeastFetch != null)
             {
                 relativeIndex = index - CustomConverter.LeastFetch.TotalLeftCount;
                 if (relativeIndex >= 0 && relativeIndex < CustomConverter.LeastFetch.Node.Count)
+                {
+                    resultRelativeIndex = relativeIndex;
                     return CustomConverter.LeastFetch.Node;
+                }
             }
 
-            Node<T> current = root;
             relativeIndex = index;
+            var node =  WalkNode(root, (current, leftCount) => {
+                if (relativeIndex < leftCount)
+                {
+                    return NodeWalkDirection.Left;
+                }
+                else
+                {
+                    relativeIndex -= leftCount;
+                    return NodeWalkDirection.Right;
+                }
+            });
+
+            resultRelativeIndex = relativeIndex;
+
+            return node;
+        }
+
+        protected Node<T> WalkNode(Node<T> node,Func<Node<T>,int,NodeWalkDirection> fn)
+        {
+            Node<T> current = node;
             CustomConverter.ResetState();
             int totalLeftCount = 0;
 
             while (current != null)
             {
-                if(current.Left != null)
+                if (current.Left != null)
                 {
                     int leftCount = current.Left.Count;
-                    if (relativeIndex < leftCount)
+                    var direction = fn(current, leftCount);
+                    if (direction == NodeWalkDirection.Left)
                     {
-                        CustomConverter.NodeWalk(current, NodeWalkDirection.Left);
+                        CustomConverter.NodeWalk(current, direction);
                         current = current.Left;
                     }
                     else
                     {
-                        CustomConverter.NodeWalk(current, NodeWalkDirection.Right);
-                        current = current.Right;
-                        relativeIndex -= leftCount;
+                        CustomConverter.NodeWalk(current, direction);
                         totalLeftCount += leftCount;
+                        current = current.Right;
                     }
-
-                }else if (current.Right != null)
+                }
+                else if (current.Right != null)
                 {
                     throw new InvalidOperationException("Left node is null but right node is not null.somthing wrong.");
                 }
@@ -147,7 +170,6 @@ namespace FooProject.Collection
                 }
             }
             CustomConverter.SetState(current, totalLeftCount);
-
             return current;
         }
 
