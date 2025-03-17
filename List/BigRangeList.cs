@@ -175,13 +175,13 @@ namespace FooProject.Collection
 
         public RangeLeafNode(int count, FixedList<T> items) : base(count, items)
         {
-            NotifyUpdate();
         }
 
-        public override void NotifyUpdate()
+        public override void NotifyUpdate(int startIndex, int count, ICustomConverter<T> customConverter)
         {
-            int index = 0, totalLength = 0;
-            for(int i =0; i< items.Count; i++)
+            int totalLength = 0;
+            int index = 0;
+            for (int i = 0; i < items.Count; i++)
             {
                 items[i].Index = index;
                 var length = items[i].Length;
@@ -215,7 +215,9 @@ namespace FooProject.Collection
 
         public T Convert(T item)
         {
-            return item;
+            var result = item;
+            result.Index -= customLeastFetch.absoluteIndexIntoRange;
+            return result;
         }
 
         public T ConvertBack(T item)

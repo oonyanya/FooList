@@ -444,9 +444,16 @@ namespace FooProject.Collection
             }
 
             if (items != null)
-                return customConverter.CreateLeafNode(i, items);
+            {
+                var leafNode = customConverter.CreateLeafNode(i, items);
+                leafNode.NotifyUpdate(0, items.Count, customConverter);
+                return leafNode;
+
+            }
             else
+            {
                 return null;
+            }
         }
 
         private static Node<T> NodeFromEnumerable(IEnumerable<T> collection, LeafNodeEnumrator<T> leafNodeEnumrator,ICustomConverter<T> customConverter)

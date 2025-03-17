@@ -86,8 +86,8 @@ namespace FooProject.Collection
             if (Count < BigList<T>.MAXLEAF)
             {
                 items.Insert(Count, item);
+                NotifyUpdate(Count, 1, customConverter);
                 Count += 1;
-                NotifyUpdate();
                 return this;
             }
             else
@@ -97,31 +97,35 @@ namespace FooProject.Collection
                 return customConverter.CreateConcatNode(this, newLeafNode);
             }
         }
-        private bool MergeBeforeLeafInPlace(Node<T> other)
+        private bool MergeBeforeLeafInPlace(Node<T> other,ICustomConverter<T> customConverter)
         {
             LeafNode<T> otherLeaf = (other as LeafNode<T>);
             int newCount;
             if (otherLeaf != null && (newCount = otherLeaf.Count + this.Count) <= BigList<T>.MAXLEAF)
             {
                 items.InsertRange(0, otherLeaf.items, otherLeaf.Count);
+                NotifyUpdate(0, otherLeaf.Count, customConverter);
                 Count = newCount;
                 return true;
             }
             return false;
         }
-        private bool MergeLeafInPlace(Node<T> other)
+        private bool MergeLeafInPlace(Node<T> other, ICustomConverter<T> customConverter)
         {
             LeafNode<T> otherLeaf = (other as LeafNode<T>);
             int newCount;
             if (otherLeaf != null && (newCount = otherLeaf.Count + this.Count) <= BigList<T>.MAXLEAF)
             {
                 items.AddRange(otherLeaf.items, otherLeaf.Count);
+                NotifyUpdate(items.Count, otherLeaf.Count, customConverter);
                 Count = newCount;
                 return true;
             }
             return false;
         }
-        public virtual void NotifyUpdate()
+
+        // lengthがマイナスな場合削除されることを表す
+        public virtual void NotifyUpdate(int index,int length, ICustomConverter<T> converter)
         {
         }
 
@@ -129,10 +133,9 @@ namespace FooProject.Collection
         {
             if (nodeBelongLeafNodeEnumrator != null)
             {
-                if (MergeBeforeLeafInPlace(node))
+                if (MergeBeforeLeafInPlace(node,customConverter))
                 {
                     nodeBelongLeafNodeEnumrator.Remove((LeafNode<T>)node);
-                    NotifyUpdate();
                     return this;
                 }
             }
@@ -157,10 +160,9 @@ namespace FooProject.Collection
         {
             if (nodeBelongLeafNodeEnumrator != null)
             {
-                if (MergeLeafInPlace(node))
+                if (MergeLeafInPlace(node, customConverter))
                 {
                     nodeBelongLeafNodeEnumrator.Remove((LeafNode<T>)node);
-                    NotifyUpdate();
                     return this;
                 }
             }
@@ -185,8 +187,8 @@ namespace FooProject.Collection
             if (Count < BigList<T>.MAXLEAF)
             {
                 items.Insert(index, item);
+                NotifyUpdate(index, 1, customConverter);
                 Count += 1;
-                NotifyUpdate();
                 return this;
             }
             else
@@ -194,6 +196,7 @@ namespace FooProject.Collection
                 if (index == Count)
                 {
                     var newLeafNode = customConverter.CreateLeafNode(item);
+                    newLeafNode.NotifyUpdate(0, 1, customConverter);
                     leafNodeEnumrator.AddNext(this, newLeafNode);
                     // Inserting at count is just an appending operation.
                     return customConverter.CreateConcatNode(this, newLeafNode);
@@ -201,6 +204,7 @@ namespace FooProject.Collection
                 else if (index == 0)
                 {
                     var newLeafNode = customConverter.CreateLeafNode(item);
+                    newLeafNode.NotifyUpdate(0, 1, customConverter);
                     leafNodeEnumrator.AddBefore(this, newLeafNode);
                     // Inserting at 0 is just a prepending operation.
                     return customConverter.CreateConcatNode(newLeafNode, this);
@@ -214,12 +218,14 @@ namespace FooProject.Collection
                     leftItems.AddRange(items.GetRange(0, splitLength),splitLength);
                     leftItems.Add(item);
                     LeafNode<T> leftNode = customConverter.CreateLeafNode(index + 1, leftItems);
+                    leftNode.NotifyUpdate(0, leftItems.Count, customConverter);
                     leafNodeEnumrator.Replace(this, leftNode);
 
                     int rightItemCount = items.Count - index;
                     FixedList<T> rightItems = new FixedList<T>(rightItemCount,BigList<T>.MAXLEAF);
                     rightItems.AddRange(items.GetRange(splitLength, rightItemCount), rightItemCount);
                     LeafNode<T> rightNode = customConverter.CreateLeafNode(Count - index, rightItems);
+                    rightNode.NotifyUpdate(0, rightItems.Count, customConverter);
                     leafNodeEnumrator.AddNext(leftNode, rightNode);
 
                     return customConverter.CreateConcatNode(leftNode, rightNode);
@@ -236,8 +242,8 @@ namespace FooProject.Collection
                 nodeBelongLeafNodeEnumrator.Remove(otherLeaf);
                 // Combine the two leaf nodes into one.
                 items.InsertRange(index, otherLeaf.items);
+                NotifyUpdate(index, otherLeaf.Count, customConverter);
                 Count = newCount;
-                NotifyUpdate();
                 return this;
             }
             else if (index == 0)
@@ -258,17 +264,21 @@ namespace FooProject.Collection
                 int splitLength = index;
                 FixedList<T> leftItems = new FixedList<T>(leftItemCount,BigList<T>.MAXLEAF);
                 leftItems.AddRange(items.GetRange(0, splitLength),splitLength);
-                Node<T> leftNode = customConverter.CreateLeafNode(index, leftItems);
-                leafNodeEnumrator.Replace(this, (LeafNode<T>)leftNode);
+                var leftLeafNode = customConverter.CreateLeafNode(index, leftItems);
+                leftLeafNode.NotifyUpdate(0, leftItems.Count, customConverter);
+                Node<T> leftNode = leftLeafNode;
+                leafNodeEnumrator.Replace(this, leftLeafNode);
 
                 int rightItemCount = items.Count - index;
                 FixedList<T> rightItems = new FixedList<T>(rightItemCount, BigList<T>.MAXLEAF);
                 rightItems.AddRange(items.GetRange(splitLength, rightItemCount), rightItemCount);
-                Node<T> rightNode = customConverter.CreateLeafNode(Count - index, rightItems);
+                var rightLeafNode = customConverter.CreateLeafNode(Count - index, rightItems);
+                rightLeafNode.NotifyUpdate(0, rightItems.Count, customConverter);
+                Node<T> rightNode = rightLeafNode;
 
                 leftNode = leftNode.AppendInPlace(node, leafNodeEnumrator, nodeBelongLeafNodeEnumrator, customConverter);
 
-                leafNodeEnumrator.AddNext(BigList<T>.GetMostRightNode(leftNode), (LeafNode<T>)rightNode);
+                leafNodeEnumrator.AddNext(BigList<T>.GetMostRightNode(leftNode), rightLeafNode);
                 leftNode = leftNode.AppendInPlace(rightNode, null, null, customConverter);
                 return leftNode;
             }
@@ -280,9 +290,9 @@ namespace FooProject.Collection
             if (Count < BigList<T>.MAXLEAF)
             {
                 items.Insert(0, item);
+                NotifyUpdate(0, 1, customConverter);
                 Count += 1;
 
-                NotifyUpdate();
                 return this;
             }
             else
@@ -309,9 +319,10 @@ namespace FooProject.Collection
             if (last >= Count)
                 last = Count - 1;
             int newCount = first + (Count - last - 1);      // number of items remaining.
-            items.RemoveRange(first, last - first + 1);
+            int removeLength = last - first + 1;
+            items.RemoveRange(first, removeLength);
+            NotifyUpdate(first, -removeLength, customConverter);
             Count = newCount;
-            NotifyUpdate();
             return this;
         }
 
@@ -393,13 +404,14 @@ namespace FooProject.Collection
             {
                 rightLeaf.items.Add(item);
                 rightLeaf.Count += 1;
-                rightLeaf.NotifyUpdate();
+                rightLeaf.NotifyUpdate(rightLeaf.Count, 1, customConverter);
                 this.Count += 1;
                 return this;
             }
             else
             {
                 var newLeafNode = customConverter.CreateLeafNode(item);
+                newLeafNode.NotifyUpdate(0, newLeafNode.Count, customConverter);
                 leafNodeEnumrator.AddNext(BigList<T>.GetMostRightNode(this), newLeafNode);
                 return customConverter.CreateConcatNode(this, newLeafNode);
             }
@@ -432,7 +444,7 @@ namespace FooProject.Collection
                 // single item nodes.
                 leftLeaf.items.Insert(0, item);
                 leftLeaf.Count += 1;
-                leftLeaf.NotifyUpdate();
+                leftLeaf.NotifyUpdate(0, 1, customConverter);
                 this.Count += 1;
                 return this;
             }

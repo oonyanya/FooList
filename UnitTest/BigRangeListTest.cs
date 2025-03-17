@@ -24,12 +24,15 @@ namespace UnitTest
         public void AddTest()
         {
             BigRangeList<MyRange> list = new BigRangeList<MyRange>();
+            const int length = 3;
+            int index = 0;
             for (int i = 0; i < 8; i++)
             {
-                list.Add(new MyRange(0,3));
+                list.Add(new MyRange(index, length));
+                index += length;
             }
-            list.Insert(0, new MyRange(0, 3));
-            list.Insert(list.Count, new MyRange(0, 3));
+            list.Insert(0, new MyRange(0, length));
+            list.Insert(list.Count, new MyRange(index, length));
 
             var expected = new int[] { 0, 3, 6, 9, 12, 15, 18, 21, 24, 27, };
             AssertAreRangeEqual(expected, list);
@@ -40,13 +43,16 @@ namespace UnitTest
         {
             var list = new BigRangeList<MyRange>();
             var rangeList = new List<MyRange>();
+            const int length = 3;
+            int index = 0;
             for (int i = 0; i < 8; i++)
             {
-                rangeList.Add(new MyRange(0,3));
+                rangeList.Add(new MyRange(index, length));
+                index += length;
             }
             list.AddRange(rangeList);
-            list.Insert(0, new MyRange(0,3));
-            list.Insert(list.Count, new MyRange(0,3));
+            list.Insert(0, new MyRange(0,length));
+            list.Insert(list.Count, new MyRange(index,length));
 
             var expected = new int[] { 0, 3, 6, 9, 12, 15, 18, 21, 24, 27, };
             AssertAreRangeEqual(expected, list);
@@ -57,30 +63,37 @@ namespace UnitTest
         {
             BigRangeList<MyRange> list = new BigRangeList<MyRange>();
             list.Add(new MyRange(0, 3));
-            list.Add(new MyRange(0, 3));
+            list.Add(new MyRange(3, 3));
+            const int length = 3;
+            int index = 3;
             for (int i = 0; i < 8; i++)
             {
-                list.Insert(1,new MyRange(0, 3));
+                list.Insert(1,new MyRange(index, length));
+                index += length;
             }
             var expected = new int[] { 0, 3, 6, 9, 12, 15, 18, 21, 24, 27, };
             AssertAreRangeEqual(expected, list);
 
             list = new BigRangeList<MyRange>();
             list.Add(new MyRange(0, 3));
-            list.Add(new MyRange(0, 3));
+            list.Add(new MyRange(3, 3));
+            index = 3;
             for (int i = 0; i < 8; i++)
             {
-                list.Insert(0, new MyRange(0, 3));
+                list.Insert(0, new MyRange(index, length));
+                index += length;
             }
             expected = new int[] { 0, 3, 6, 9, 12, 15, 18, 21, 24, 27, };
             AssertAreRangeEqual(expected, list);
 
             list = new BigRangeList<MyRange>();
             list.Add(new MyRange(0, 3));
-            list.Add(new MyRange(0, 3));
+            list.Add(new MyRange(3, 3));
+            index = 3;
             for (int i = 0; i < 8; i++)
             {
-                list.Insert(list.Count, new MyRange(0, 3));
+                list.Insert(list.Count, new MyRange(index, length));
+                index += length;
             }
             expected = new int[] { 0, 3, 6, 9, 12, 15, 18, 21, 24, 27, };
             AssertAreRangeEqual(expected, list);
@@ -90,30 +103,33 @@ namespace UnitTest
         public void InsertRangeTest()
         {
             var rangeList = new List<MyRange>();
+            const int length = 3;
+            int index = 3;
             for (int i = 0; i < 8; i++)
             {
-                rangeList.Add(new MyRange(0, 3));
+                rangeList.Add(new MyRange(index, length));
+                index += length;
             }
 
             var list = new BigRangeList<MyRange>();
-            list.Add(new MyRange(0, 3));
-            list.Add(new MyRange(0, 3));
+            list.Add(new MyRange(0, length));
+            list.Add(new MyRange(length, length));
             list.InsertRange(1,rangeList);
 
             var expected = new int[] { 0, 3, 6, 9, 12, 15, 18, 21, 24, 27, };
             AssertAreRangeEqual(expected, list);
 
             list = new BigRangeList<MyRange>();
-            list.Add(new MyRange(0, 3));
-            list.Add(new MyRange(0, 3));
+            list.Add(new MyRange(0, length));
+            list.Add(new MyRange(length, length));
             list.InsertRange(0, rangeList);
 
             expected = new int[] { 0, 3, 6, 9, 12, 15, 18, 21, 24, 27, };
             AssertAreRangeEqual(expected, list);
 
             list = new BigRangeList<MyRange>();
-            list.Add(new MyRange(0, 3));
-            list.Add(new MyRange(0, 3));
+            list.Add(new MyRange(0, length));
+            list.Add(new MyRange(length, length));
             list.InsertRange(list.Count, rangeList);
 
             expected = new int[] { 0, 3, 6, 9, 12, 15, 18, 21, 24, 27, };
@@ -124,9 +140,12 @@ namespace UnitTest
         public void RemoveTest()
         {
             var rangeList = new List<MyRange>();
+            const int length = 3;
+            int index = 0;
             for (int i = 0; i < 10; i++)
             {
-                rangeList.Add(new MyRange(0, 3));
+                rangeList.Add(new MyRange(index, length));
+                index += length;
             }
 
             var list = new BigRangeList<MyRange>();
@@ -145,9 +164,12 @@ namespace UnitTest
         public void RemoveRangeTest()
         {
             var rangeList = new List<MyRange>();
+            const int length = 3;
+            int index = 0;
             for (int i = 0; i < 10; i++)
             {
-                rangeList.Add(new MyRange(0, 3));
+                rangeList.Add(new MyRange(index, length));
+                index += length;
             }
 
             var list = new BigRangeList<MyRange>();
@@ -163,9 +185,12 @@ namespace UnitTest
         public void GetIndexFromIndexIntoRangeTest()
         {
             var rangeList = new List<MyRange>();
+            const int length = 3;
+            int index = 0;
             for (int i = 0; i < 10; i++)
             {
-                rangeList.Add(new MyRange(0, 3));
+                rangeList.Add(new MyRange(index, length));
+                index += length;
             }
 
             var list = new BigRangeList<MyRange>();
@@ -174,8 +199,8 @@ namespace UnitTest
             var expected = new int[] { 0, 3, 6, 9, 12, 15, 18, 21, 24, 27, };
             foreach(var item in expected)
             {
-                var index = list.GetIndexFromIndexIntoRange(item);
-                var range = list.GetIndexIntoRange(index);
+                var absoluteindex = list.GetIndexFromIndexIntoRange(item);
+                var range = list.GetIndexIntoRange(absoluteindex);
                 Assert.AreEqual(item, range.Index);
             }
         }
