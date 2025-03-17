@@ -194,5 +194,10 @@ namespace UnitTest
         public MyRange()
         {
         }
+
+        public IRange DeepCopy()
+        {
+            return new MyRange(Index, Length);
+        }
     }
 }

@@ -11,8 +11,10 @@ namespace FooProject.Collection
     {
         int Index { get; set; }
         int Length { get; set; }
+
+        IRange DeepCopy();
     }
-    public class BigRangeList<T> : BigList<T> where T : IRange,new()
+    public class BigRangeList<T> : BigList<T> where T : IRange
     {
         public BigRangeList() :base()
         {
@@ -205,7 +207,7 @@ namespace FooProject.Collection
         }
     }
 
-    internal class RangeConverter<T> : ICustomConverter<T> where T : IRange, new()
+    internal class RangeConverter<T> : ICustomConverter<T> where T : IRange
     {
         public ILeastFetch<T> LeastFetch { get { return customLeastFetch; } }
 
@@ -218,7 +220,7 @@ namespace FooProject.Collection
 
         public T ConvertBack(T item)
         {
-            var result = new T();
+            T result = (T)item.DeepCopy();
             result.Index = item.Index + customLeastFetch.absoluteIndexIntoRange;
             result.Length = item.Length;
             return result;
