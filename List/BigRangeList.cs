@@ -21,6 +21,21 @@ namespace FooProject.Collection
             this.CustomConverter = new RangeConverter<T>();
         }
 
+        public override T this[int index] {
+            get
+            {
+                var result = GetRawData(index);
+                return result;
+            }
+            set
+            {
+                base[index] = value;
+                var leafNode = (LeafNode<T>)CustomConverter.LeastFetch.Node;
+                leafNode.NotifyUpdate(0, leafNode.items.Count, CustomConverter);
+                this.CustomConverter.ResetState();
+            }
+        }
+
         public T GetIndexIntoRange(int index)
         {
             return CustomConverter.ConvertBack(GetRawData(index));
