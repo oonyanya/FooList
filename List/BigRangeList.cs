@@ -9,8 +9,8 @@ namespace FooProject.Collection
 {
     public interface IRange
     {
-        int Index { get; set; }
-        int Length { get; set; }
+        int start { get; set; }
+        int length { get; set; }
 
         IRange DeepCopy();
     }
@@ -109,8 +109,8 @@ namespace FooProject.Collection
             {
                 mid = (left + right) / 2;
                 line = collection[mid];
-                lineHeadIndex = line.Index;
-                if (start >= lineHeadIndex && start < lineHeadIndex + line.Length)
+                lineHeadIndex = line.start;
+                if (start >= lineHeadIndex && start < lineHeadIndex + line.length)
                 {
                     return mid;
                 }
@@ -170,7 +170,7 @@ namespace FooProject.Collection
 
         public RangeLeafNode(T item) : base(item)
         {
-            TotalRangeCount = item.Length;
+            TotalRangeCount = item.length;
         }
 
         public RangeLeafNode(int count, FixedList<T> items) : base(count, items)
@@ -183,8 +183,8 @@ namespace FooProject.Collection
             int index = 0;
             for (int i = 0; i < items.Count; i++)
             {
-                items[i].Index = index;
-                var length = items[i].Length;
+                items[i].start = index;
+                var length = items[i].length;
                 totalLength += length;
                 index += length;
             }
@@ -216,15 +216,15 @@ namespace FooProject.Collection
         public T Convert(T item)
         {
             var result = item;
-            result.Index -= customLeastFetch.absoluteIndexIntoRange;
+            result.start -= customLeastFetch.absoluteIndexIntoRange;
             return result;
         }
 
         public T ConvertBack(T item)
         {
             T result = (T)item.DeepCopy();
-            result.Index = item.Index + customLeastFetch.absoluteIndexIntoRange;
-            result.Length = item.Length;
+            result.start = item.start + customLeastFetch.absoluteIndexIntoRange;
+            result.length = item.length;
             return result;
         }
 

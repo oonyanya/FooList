@@ -16,7 +16,7 @@ namespace UnitTest
             for (int i = 0; i < list.Count; i++)
             {
                 var n = list.GetIndexIntoRange(i);
-                Assert.AreEqual(expected[i], n.Index);
+                Assert.AreEqual(expected[i], n.start);
             }
         }
 
@@ -201,20 +201,20 @@ namespace UnitTest
             {
                 var absoluteindex = list.GetIndexFromIndexIntoRange(item);
                 var range = list.GetIndexIntoRange(absoluteindex);
-                Assert.AreEqual(item, range.Index);
+                Assert.AreEqual(item, range.start);
             }
         }
     }
 
     class MyRange : IRange
     {
-        public int Index { get; set; }
-        public int Length { get; set; }
+        public int start { get; set; }
+        public int length { get; set; }
 
         public MyRange(int index, int length)
         {
-            Index = index; 
-            Length = length;
+            start = index; 
+            this.length = length;
         }
         public MyRange()
         {
@@ -222,7 +222,7 @@ namespace UnitTest
 
         public IRange DeepCopy()
         {
-            return new MyRange(Index, Length);
+            return new MyRange(start, length);
         }
     }
 }
