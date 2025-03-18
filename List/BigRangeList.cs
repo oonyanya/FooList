@@ -156,7 +156,10 @@ namespace FooProject.Collection
         {
             var customNodeLeft = (IRangeNode)newLeft;
             var customNodeRight = (IRangeNode)newRight;
-            TotalRangeCount = customNodeLeft.TotalRangeCount + customNodeRight.TotalRangeCount;
+            if (customNodeLeft != null)
+                TotalRangeCount = customNodeLeft.TotalRangeCount;
+            if (customNodeRight != null)
+                TotalRangeCount += customNodeRight.TotalRangeCount;
             return base.NewNodeInPlace(newLeft, newRight);
         }
     }
