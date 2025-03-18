@@ -204,6 +204,36 @@ namespace UnitTest
                 Assert.AreEqual(item, range.start);
             }
         }
+
+        [TestMethod]
+        public void IndexerTest()
+        {
+            var rangeList = new List<MyRange>();
+            const int length = 3;
+            int index = 0;
+            for (int i = 0; i < 10; i++)
+            {
+                rangeList.Add(new MyRange(index, length));
+                index += length;
+            }
+
+            var list = new BigRangeList<MyRange>();
+            list.AddRange(rangeList);
+
+            Assert.AreEqual(0,list[0].start);
+            Assert.AreEqual(3, list[0].length);
+            Assert.AreEqual(0, list[8].start);
+            Assert.AreEqual(3, list[8].length);
+
+            var newValue = list[0];
+            newValue.length = 4;
+            list[0] = newValue;
+            Assert.AreEqual(0, list[0].start);
+            Assert.AreEqual(4, list[0].length);
+
+            var expected = new int[] { 0, 4, 7, 10, 13, 16, 19, 22, 25, 28, };
+            AssertAreRangeEqual(expected, list);
+        }
     }
 
     class MyRange : IRange

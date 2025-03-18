@@ -21,6 +21,7 @@ namespace FooProject.Collection
             this.CustomConverter = new RangeConverter<T>();
         }
 
+        // 中の値を書き換えたい場合は再度代入すること
         public override T this[int index] {
             get
             {
