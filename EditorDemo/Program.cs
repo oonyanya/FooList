@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Diagnostics;
 using System.Globalization;
 using System.Runtime;
+using EditorDemo;
 
 GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
 
@@ -70,6 +71,34 @@ Console.WriteLine(String.Format("enumratotion time:{0} ms", sw.ElapsedMillisecon
 Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}" + "bytes");
 
 buf.Clear();
+Console.WriteLine("clear buffer");
+Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}" + "bytes");
+
+sw = Stopwatch.StartNew();
+var rangelist = new BigRangeList<LineToIndex>();
+for (int i = 0; i < 1000000; i++)
+{
+    rangelist.Add(new LineToIndex(i, 10));
+}
+sw.Stop();
+Console.WriteLine(String.Format("add line time:{0} ms", sw.ElapsedMilliseconds));
+Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}" + "bytes");
+
+sw = Stopwatch.StartNew();
+for (int i = 0; i < 1000000; i++)
+{
+    if(i % 100 == 0)
+    {
+        var data = rangelist[i];
+        data.length += 10;
+        rangelist[i] = data;
+    }
+}
+sw.Stop();
+Console.WriteLine(String.Format("update line time:{0} ms", sw.ElapsedMilliseconds));
+Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}" + "bytes");
+
+rangelist.Clear();
 Console.WriteLine("clear buffer");
 Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}" + "bytes");
 
