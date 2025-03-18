@@ -135,6 +135,14 @@ namespace FooProject.Collection
 
             return -1;
         }
+
+        public override IEnumerator<T> GetEnumerator()
+        {
+            for(int i = 0; i < this.Count; i++)
+            {
+                yield return GetIndexIntoRange(i);
+            }
+        }
     }
 
     internal interface IRangeNode
