@@ -8,6 +8,8 @@ using System.Globalization;
 using System.Runtime;
 using EditorDemo;
 
+const int BENCHMARK_SIZE = 1000000;
+
 GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
 
 Console.WriteLine("benchmark start");
@@ -15,7 +17,7 @@ Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}
 
 Stopwatch sw = Stopwatch.StartNew();
 var buf = new StringBuffer();
-for(int i = 0; i< 1000000; i++)
+for(int i = 0; i< BENCHMARK_SIZE; i++)
 {
     var insertStr = "this is a pen.this is a pen.this is a pen.this is a pen.this is a pen.this is a pen.this is a pen.\n";
     buf.Replace(buf.Length, 0,insertStr,insertStr.Length);
@@ -76,7 +78,7 @@ Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}
 
 sw = Stopwatch.StartNew();
 var rangelist = new BigRangeList<LineToIndex>();
-for (int i = 0; i < 1000000; i++)
+for (int i = 0; i < BENCHMARK_SIZE; i++)
 {
     rangelist.Add(new LineToIndex(i, 10));
 }
@@ -85,7 +87,7 @@ Console.WriteLine(String.Format("add line time:{0} ms", sw.ElapsedMilliseconds))
 Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}" + "bytes");
 
 sw = Stopwatch.StartNew();
-for (int i = 0; i < 1000000; i++)
+for (int i = 0; i < BENCHMARK_SIZE; i++)
 {
     if(i % 100 == 0)
     {
