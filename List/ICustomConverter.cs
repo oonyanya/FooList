@@ -112,6 +112,7 @@ namespace FooProject.Collection
 
         public void ResetState()
         {
+            this.LeastFetch = null;
         }
     }
 }

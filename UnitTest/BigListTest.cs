@@ -271,6 +271,10 @@ namespace UnitTest
             Assert.AreEqual(1, list1[0]);
             Assert.AreEqual(4, list1[1]);
             Assert.AreEqual(3, list1[2]);
+
+            list2.RemoveRange(0,list2.Count);
+            list2.Add(0);
+            Assert.AreEqual(0, list2[0]);
         }
 
         [TestMethod]

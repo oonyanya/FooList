@@ -77,7 +77,7 @@ namespace FooProject.Collection
 
         public ICustomConverter<T> CustomConverter { get; set; }
 
-        public new T this[int index]
+        public new virtual T this[int index]
         {
             get
             {
