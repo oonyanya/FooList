@@ -23,6 +23,11 @@ namespace FooProject.Collection
 
         public T GetIndexIntoRange(int index)
         {
+            return CustomConverter.ConvertBack(GetRawData(index));
+        }
+
+        public T GetRawData(int index)
+        {
             RangeConverter<T> myCustomConverter = (RangeConverter<T>)CustomConverter;
             int relativeIndex;
             LeafNode<T> leafNode;
@@ -32,7 +37,7 @@ namespace FooProject.Collection
                 if (relativeIndex >= 0 && relativeIndex < CustomConverter.LeastFetch.Node.Count)
                 {
                     leafNode = (LeafNode<T>)CustomConverter.LeastFetch.Node;
-                    return CustomConverter.ConvertBack(leafNode.items[relativeIndex]);
+                    return leafNode.items[relativeIndex];
                 }
             }
 
@@ -50,9 +55,8 @@ namespace FooProject.Collection
                     return NodeWalkDirection.Right;
                 }
             });
-
             leafNode = (LeafNode<T>)CustomConverter.LeastFetch.Node;
-            return CustomConverter.ConvertBack(leafNode.items[relativeIndex]);
+            return leafNode.items[relativeIndex];
         }
 
         public int GetIndexFromIndexIntoRange(int indexIntoRange)
