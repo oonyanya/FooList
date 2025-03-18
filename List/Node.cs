@@ -93,6 +93,7 @@ namespace FooProject.Collection
             else
             {
                 var newLeafNode = customConverter.CreateLeafNode(item);
+                newLeafNode.NotifyUpdate(0, 1, customConverter);
                 leafNodeEnumrator.AddNext(this,newLeafNode);
                 return customConverter.CreateConcatNode(this, newLeafNode);
             }
