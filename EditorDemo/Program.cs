@@ -80,7 +80,7 @@ sw = Stopwatch.StartNew();
 var rangelist = new BigRangeList<LineToIndex>();
 for (int i = 0; i < BENCHMARK_SIZE; i++)
 {
-    rangelist.Add(new LineToIndex(i, 10));
+    rangelist.Add(new LineToIndex(i + 10, 10));
 }
 sw.Stop();
 Console.WriteLine(String.Format("add line time:{0} ms", sw.ElapsedMilliseconds));
