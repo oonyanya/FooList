@@ -105,7 +105,16 @@ namespace FooProject.Collection
                 previousIndex = index - 1;
                 newIndexIntoRange = this.collection[index - 1].start + this.collection[index - 1].length;
             }
-            int end = index + collection_length - 1;
+            int insert_collection_count;
+#if NET8_0_OR_GREATER
+            if (collection.TryGetNonEnumeratedCount(out insert_collection_count) == false)
+            {
+                insert_collection_count = collection.Count();
+            }
+#else
+            insert_collection_count = collection.Count();
+#endif
+            int end = index + insert_collection_count - 1;
             for (int i = index; i <= end; i++)
             {
                 this.collection[i].start = newIndexIntoRange;
