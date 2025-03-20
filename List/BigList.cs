@@ -431,9 +431,9 @@ namespace FooProject.Collection
                 if (i == 0)
                 {
                     if(collection_count < MAXLEAF)
-                        items = new FixedList<T>(collection_count, MAXLEAF);
+                        items = customConverter.CreateList(collection_count, MAXLEAF);
                     else
-                        items = new FixedList<T>(MAXLEAF, MAXLEAF);
+                        items = customConverter.CreateList(MAXLEAF, MAXLEAF);
                 }
 
                 if (items != null)

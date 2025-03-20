@@ -259,6 +259,11 @@ namespace FooProject.Collection
             return result;
         }
 
+        public FixedList<T> CreateList(int init,int max)
+        {
+            return new FixedList<T>(init, max);
+        }
+
         public ConcatNode<T> CreateConcatNode(ConcatNode<T> node)
         {
             return new RangeConcatNode<T>(node);

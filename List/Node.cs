@@ -68,6 +68,7 @@ namespace FooProject.Collection
             this.Next = null;
         }
 
+        [Obsolete]
         public LeafNode(T item) : this()
         {
             this.items = new FixedList<T>(BigList<T>.MAXLEAF);
@@ -215,7 +216,7 @@ namespace FooProject.Collection
                     // Split into two nodes, and put the new item at the end of the first.
                     int leftItemCount = index + 1;
                     int splitLength = index;
-                    FixedList<T> leftItems = new FixedList<T>(leftItemCount, BigList<T>.MAXLEAF);
+                    FixedList<T> leftItems = customConverter.CreateList(leftItemCount, BigList<T>.MAXLEAF);
                     leftItems.AddRange(items.GetRange(0, splitLength),splitLength);
                     leftItems.Add(item);
                     LeafNode<T> leftNode = customConverter.CreateLeafNode(index + 1, leftItems);
@@ -223,7 +224,7 @@ namespace FooProject.Collection
                     leafNodeEnumrator.Replace(this, leftNode);
 
                     int rightItemCount = items.Count - index;
-                    FixedList<T> rightItems = new FixedList<T>(rightItemCount,BigList<T>.MAXLEAF);
+                    FixedList<T> rightItems = customConverter.CreateList(rightItemCount,BigList<T>.MAXLEAF);
                     rightItems.AddRange(items.GetRange(splitLength, rightItemCount), rightItemCount);
                     LeafNode<T> rightNode = customConverter.CreateLeafNode(Count - index, rightItems);
                     rightNode.NotifyUpdate(0, rightItems.Count, customConverter);
@@ -263,7 +264,7 @@ namespace FooProject.Collection
 
                 int leftItemCount = index;
                 int splitLength = index;
-                FixedList<T> leftItems = new FixedList<T>(leftItemCount,BigList<T>.MAXLEAF);
+                FixedList<T> leftItems = customConverter.CreateList(leftItemCount,BigList<T>.MAXLEAF);
                 leftItems.AddRange(items.GetRange(0, splitLength),splitLength);
                 var leftLeafNode = customConverter.CreateLeafNode(index, leftItems);
                 leftLeafNode.NotifyUpdate(0, leftItems.Count, customConverter);
@@ -271,7 +272,7 @@ namespace FooProject.Collection
                 leafNodeEnumrator.Replace(this, leftLeafNode);
 
                 int rightItemCount = items.Count - index;
-                FixedList<T> rightItems = new FixedList<T>(rightItemCount, BigList<T>.MAXLEAF);
+                FixedList<T> rightItems = customConverter.CreateList(rightItemCount, BigList<T>.MAXLEAF);
                 rightItems.AddRange(items.GetRange(splitLength, rightItemCount), rightItemCount);
                 var rightLeafNode = customConverter.CreateLeafNode(Count - index, rightItems);
                 rightLeafNode.NotifyUpdate(0, rightItems.Count, customConverter);

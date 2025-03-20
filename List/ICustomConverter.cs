@@ -27,6 +27,8 @@ namespace FooProject.Collection
 
         T ConvertBack(T item);
 
+        FixedList<T> CreateList(int init_capacity, int maxcapacity);
+
         LeafNode<T> CreateLeafNode();
 
         LeafNode<T> CreateLeafNode(T item);
@@ -70,14 +72,10 @@ namespace FooProject.Collection
             return item;
         }
 
-        public FixedList<T> Convert(FixedList<T> item)
+        public FixedList<T> CreateList(int init_capacity,int maxcapacity)
         {
-            return item;
-        }
-
-        public FixedList<T> ConvertBack(FixedList<T> item)
-        {
-            return item;
+            var list = new FixedList<T>(init_capacity, maxcapacity);
+            return list;
         }
 
         public ConcatNode<T> CreateConcatNode(ConcatNode<T> node)
@@ -97,7 +95,9 @@ namespace FooProject.Collection
 
         public LeafNode<T> CreateLeafNode(T item)
         {
-            return new LeafNode<T>(item);
+            var list = this.CreateList(4, BigList<T>.MAXLEAF);
+            list.Add(item);
+            return new LeafNode<T>(list.Count,list);
         }
 
         public LeafNode<T> CreateLeafNode(int count, FixedList<T> items)
