@@ -92,8 +92,9 @@ for (int i = 0; i < BENCHMARK_SIZE; i++)
     if(i % 100 == 0)
     {
         var data = (LineToIndex)rangelist[i].DeepCopy();
+        rangelist.RemoveAt(i);
         data.length += 10;
-        rangelist[i] = data;
+        rangelist.Insert(i, data);
     }
 }
 sw.Stop();

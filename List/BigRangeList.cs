@@ -21,19 +21,11 @@ namespace FooProject.Collection
             this.CustomConverter = new RangeConverter<T>();
         }
 
-        // 中の値を書き換えたい場合は再度代入すること
         public override T this[int index] {
             get
             {
                 var result = GetRawData(index);
                 return result;
-            }
-            set
-            {
-                base[index] = value;
-                var leafNode = (LeafNode<T>)CustomConverter.LeastFetch.Node;
-                leafNode.NotifyUpdate(0, leafNode.items.Count, CustomConverter);
-                this.CustomConverter.ResetState();
             }
         }
 

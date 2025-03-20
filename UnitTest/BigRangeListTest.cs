@@ -218,6 +218,7 @@ namespace UnitTest
             }
 
             var list = new BigRangeList<MyRange>();
+            BigRangeList<MyRange>.BlockSize = 8;
             list.AddRange(rangeList);
 
             Assert.AreEqual(0,list[0].start);
@@ -227,7 +228,8 @@ namespace UnitTest
 
             var newValue = (MyRange)list[0].DeepCopy();
             newValue.length = 4;
-            list[0] = newValue;
+            list.RemoveAt(0);
+            list.Insert(0,newValue);
             Assert.AreEqual(0, list[0].start);
             Assert.AreEqual(4, list[0].length);
 
