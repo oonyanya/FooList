@@ -91,7 +91,7 @@ for (int i = 0; i < BENCHMARK_SIZE; i++)
 {
     if(i % 100 == 0)
     {
-        var data = rangelist[i];
+        var data = (LineToIndex)rangelist[i].DeepCopy();
         data.length += 10;
         rangelist[i] = data;
     }
