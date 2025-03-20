@@ -225,7 +225,7 @@ namespace UnitTest
             Assert.AreEqual(0, list[8].start);
             Assert.AreEqual(3, list[8].length);
 
-            var newValue = list[0];
+            var newValue = (MyRange)list[0].DeepCopy();
             newValue.length = 4;
             list[0] = newValue;
             Assert.AreEqual(0, list[0].start);

@@ -300,6 +300,7 @@ namespace FooProject.Collection
             else
             {
                 var newLeafNode = customConverter.CreateLeafNode(item);
+                newLeafNode.NotifyUpdate(0,newLeafNode.items.Count, customConverter);
                 leafNodeEnumrator.AddBefore(this, newLeafNode);
                 return customConverter.CreateConcatNode(newLeafNode, this);
             }

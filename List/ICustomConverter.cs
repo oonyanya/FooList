@@ -90,7 +90,9 @@ namespace FooProject.Collection
 
         public LeafNode<T> CreateLeafNode()
         {
-            return new LeafNode<T>();
+            var newLeafNode = new LeafNode<T>();
+            newLeafNode.items = this.CreateList(4, BigList<T>.MAXLEAF);
+            return newLeafNode;
         }
 
         public LeafNode<T> CreateLeafNode(T item)

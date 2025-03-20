@@ -194,6 +194,7 @@ namespace FooProject.Collection
 
     internal class RangeLeafNode<T> : LeafNode<T>, IRangeNode where T: IRange
     {
+
         public RangeLeafNode() : base()
         {
             TotalRangeCount = 0;
@@ -210,16 +211,8 @@ namespace FooProject.Collection
 
         public override void NotifyUpdate(int startIndex, int count, ICustomConverter<T> customConverter)
         {
-            int totalLength = 0;
-            int index = 0;
-            for (int i = 0; i < items.Count; i++)
-            {
-                items[i].start = index;
-                var length = items[i].length;
-                totalLength += length;
-                index += length;
-            }
-            TotalRangeCount = totalLength;
+            var fixedRangeList = (FixedRangeList<T>)this.items;
+            TotalRangeCount = fixedRangeList.TotalCount;
         }
 
         public int TotalRangeCount { get; private set; }
@@ -261,7 +254,7 @@ namespace FooProject.Collection
 
         public FixedList<T> CreateList(int init,int max)
         {
-            return new FixedList<T>(init, max);
+            return new FixedRangeList<T>(init, max);
         }
 
         public ConcatNode<T> CreateConcatNode(ConcatNode<T> node)
@@ -276,12 +269,16 @@ namespace FooProject.Collection
 
         public LeafNode<T> CreateLeafNode()
         {
-            return new RangeLeafNode<T>();
+            var newLeafNode = new RangeLeafNode<T>();
+            newLeafNode.items = this.CreateList(4, BigList<T>.MAXLEAF);
+            return newLeafNode;
         }
 
         public LeafNode<T> CreateLeafNode(T item)
         {
-            return new RangeLeafNode<T>(item);
+            var list = this.CreateList(4, BigList<T>.MAXLEAF);
+            list.Add(item);
+            return new RangeLeafNode<T>(list.Count, list);
         }
 
         public LeafNode<T> CreateLeafNode(int count, FixedList<T> items)

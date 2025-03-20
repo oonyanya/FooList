@@ -15,7 +15,7 @@ namespace FooProject.Collection
     /// <typeparam name="T"></typeparam>
     public class FixedList<T> : IEnumerable<T>,IList<T>
     {
-        GapBuffer<T> items;
+        protected private GapBuffer<T> collection;
 
 
         public FixedList() : this(4)
@@ -28,74 +28,74 @@ namespace FooProject.Collection
 
         public FixedList(int init_capacity = 4,int limit_capacity = int.MaxValue - 1)
         {
-            items = new GapBuffer<T>(init_capacity,limit_capacity);
+            collection = new GapBuffer<T>(init_capacity,limit_capacity);
         }
 
-        public T this[int i] { get { return items[i]; } set { items[i] = value; } }
+        public virtual T this[int i] { get { return collection[i]; } set { collection[i] = value; } }
 
-        public int Count { get { return items.Count; } }
+        public int Count { get { return collection.Count; } }
 
         public bool IsReadOnly => false;
 
-        public void Add(T item)
+        public virtual void Add(T item)
         {
-            items.Add(item);
+            collection.Add(item);
         }
 
-        public void AddRange(IEnumerable<T> collection, int collection_length = -1)
+        public virtual void AddRange(IEnumerable<T> collection, int collection_length = -1)
         {
-            items.AddRange(collection,collection_length);
+            this.collection.AddRange(collection, collection_length);
         }
 
-        public void Insert(int index, T item)
+        public virtual void Insert(int index, T item)
         {
             InsertRange(index, new T[1] { item });
         }
 
-        public void InsertRange(int index, IEnumerable<T> collection, int collection_length = -1)
+        public virtual void InsertRange(int index, IEnumerable<T> collection, int collection_length = -1)
         {
-            items.InsertRange(index, collection, collection_length);
+            this.collection.InsertRange(index, collection, collection_length);
         }
 
-        public void RemoveAt(int index)
+        public virtual void RemoveAt(int index)
         {
             RemoveRange(index, 1);
         }
 
-        public void RemoveRange(int index, int count)
+        public virtual void RemoveRange(int index, int count)
         {
-            items.RemoveRange(index, count);
+            collection.RemoveRange(index, count);
         }
 
         public IEnumerable<T> GetRange(int index,int count)
         {
-            return items.GetRage(index, count);
+            return collection.GetRage(index, count);
         }
 
-        public IEnumerator<T> GetEnumerator()
+        public virtual IEnumerator<T> GetEnumerator()
         {
-            return items.GetEnumerator();
+            return collection.GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return items.GetEnumerator();
+            return collection.GetEnumerator();
         }
 
-        public void Clear()
+        public virtual void Clear()
         {
-            items.Clear();
-            items.TrimExcess();
+            collection.Clear();
+            collection.TrimExcess();
         }
 
         public void TrimExcess()
         {
-            items.TrimExcess();
+            collection.TrimExcess();
         }
 
         public int IndexOf(T item)
         {
-            return items.IndexOf(item);
+            return collection.IndexOf(item);
         }
 
         public bool Contains(T item)
@@ -105,12 +105,12 @@ namespace FooProject.Collection
 
         public void CopyTo(T[] array, int arrayIndex)
         {
-            items.CopyTo(array, arrayIndex);
+            collection.CopyTo(array, arrayIndex);
         }
 
         public bool Remove(T item)
         {
-            return items.Remove(item);
+            return collection.Remove(item);
         }
     }
 }
