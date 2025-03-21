@@ -4,7 +4,7 @@
     <TargetFrameworks>net8.0;net481;netstandard2.0</TargetFrameworks>
     <ImplicitUsings>false</ImplicitUsings>
     <Nullable>disable</Nullable>
-    <Version>1.0.2$(VersionPrefix)</Version>
+    <Version>1.0.3$(VersionPrefix)</Version>
   </PropertyGroup>
 
 </Project>
