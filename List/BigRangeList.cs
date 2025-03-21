@@ -27,6 +27,10 @@ namespace FooProject.Collection
                 var result = GetRawData(index);
                 return result;
             }
+            set
+            {
+                throw new NotSupportedException();
+            }
         }
 
         public T GetIndexIntoRange(int index)
