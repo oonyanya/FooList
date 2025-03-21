@@ -454,6 +454,7 @@ namespace FooProject.Collection
             else
             {
                 var newLeaf = customConverter.CreateLeafNode(item);
+                newLeaf.NotifyUpdate(0, 1, customConverter);
                 leafNodeEnumrator.AddBefore(BigList<T>.GetMostLeftNode(this), newLeaf);
                 return customConverter.CreateConcatNode(newLeaf, this);
             }
