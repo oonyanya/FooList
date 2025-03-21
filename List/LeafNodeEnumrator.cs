@@ -141,6 +141,7 @@ namespace FooProject.Collection
                 newNode.Previous = target;
                 newNode.Next = nextNode;
                 target.Next = newNode;
+                nextNode.Previous = newNode;
             }
             else
             {
