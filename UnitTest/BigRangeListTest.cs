@@ -77,7 +77,7 @@ namespace UnitTest
             list = new BigRangeList<MyRange>();
             list.Add(new MyRange(0, 3));
             list.Add(new MyRange(3, 3));
-            index = 3;
+            index = 0;
             for (int i = 0; i < 8; i++)
             {
                 list.Insert(0, new MyRange(index, length));
@@ -89,7 +89,7 @@ namespace UnitTest
             list = new BigRangeList<MyRange>();
             list.Add(new MyRange(0, 3));
             list.Add(new MyRange(3, 3));
-            index = 3;
+            index = 6;
             for (int i = 0; i < 8; i++)
             {
                 list.Insert(list.Count, new MyRange(index, length));
