@@ -1,4 +1,9 @@
-﻿using System;
+﻿/*
+ *  Copy from
+ *  https://github.com/timdetering/Wintellect.PowerCollections
+ *  Fooproject modify
+ */
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -177,7 +182,7 @@ namespace FooProject.Collection
                 return customConverter.CreateConcatNode(this, otherConcat.Right);
             }
              */
-            if (leafNodeEnumrator != null && nodeBelongLeafNodeEnumrator != null)
+if (leafNodeEnumrator != null && nodeBelongLeafNodeEnumrator != null)
             {
                 leafNodeEnumrator.AddNext(BigList<T>.GetMostRightNode(this), nodeBelongLeafNodeEnumrator);
             }

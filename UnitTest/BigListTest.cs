@@ -1,4 +1,9 @@
-﻿using System;
+﻿/*
+ *  Copy from
+ *  https://github.com/timdetering/Wintellect.PowerCollections
+ *  Fooproject modify
+ */
+using System;
 using System.Collections.Generic;
 using FooProject.Collection;
 using Microsoft.VisualStudio.TestPlatform.Utilities;
