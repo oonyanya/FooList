@@ -874,6 +874,11 @@ namespace UnitTest
             list2.InsertRange(17, e1);
             InterfaceTests.TestEnumerableElements<int>(list2, new int[] { -10, -9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, -10, -9, 15, 16, 17, 18, 19 });
 
+            list2 = CreateList(0, 20);
+            e1 = new int[] { -10, -9, -8, -7, -6, -5, -4, -3, -2, -1 };
+            list2.InsertRange(1, e1);
+            InterfaceTests.TestEnumerableElements<int>(list2, new int[] { 0, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, });
+
             list2 = new BigList<int>();
             list2.AddRange(new int[] { 1, 2, 3, 4, 5 });
             list2.InsertRange(2, new int[] { 9, 8 });
