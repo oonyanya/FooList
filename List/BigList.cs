@@ -6,6 +6,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel.Design.Serialization;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
@@ -41,12 +42,14 @@ namespace FooProject.Collection
         internal static int MAXLEAF = 392;
 #endif
         internal const int BALANCEFACTOR = 6;      // how far the root must be in depth from fully balanced to invoke the rebalance operation (min 3).
-        Node<T> root;
+        Node<T> _root;
         LeafNodeEnumrator<T> leafNodeEnumrator = new LeafNodeEnumrator<T>();
+
+        private protected Node<T> Root {  get { return _root; } }
 
         public BigList()
         {
-            root = null;
+            _root = null;
             CustomConverter = new DefaultCustomConverter<T>();
         }
 
@@ -82,7 +85,7 @@ namespace FooProject.Collection
                 // This could just be a simple call to GetAt on the root.
                 // It is recoded as an interative algorithm for performance.
 
-                if (root == null || index < 0 || index >= root.Count)
+                if (_root == null || index < 0 || index >= _root.Count)
                     throw new ArgumentOutOfRangeException("index");
 
                 int relativeIndex;
@@ -94,7 +97,7 @@ namespace FooProject.Collection
                 // This could just be a simple call to SetAtInPlace on the root.
                 // It is recoded as an interative algorithm for performance.
 
-                if (root == null || index < 0 || index >= root.Count)
+                if (_root == null || index < 0 || index >= _root.Count)
                     throw new ArgumentOutOfRangeException("index");
 
                 int relativeIndex;
@@ -136,7 +139,7 @@ namespace FooProject.Collection
 
         protected Node<T> WalkNode(Func<Node<T>,int,NodeWalkDirection> fn)
         {
-            Node<T> current = root;
+            Node<T> current = _root;
             CustomConverter.ResetState();
             CustomConverter.SetState(null, 0);
             int totalLeftCount = 0;
@@ -180,10 +183,10 @@ namespace FooProject.Collection
         {
             get
             {
-                if (root == null)
+                if (_root == null)
                     return 0;
                 else
-                    return root.Count;
+                    return _root.Count;
 
             }
         }
@@ -193,8 +196,8 @@ namespace FooProject.Collection
 
         private void CheckBalance()
         {
-            if (root != null &&
-                (root.Depth > BALANCEFACTOR && !(root.Depth - BALANCEFACTOR <= MAXFIB && Count >= FIBONACCI[root.Depth - BALANCEFACTOR])))
+            if (_root != null &&
+                (_root.Depth > BALANCEFACTOR && !(_root.Depth - BALANCEFACTOR <= MAXFIB && Count >= FIBONACCI[_root.Depth - BALANCEFACTOR])))
             {
                 Rebalance();
             }
@@ -218,19 +221,19 @@ namespace FooProject.Collection
             // rebalance array has Fibonacci(K+1) to Fibonacci(K+2) items, and the entire list has the nodes
             // from largest to smallest concatenated.
 
-            if (root == null)
+            if (_root == null)
                 return;
-            if (root.Depth <= 1 || (root.Depth - 2 <= MAXFIB && Count >= FIBONACCI[root.Depth - 2]))
+            if (_root.Depth <= 1 || (_root.Depth - 2 <= MAXFIB && Count >= FIBONACCI[_root.Depth - 2]))
                 return;      // already sufficiently balanced.
 
             // How many slots does the rebalance array need?
             for (slots = 0; slots <= MAXFIB; ++slots)
-                if (root.Count < FIBONACCI[slots])
+                if (_root.Count < FIBONACCI[slots])
                     break;
             rebalanceArray = new Node<T>[slots];
 
             // Add all the nodes to the rebalance array.
-            AddNodeToRebalanceArray(rebalanceArray, root, false);
+            AddNodeToRebalanceArray(rebalanceArray, _root, false);
 
             // Concatinate all the node in the rebalance array.
             Node<T> result = null;
@@ -247,8 +250,8 @@ namespace FooProject.Collection
             }
 
             // And we're done. Check that it worked!
-            root = result;
-            Debug.Assert(root.Depth <= 1 || (root.Depth - 2 <= MAXFIB && Count >= FIBONACCI[root.Depth - 2]));
+            _root = result;
+            Debug.Assert(_root.Depth <= 1 || (_root.Depth - 2 <= MAXFIB && Count >= FIBONACCI[_root.Depth - 2]));
         }
 
         /// <summary>
@@ -377,19 +380,19 @@ namespace FooProject.Collection
             if ((uint)Count + 1 > MAXITEMS)
                 throw new InvalidOperationException("too large");
 
-            if (root == null)
+            if (_root == null)
             {
                 var newLeaf = CustomConverter.CreateLeafNode(item);
-                root = newLeaf;
+                _root = newLeaf;
                 leafNodeEnumrator.AddLast(newLeaf);
 
             }
             else
             {
-                Node<T> newRoot = root.PrependInPlace(item, leafNodeEnumrator, CustomConverter);
-                if (newRoot != root)
+                Node<T> newRoot = _root.PrependInPlace(item, leafNodeEnumrator, CustomConverter);
+                if (newRoot != _root)
                 {
-                    root = newRoot;
+                    _root = newRoot;
                     CheckBalance();
                 }
             }
@@ -401,18 +404,18 @@ namespace FooProject.Collection
             if ((uint)Count + 1 > MAXITEMS)
                 throw new InvalidOperationException("too large");
 
-            if (root == null)
+            if (_root == null)
             {
                 var newLeaf = CustomConverter.CreateLeafNode(item);
-                root = newLeaf;
+                _root = newLeaf;
                 leafNodeEnumrator.AddLast(newLeaf);
             }
             else
             {
-                Node<T> newRoot = root.AppendInPlace(item, leafNodeEnumrator, CustomConverter);
-                if (newRoot != root)
+                Node<T> newRoot = _root.AppendInPlace(item, leafNodeEnumrator, CustomConverter);
+                if (newRoot != _root)
                 {
-                    root = newRoot;
+                    _root = newRoot;
                     CheckBalance();
                 }
             }
@@ -499,9 +502,9 @@ namespace FooProject.Collection
             Node<T> node = NodeFromEnumerable(collection, tempLeafNodeEnumrator, CustomConverter);
             if (node == null)
                 return;
-            else if (root == null)
+            else if (_root == null)
             {
-                root = node;
+                _root = node;
                 leafNodeEnumrator = tempLeafNodeEnumrator;
                 CheckBalance();
             }
@@ -510,10 +513,10 @@ namespace FooProject.Collection
                 if ((uint)Count + (uint)node.Count > MAXITEMS)
                     throw new InvalidOperationException("too large");
 
-                Node<T> newRoot = root.AppendInPlace(node, leafNodeEnumrator,tempLeafNodeEnumrator, CustomConverter);
-                if (newRoot != root)
+                Node<T> newRoot = _root.AppendInPlace(node, leafNodeEnumrator,tempLeafNodeEnumrator, CustomConverter);
+                if (newRoot != _root)
                 {
-                    root = newRoot;
+                    _root = newRoot;
                     CheckBalance();
                 }
             }
@@ -529,9 +532,9 @@ namespace FooProject.Collection
             Node<T> node = NodeFromEnumerable(collection, tempLeafNodeEnumrator, CustomConverter);
             if (node == null)
                 return;
-            else if (root == null)
+            else if (_root == null)
             {
-                root = node;
+                _root = node;
                 leafNodeEnumrator = tempLeafNodeEnumrator;
                 CheckBalance();
             }
@@ -540,10 +543,10 @@ namespace FooProject.Collection
                 if ((uint)Count + (uint)node.Count > MAXITEMS)
                     throw new InvalidOperationException("too large");
 
-                Node<T> newRoot = root.PrependInPlace(node, leafNodeEnumrator, tempLeafNodeEnumrator, CustomConverter);
-                if (newRoot != root)
+                Node<T> newRoot = _root.PrependInPlace(node, leafNodeEnumrator, tempLeafNodeEnumrator, CustomConverter);
+                if (newRoot != _root)
                 {
-                    root = newRoot;
+                    _root = newRoot;
                     CheckBalance();
                 }
             }
@@ -552,7 +555,7 @@ namespace FooProject.Collection
 
         public new void Clear()
         {
-            this.root = null;
+            this._root = null;
             this.leafNodeEnumrator.Clear();
             ResetFetchCache();
         }
@@ -649,18 +652,18 @@ namespace FooProject.Collection
             }
             else
             {
-                if (root == null)
+                if (_root == null)
                 {
                     var newLeafNode = CustomConverter.CreateLeafNode(item);
-                    root = newLeafNode;
+                    _root = newLeafNode;
                     leafNodeEnumrator.AddLast(newLeafNode);
                 }
                 else
                 {
-                    Node<T> newRoot = root.InsertInPlace(index, item, leafNodeEnumrator, CustomConverter);
-                    if (newRoot != root)
+                    Node<T> newRoot = _root.InsertInPlace(index, item, leafNodeEnumrator, CustomConverter);
+                    if (newRoot != _root)
                     {
-                        root = newRoot;
+                        _root = newRoot;
                         CheckBalance();
                     }
                 }
@@ -688,17 +691,17 @@ namespace FooProject.Collection
                 Node<T> node = NodeFromEnumerable(collection, tempLeafNodeEnumrator, CustomConverter);
                 if (node == null)
                     return;
-                else if (root == null)
-                    root = node;
+                else if (_root == null)
+                    _root = node;
                 else
                 {
                     if ((uint)Count + (uint)node.Count > MAXITEMS)
                         throw new InvalidOperationException("too large");
 
-                    Node<T> newRoot = root.InsertInPlace(index, node, leafNodeEnumrator, tempLeafNodeEnumrator, CustomConverter);
-                    if (newRoot != root)
+                    Node<T> newRoot = _root.InsertInPlace(index, node, leafNodeEnumrator, tempLeafNodeEnumrator, CustomConverter);
+                    if (newRoot != _root)
                     {
-                        root = newRoot;
+                        _root = newRoot;
                         CheckBalance();
                     }
                 }
@@ -734,10 +737,10 @@ namespace FooProject.Collection
             if (count < 0 || count > Count - index)
                 throw new ArgumentOutOfRangeException("count");
 
-            Node<T> newRoot = root.RemoveRangeInPlace(index, index + count - 1, leafNodeEnumrator, CustomConverter);
-            if (newRoot != root)
+            Node<T> newRoot = _root.RemoveRangeInPlace(index, index + count - 1, leafNodeEnumrator, CustomConverter);
+            if (newRoot != _root)
             {
-                root = newRoot;
+                _root = newRoot;
                 CheckBalance();
             }
             ResetFetchCache();

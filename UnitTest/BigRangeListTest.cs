@@ -228,8 +228,7 @@ namespace UnitTest
 
             var newValue = (MyRange)list[0].DeepCopy();
             newValue.length = 4;
-            list.RemoveAt(0);
-            list.Insert(0,newValue);
+            list[0] = newValue;
             Assert.AreEqual(0, list[0].start);
             Assert.AreEqual(4, list[0].length);
 

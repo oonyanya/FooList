@@ -29,7 +29,7 @@ namespace FooProject.Collection
             }
             set
             {
-                throw new NotSupportedException();
+                Root.SetAtInPlace(index, value, CustomConverter);
             }
         }
 

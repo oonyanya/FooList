@@ -45,6 +45,8 @@ namespace FooProject.Collection
             return (Depth == 0 || (Depth - 1 <= BigList<T>.MAXFIB && Count >= BigList<T>.FIBONACCI[Depth - 1]));
         }
 
+        public abstract Node<T> SetAtInPlace(int index, T item, ICustomConverter<T> customConverter);
+
         public abstract Node<T> PrependInPlace(Node<T> node, LeafNodeEnumrator<T> leafNodeEnumrator, LeafNodeEnumrator<T> nodeBelongLeafNodeEnumrator, ICustomConverter<T> customConverter);
 
         public abstract Node<T> PrependInPlace(T item, LeafNodeEnumrator<T> leafNodeEnumrator, ICustomConverter<T> customConverter);
@@ -85,6 +87,13 @@ namespace FooProject.Collection
         {
             this.items = items;
             Count = count;
+        }
+
+        public override Node<T> SetAtInPlace(int index, T item, ICustomConverter<T> customConverter)
+        {
+            items[index] = item;
+            NotifyUpdate(index, 1, customConverter);
+            return this;
         }
 
         public override Node<T> AppendInPlace(T item, LeafNodeEnumrator<T> leafNodeEnumrator, ICustomConverter<T> customConverter)
@@ -373,6 +382,22 @@ if (leafNodeEnumrator != null && nodeBelongLeafNodeEnumrator != null)
             else
                 Depth = (short)(Right.Depth + 1);
             return this;
+        }
+
+        public override Node<T> SetAtInPlace(int index, T item, ICustomConverter<T> customConverter)
+        {
+            int leftCount = Left.Count;
+
+            if (index < leftCount)
+            {
+                var newLeft = Left.SetAtInPlace(index, item, customConverter);
+                return NewNodeInPlace(newLeft, Right);
+            }
+            else
+            {
+                var newRight = Right.SetAtInPlace(index - leftCount, item, customConverter);
+                return NewNodeInPlace(Left, newRight);
+            }
         }
 
         public override Node<T> PrependInPlace(Node<T> node, LeafNodeEnumrator<T> leafNodeEnumrator, LeafNodeEnumrator<T> nodeBelongLeafNodeEnumrator, ICustomConverter<T> customConverter)
