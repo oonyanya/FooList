@@ -19,6 +19,17 @@ using Microsoft.VisualBasic;
 
 namespace FooProject.Collection
 {
+    public class BigListArgs<T>
+    {
+        public ICustomConverter<T> CustomConverter { get; set; }
+        public ICustomBuilder<T> CustomBuilder { get; set; }
+        public BigListArgs(ICustomBuilder<T> builder, ICustomConverter<T> conv) 
+        {
+            CustomConverter = conv;
+            CustomBuilder = builder;
+        }
+    }
+
     /// <summary>
     /// List for huge items.
     /// </summary>
@@ -50,7 +61,9 @@ namespace FooProject.Collection
         public BigList()
         {
             _root = null;
-            CustomConverter = new DefaultCustomConverter<T>();
+            var custom = new DefaultCustomConverter<T>();
+            CustomConverter = custom;
+            CustomBuilder = custom;
         }
 
         public BigList(IEnumerable<T> items) : this()
@@ -77,6 +90,8 @@ namespace FooProject.Collection
         }
 
         public ICustomConverter<T> CustomConverter { get; set; }
+
+        public ICustomBuilder<T> CustomBuilder { get; set; }
 
         public new virtual T this[int index]
         {
@@ -237,6 +252,7 @@ namespace FooProject.Collection
 
             // Concatinate all the node in the rebalance array.
             Node<T> result = null;
+            var args = new BigListArgs<T>(CustomBuilder, CustomConverter);
             for (int slot = 0; slot < slots; ++slot)
             {
                 Node<T> n = rebalanceArray[slot];
@@ -245,7 +261,7 @@ namespace FooProject.Collection
                     if (result == null)
                         result = n;
                     else
-                        result = result.PrependInPlace(n, null, null, CustomConverter);
+                        result = result.PrependInPlace(n, null, null, args);
                 }
             }
 
@@ -266,7 +282,8 @@ namespace FooProject.Collection
         {
             if (node.IsBalanced())
             {
-                AddBalancedNodeToRebalanceArray(rebalanceArray, node, CustomConverter);
+                var args = new BigListArgs<T>(CustomBuilder, CustomConverter);
+                AddBalancedNodeToRebalanceArray(rebalanceArray, node, args);
             }
             else
             {
@@ -281,7 +298,7 @@ namespace FooProject.Collection
         /// </summary>
         /// <param name="rebalanceArray">Rebalance array to insert into.</param>
         /// <param name="balancedNode">Node to add.</param>
-        private static void AddBalancedNodeToRebalanceArray(Node<T>[] rebalanceArray, Node<T> balancedNode, ICustomConverter<T> customConverter)
+        private static void AddBalancedNodeToRebalanceArray(Node<T>[] rebalanceArray, Node<T> balancedNode, BigListArgs<T> args)
         {
             int slot;
             int count;
@@ -299,7 +316,7 @@ namespace FooProject.Collection
                     if (accum == null)
                         accum = n;
                     else
-                        accum = accum.PrependInPlace(n, null, null, customConverter);
+                        accum = accum.PrependInPlace(n, null, null, args);
                 }
                 ++slot;
             }
@@ -307,14 +324,14 @@ namespace FooProject.Collection
             // slot is the location where balancedNode originally ended up, but possibly
             // not the final resting place.
             if (accum != null)
-                balancedNode = balancedNode.PrependInPlace(accum, null, null, customConverter);
+                balancedNode = balancedNode.PrependInPlace(accum, null, null, args);
             for (; ; )
             {
                 Node<T> n = rebalanceArray[slot];
                 if (n != null)
                 {
                     rebalanceArray[slot] = null;
-                    balancedNode = balancedNode.PrependInPlace(n,null, null, customConverter);
+                    balancedNode = balancedNode.PrependInPlace(n,null, null, args);
                 }
 
                 if (balancedNode.Count < FIBONACCI[slot + 1])
@@ -382,14 +399,15 @@ namespace FooProject.Collection
 
             if (_root == null)
             {
-                var newLeaf = CustomConverter.CreateLeafNode(item);
+                var newLeaf = CustomBuilder.CreateLeafNode(item);
                 _root = newLeaf;
                 leafNodeEnumrator.AddLast(newLeaf);
 
             }
             else
             {
-                Node<T> newRoot = _root.PrependInPlace(item, leafNodeEnumrator, CustomConverter);
+                var args = new BigListArgs<T>(CustomBuilder, CustomConverter);
+                Node<T> newRoot = _root.PrependInPlace(item, leafNodeEnumrator, args);
                 if (newRoot != _root)
                 {
                     _root = newRoot;
@@ -406,13 +424,14 @@ namespace FooProject.Collection
 
             if (_root == null)
             {
-                var newLeaf = CustomConverter.CreateLeafNode(item);
+                var newLeaf = CustomBuilder.CreateLeafNode(item);
                 _root = newLeaf;
                 leafNodeEnumrator.AddLast(newLeaf);
             }
             else
             {
-                Node<T> newRoot = _root.AppendInPlace(item, leafNodeEnumrator, CustomConverter);
+                var args = new BigListArgs<T>(CustomBuilder, CustomConverter);
+                Node<T> newRoot = _root.AppendInPlace(item, leafNodeEnumrator, args);
                 if (newRoot != _root)
                 {
                     _root = newRoot;
@@ -422,7 +441,7 @@ namespace FooProject.Collection
             ResetFetchCache();
         }
 
-        private static LeafNode<T> LeafFromEnumerator(IEnumerator<T> enumerator,int collection_count,ICustomConverter<T> customConverter)
+        private static LeafNode<T> LeafFromEnumerator(IEnumerator<T> enumerator,int collection_count,BigListArgs<T> args)
         {
             int i = 0;
             FixedList<T> items = null;
@@ -432,9 +451,9 @@ namespace FooProject.Collection
                 if (i == 0)
                 {
                     if(collection_count < MAXLEAF)
-                        items = customConverter.CreateList(collection_count, MAXLEAF);
+                        items = args.CustomBuilder.CreateList(collection_count, MAXLEAF);
                     else
-                        items = customConverter.CreateList(MAXLEAF, MAXLEAF);
+                        items = args.CustomBuilder.CreateList(MAXLEAF, MAXLEAF);
                 }
 
                 if (items != null)
@@ -446,8 +465,8 @@ namespace FooProject.Collection
 
             if (items != null)
             {
-                var leafNode = customConverter.CreateLeafNode(i, items);
-                leafNode.NotifyUpdate(0, items.Count, customConverter);
+                var leafNode = args.CustomBuilder.CreateLeafNode(i, items);
+                leafNode.NotifyUpdate(0, items.Count, args);
                 return leafNode;
 
             }
@@ -457,7 +476,7 @@ namespace FooProject.Collection
             }
         }
 
-        private static Node<T> NodeFromEnumerable(IEnumerable<T> collection, LeafNodeEnumrator<T> leafNodeEnumrator,ICustomConverter<T> customConverter)
+        private static Node<T> NodeFromEnumerable(IEnumerable<T> collection, LeafNodeEnumrator<T> leafNodeEnumrator,BigListArgs<T> args)
         {
             Node<T> node = null;
             LeafNode<T> leaf;
@@ -473,7 +492,7 @@ namespace FooProject.Collection
                 collection_count = collection.Count();
 #endif
 
-            while ((leaf = LeafFromEnumerator(enumerator, collection_count, customConverter)) != null)
+            while ((leaf = LeafFromEnumerator(enumerator, collection_count, args)) != null)
             {
                 leafNodeEnumrator.AddLast(leaf);
                 if (node == null)
@@ -486,7 +505,7 @@ namespace FooProject.Collection
                         throw new InvalidOperationException("too large");
 
                     //このメソッドでもリンクドリストに追加されるがこのメソッドで追加すると後の処理が面倒になる
-                    node = node.AppendInPlace(leaf, null, null, customConverter);
+                    node = node.AppendInPlace(leaf, null, null, args);
                 }
             }
 
@@ -499,7 +518,8 @@ namespace FooProject.Collection
                 throw new ArgumentNullException("collection");
 
             var tempLeafNodeEnumrator = new LeafNodeEnumrator<T>();
-            Node<T> node = NodeFromEnumerable(collection, tempLeafNodeEnumrator, CustomConverter);
+            var args = new BigListArgs<T>(CustomBuilder, CustomConverter);
+            Node<T> node = NodeFromEnumerable(collection, tempLeafNodeEnumrator, args);
             if (node == null)
                 return;
             else if (_root == null)
@@ -513,7 +533,7 @@ namespace FooProject.Collection
                 if ((uint)Count + (uint)node.Count > MAXITEMS)
                     throw new InvalidOperationException("too large");
 
-                Node<T> newRoot = _root.AppendInPlace(node, leafNodeEnumrator,tempLeafNodeEnumrator, CustomConverter);
+                Node<T> newRoot = _root.AppendInPlace(node, leafNodeEnumrator,tempLeafNodeEnumrator, args);
                 if (newRoot != _root)
                 {
                     _root = newRoot;
@@ -529,7 +549,8 @@ namespace FooProject.Collection
                 throw new ArgumentNullException("collection");
 
             var tempLeafNodeEnumrator = new LeafNodeEnumrator<T>();
-            Node<T> node = NodeFromEnumerable(collection, tempLeafNodeEnumrator, CustomConverter);
+            var args = new BigListArgs<T>(CustomBuilder, CustomConverter);
+            Node<T> node = NodeFromEnumerable(collection, tempLeafNodeEnumrator, args);
             if (node == null)
                 return;
             else if (_root == null)
@@ -543,7 +564,7 @@ namespace FooProject.Collection
                 if ((uint)Count + (uint)node.Count > MAXITEMS)
                     throw new InvalidOperationException("too large");
 
-                Node<T> newRoot = _root.PrependInPlace(node, leafNodeEnumrator, tempLeafNodeEnumrator, CustomConverter);
+                Node<T> newRoot = _root.PrependInPlace(node, leafNodeEnumrator, tempLeafNodeEnumrator, args);
                 if (newRoot != _root)
                 {
                     _root = newRoot;
@@ -654,13 +675,14 @@ namespace FooProject.Collection
             {
                 if (_root == null)
                 {
-                    var newLeafNode = CustomConverter.CreateLeafNode(item);
+                    var newLeafNode = CustomBuilder.CreateLeafNode(item);
                     _root = newLeafNode;
                     leafNodeEnumrator.AddLast(newLeafNode);
                 }
                 else
                 {
-                    Node<T> newRoot = _root.InsertInPlace(index, item, leafNodeEnumrator, CustomConverter);
+                    var args = new BigListArgs<T>(CustomBuilder, CustomConverter);
+                    Node<T> newRoot = _root.InsertInPlace(index, item, leafNodeEnumrator, args);
                     if (newRoot != _root)
                     {
                         _root = newRoot;
@@ -688,7 +710,8 @@ namespace FooProject.Collection
             else
             {
                 var tempLeafNodeEnumrator = new LeafNodeEnumrator<T>();
-                Node<T> node = NodeFromEnumerable(collection, tempLeafNodeEnumrator, CustomConverter);
+                var args = new BigListArgs<T>(CustomBuilder, CustomConverter);
+                Node<T> node = NodeFromEnumerable(collection, tempLeafNodeEnumrator, args);
                 if (node == null)
                     return;
                 else if (_root == null)
@@ -698,7 +721,7 @@ namespace FooProject.Collection
                     if ((uint)Count + (uint)node.Count > MAXITEMS)
                         throw new InvalidOperationException("too large");
 
-                    Node<T> newRoot = _root.InsertInPlace(index, node, leafNodeEnumrator, tempLeafNodeEnumrator, CustomConverter);
+                    Node<T> newRoot = _root.InsertInPlace(index, node, leafNodeEnumrator, tempLeafNodeEnumrator, args);
                     if (newRoot != _root)
                     {
                         _root = newRoot;
@@ -737,7 +760,8 @@ namespace FooProject.Collection
             if (count < 0 || count > Count - index)
                 throw new ArgumentOutOfRangeException("count");
 
-            Node<T> newRoot = _root.RemoveRangeInPlace(index, index + count - 1, leafNodeEnumrator, CustomConverter);
+            var args = new BigListArgs<T>(CustomBuilder, CustomConverter);
+            Node<T> newRoot = _root.RemoveRangeInPlace(index, index + count - 1, leafNodeEnumrator, args);
             if (newRoot != _root)
             {
                 _root = newRoot;

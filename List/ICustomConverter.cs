@@ -27,18 +27,6 @@ namespace FooProject.Collection
 
         T ConvertBack(T item);
 
-        FixedList<T> CreateList(int init_capacity, int maxcapacity);
-
-        LeafNode<T> CreateLeafNode();
-
-        LeafNode<T> CreateLeafNode(T item);
-
-        LeafNode<T> CreateLeafNode(int count, FixedList<T> items);
-
-        ConcatNode<T> CreateConcatNode(ConcatNode<T> node);
-
-        ConcatNode<T> CreateConcatNode(Node<T> left, Node<T> right);
-
         /// <summary>
         /// Set State
         /// </summary>
@@ -58,7 +46,7 @@ namespace FooProject.Collection
         }
     }
 
-    public class DefaultCustomConverter<T> : ICustomConverter<T>
+    public class DefaultCustomConverter<T> : ICustomConverter<T>,ICustomBuilder<T>
     {
         public ILeastFetch<T> LeastFetch { get; private set; }
 

@@ -18,7 +18,9 @@ namespace FooProject.Collection
     {
         public BigRangeList() :base()
         {
-            this.CustomConverter = new RangeConverter<T>();
+            var custom = new RangeConverter<T>();
+            this.CustomConverter = custom;
+            this.CustomBuilder = custom;
         }
 
         public override T this[int index] {
@@ -29,7 +31,8 @@ namespace FooProject.Collection
             }
             set
             {
-                Root.SetAtInPlace(index, value, CustomConverter);
+                var args = new BigListArgs<T>(CustomBuilder, CustomConverter);
+                Root.SetAtInPlace(index, value, args);
             }
         }
 
@@ -205,7 +208,7 @@ namespace FooProject.Collection
         {
         }
 
-        public override void NotifyUpdate(int startIndex, int count, ICustomConverter<T> customConverter)
+        public override void NotifyUpdate(int startIndex, int count, BigListArgs<T> args)
         {
             var fixedRangeList = (FixedRangeList<T>)this.items;
             TotalRangeCount = fixedRangeList.TotalCount;
@@ -227,7 +230,7 @@ namespace FooProject.Collection
         }
     }
 
-    internal class RangeConverter<T> : ICustomConverter<T> where T : IRange
+    internal class RangeConverter<T> : ICustomConverter<T>,ICustomBuilder<T> where T : IRange
     {
         public ILeastFetch<T> LeastFetch { get { return customLeastFetch; } }
 
