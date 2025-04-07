@@ -64,7 +64,6 @@ namespace FooProject.Collection
             var custom = new DefaultCustomConverter<T>();
             CustomConverter = custom;
             CustomBuilder = custom;
-            MAXITEMS = (long)(int.MaxValue - 1) * (long)MAXLEAF;
         }
 
         public BigList(IEnumerable<T> items) : this()
@@ -87,7 +86,21 @@ namespace FooProject.Collection
             set
             {
                 MAXLEAF = value;
-                MAXITEMS = (long)(int.MaxValue - 1) * (long)MAXLEAF;
+            }
+        }
+
+        /// <summary>
+        /// get or set max items
+        /// </summary>
+        public static long MaxCapacity
+        {
+            get
+            {
+                return MAXITEMS;
+            }
+            set
+            {
+                MAXITEMS = value;
             }
         }
 
