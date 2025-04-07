@@ -9,10 +9,10 @@ namespace EditorDemo
 {
     class LineToIndex : IRange
     {
-        public int start { get; set; }
-        public int length { get; set; }
+        public long start { get; set; }
+        public long length { get; set; }
 
-        public LineToIndex(int index, int length)
+        public LineToIndex(long index, long length)
         {
             start = index;
             this.length = length;

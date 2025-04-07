@@ -39,7 +39,7 @@ namespace FooProject.Collection
     /// <typeparam name="T">The item type of the collection.</typeparam>
     public class BigList<T> : ReadOnlyList<T>, IList<T>
     {
-        const uint MAXITEMS = int.MaxValue - 1;    // maximum number of items in a BigList.
+        internal static long MAXITEMS = int.MaxValue - 1;    // maximum number of items in a BigList.
         // The fibonacci numbers. Used in the rebalancing algorithm. Final MaxValue makes sure we don't go off the end.
         internal static readonly int[] FIBONACCI = {1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597, 2584,
             4181, 6765, 10946, 17711, 28657, 46368, 75025, 121393, 196418, 317811, 514229, 832040,
@@ -64,6 +64,7 @@ namespace FooProject.Collection
             var custom = new DefaultCustomConverter<T>();
             CustomConverter = custom;
             CustomBuilder = custom;
+            MAXITEMS = (long)(int.MaxValue - 1) * (long)MAXLEAF;
         }
 
         public BigList(IEnumerable<T> items) : this()
@@ -86,6 +87,7 @@ namespace FooProject.Collection
             set
             {
                 MAXLEAF = value;
+                MAXITEMS = (long)(int.MaxValue - 1) * (long)MAXLEAF;
             }
         }
 
@@ -93,37 +95,47 @@ namespace FooProject.Collection
 
         public ICustomBuilder<T> CustomBuilder { get; set; }
 
-        public new virtual T this[int index]
+        public new T this[int index]
         {
             get
             {
-                // This could just be a simple call to GetAt on the root.
-                // It is recoded as an interative algorithm for performance.
-
-                if (_root == null || index < 0 || index >= _root.Count)
-                    throw new ArgumentOutOfRangeException("index");
-
-                int relativeIndex;
-                LeafNode<T> curLeaf = (LeafNode<T>)IndexOfNode(index, out relativeIndex);
-                return curLeaf.items[relativeIndex];
+                return Get(index);
             }
             set
             {
-                // This could just be a simple call to SetAtInPlace on the root.
-                // It is recoded as an interative algorithm for performance.
-
-                if (_root == null || index < 0 || index >= _root.Count)
-                    throw new ArgumentOutOfRangeException("index");
-
-                int relativeIndex;
-                LeafNode<T> curLeaf = (LeafNode<T>)IndexOfNode(index,out relativeIndex);
-                curLeaf.items[relativeIndex] = value;
+                Set(index, value);
             }
         }
 
-        private Node<T> IndexOfNode(int index,out int resultRelativeIndex)
+        public virtual T Get(long index)
         {
-            int relativeIndex;
+            // This could just be a simple call to GetAt on the root.
+            // It is recoded as an interative algorithm for performance.
+
+            if (_root == null || index < 0 || index >= _root.Count)
+                throw new ArgumentOutOfRangeException("index");
+
+            long relativeIndex;
+            LeafNode<T> curLeaf = (LeafNode<T>)IndexOfNode(index, out relativeIndex);
+            return curLeaf.items[(int)relativeIndex];
+        }
+
+        public virtual void Set(long index, T value)
+        {
+            // This could just be a simple call to SetAtInPlace on the root.
+            // It is recoded as an interative algorithm for performance.
+
+            if (_root == null || index < 0 || index >= _root.Count)
+                throw new ArgumentOutOfRangeException("index");
+
+            long relativeIndex;
+            LeafNode<T> curLeaf = (LeafNode<T>)IndexOfNode(index, out relativeIndex);
+            curLeaf.items[(int)relativeIndex] = value;
+        }
+
+        private Node<T> IndexOfNode(long index,out long resultRelativeIndex)
+        {
+            long relativeIndex;
             if (CustomConverter.LeastFetch != null)
             {
                 relativeIndex = index - CustomConverter.LeastFetch.TotalLeftCount;
@@ -152,18 +164,18 @@ namespace FooProject.Collection
             return node;
         }
 
-        protected Node<T> WalkNode(Func<Node<T>,int,NodeWalkDirection> fn)
+        protected Node<T> WalkNode(Func<Node<T>,long,NodeWalkDirection> fn)
         {
             Node<T> current = _root;
             CustomConverter.ResetState();
             CustomConverter.SetState(null, 0);
-            int totalLeftCount = 0;
+            long totalLeftCount = 0;
 
             while (current != null)
             {
                 if (current.Left != null)
                 {
-                    int leftCount = current.Left.Count;
+                    long leftCount = current.Left.Count;
                     var direction = fn(current, leftCount);
                     if (direction == NodeWalkDirection.Left)
                     {
@@ -195,6 +207,18 @@ namespace FooProject.Collection
         }
 
         public override int Count
+        {
+            get
+            {
+                if (_root == null)
+                    return 0;
+                else
+                    return (int)_root.Count;
+
+            }
+        }
+
+        public long LongCount
         {
             get
             {
@@ -305,7 +329,7 @@ namespace FooProject.Collection
             Node<T> accum = null;
             Debug.Assert(balancedNode.IsBalanced());
 
-            count = balancedNode.Count;
+            count = (int)balancedNode.Count;
             slot = 0;
             while (count >= FIBONACCI[slot + 1])
             {
@@ -394,7 +418,7 @@ namespace FooProject.Collection
 
         public void AddToFront(T item)
         {
-            if ((uint)Count + 1 > MAXITEMS)
+            if (LongCount + 1 > MAXITEMS)
                 throw new InvalidOperationException("too large");
 
             if (_root == null)
@@ -419,7 +443,7 @@ namespace FooProject.Collection
 
         public new void Add(T item)
         {
-            if ((uint)Count + 1 > MAXITEMS)
+            if (LongCount + 1 > MAXITEMS)
                 throw new InvalidOperationException("too large");
 
             if (_root == null)
@@ -501,7 +525,7 @@ namespace FooProject.Collection
                 }
                 else
                 {
-                    if ((uint)(node.Count) + (uint)(leaf.Count) > MAXITEMS)
+                    if (node.Count + leaf.Count > MAXITEMS)
                         throw new InvalidOperationException("too large");
 
                     //このメソッドでもリンクドリストに追加されるがこのメソッドで追加すると後の処理が面倒になる
@@ -512,6 +536,13 @@ namespace FooProject.Collection
             return node;
         }
 
+        /// <summary>
+        /// Add collections.
+        /// </summary>
+        /// <param name="collection"></param>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="InvalidOperationException"></exception>
+        /// <remarks>The collection's count must be within int.Maxvalue - 1</remarks>
         public void AddRange(IEnumerable<T> collection)
         {
             if (collection == null)
@@ -530,7 +561,7 @@ namespace FooProject.Collection
             }
             else
             {
-                if ((uint)Count + (uint)node.Count > MAXITEMS)
+                if (LongCount + node.Count > MAXITEMS)
                     throw new InvalidOperationException("too large");
 
                 Node<T> newRoot = _root.AppendInPlace(node, leafNodeEnumrator,tempLeafNodeEnumrator, args);
@@ -543,6 +574,13 @@ namespace FooProject.Collection
             ResetFetchCache();
         }
 
+        /// <summary>
+        /// Add collections before first element.
+        /// </summary>
+        /// <param name="collection"></param>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="InvalidOperationException"></exception>
+        /// <remarks>The collection's count must be within int.Maxvalue - 1</remarks>
         public void AddRangeToFront(IEnumerable<T> collection)
         {
             if (collection == null)
@@ -561,7 +599,7 @@ namespace FooProject.Collection
             }
             else
             {
-                if ((uint)Count + (uint)node.Count > MAXITEMS)
+                if (LongCount + node.Count > MAXITEMS)
                     throw new InvalidOperationException("too large");
 
                 Node<T> newRoot = _root.PrependInPlace(node, leafNodeEnumrator, tempLeafNodeEnumrator, args);
@@ -581,7 +619,7 @@ namespace FooProject.Collection
             ResetFetchCache();
         }
 
-        public IEnumerable<T> GetRangeEnumerable(int index, int count)
+        public IEnumerable<T> GetRangeEnumerable(long index, long count)
         {
             if (count == 0)
                 yield break;
@@ -591,9 +629,9 @@ namespace FooProject.Collection
             if (count < 0 || count > Count - index)
                 throw new ArgumentOutOfRangeException("count");
 
-            int relativeIndex;
+            long relativeIndex;
             var node = (LeafNode<T>)IndexOfNode(index, out relativeIndex);
-            var items = node.items.Skip(relativeIndex).ToArray();
+            var items = node.items.Skip((int)relativeIndex).ToArray();
             if (count > items.Length)
             {
                 foreach (var item in items)
@@ -601,12 +639,12 @@ namespace FooProject.Collection
             }
             else
             {
-                foreach (var item in items.Take(count))
+                foreach (var item in items.Take((int)count))
                     yield return item;
                 yield break;
             }
 
-            int leftCount = count - items.Length;
+            long leftCount = count - items.Length;
             LeafNode<T> current = node.Next;
             while (leftCount > 0 && current != null)
             {
@@ -618,7 +656,7 @@ namespace FooProject.Collection
                 }
                 else if (leftCount > 0)
                 {
-                    foreach (var item in currentItems.Take(leftCount))
+                    foreach (var item in currentItems.Take((int)leftCount))
                         yield return item;
                 }
                 leftCount -= currentItems.Count;
@@ -626,7 +664,7 @@ namespace FooProject.Collection
             }
         }
 
-        public BigList<T> GetRange(int index, int count)
+        public BigList<T> GetRange(long index, long count)
         {
             if (count == 0)
                 return new BigList<T>();
@@ -644,7 +682,7 @@ namespace FooProject.Collection
 
         public override IEnumerator<T> GetEnumerator()
         {
-            if ((uint)Count + 1 > MAXITEMS)
+            if (LongCount + 1 > MAXITEMS)
                 throw new InvalidOperationException("too large");
 
             //どうせMAXITEMSまでしか保持できないので、インデクサーで取得しても問題はない
@@ -659,7 +697,12 @@ namespace FooProject.Collection
 
         public new void Insert(int index, T item)
         {
-            if ((uint)Count + 1 > MAXITEMS)
+            //　こうしないとスタックオーバーフローになる
+            this.Insert((long)index, item);
+        }
+        public virtual void Insert(long index, T item)
+        {
+            if (LongCount + 1 > MAXITEMS)
                 throw new InvalidOperationException("too large");
 
             if (index <= 0 || index >= Count)
@@ -693,7 +736,7 @@ namespace FooProject.Collection
             ResetFetchCache();
         }
 
-        public void InsertRange(int index, IEnumerable<T> collection)
+        public void InsertRange(long index, IEnumerable<T> collection)
         {
             if (collection == null)
                 throw new ArgumentNullException("collection");
@@ -718,7 +761,7 @@ namespace FooProject.Collection
                     _root = node;
                 else
                 {
-                    if ((uint)Count + (uint)node.Count > MAXITEMS)
+                    if (LongCount + node.Count > MAXITEMS)
                         throw new InvalidOperationException("too large");
 
                     Node<T> newRoot = _root.InsertInPlace(index, node, leafNodeEnumrator, tempLeafNodeEnumrator, args);
@@ -751,7 +794,12 @@ namespace FooProject.Collection
             RemoveRange(index, 1);
         }
 
-        public void RemoveRange(int index, int count)
+        public void RemoveAt(long index)
+        {
+            RemoveRange(index, 1);
+        }
+
+        public void RemoveRange(long index, long count)
         {
             if (count == 0)
                 return;              // nothing to do.

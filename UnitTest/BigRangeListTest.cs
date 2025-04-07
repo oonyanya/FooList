@@ -196,7 +196,7 @@ namespace UnitTest
             var list = new BigRangeList<MyRange>();
             list.AddRange(rangeList);
 
-            var expected = new int[] { 0, 3, 6, 9, 12, 15, 18, 21, 24, 27, };
+            var expected = new long[] { 0, 3, 6, 9, 12, 15, 18, 21, 24, 27, };
             foreach(var item in expected)
             {
                 var absoluteindex = list.GetIndexFromIndexIntoRange(item);
@@ -239,10 +239,10 @@ namespace UnitTest
 
     class MyRange : IRange
     {
-        public int start { get; set; }
-        public int length { get; set; }
+        public long start { get; set; }
+        public long length { get; set; }
 
-        public MyRange(int index, int length)
+        public MyRange(long index, long length)
         {
             start = index; 
             this.length = length;

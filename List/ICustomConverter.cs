@@ -10,7 +10,7 @@ namespace FooProject.Collection
     public interface ILeastFetch<T>
     {
         Node<T> Node { get; }
-        int TotalLeftCount { get; }
+        long TotalLeftCount { get; }
     }
     public enum NodeWalkDirection
     {
@@ -32,14 +32,14 @@ namespace FooProject.Collection
         /// </summary>
         /// <param name="current">Node. If current is node, it have to create empty state.</param>
         /// <param name="totalLeftCountInList">Total sum of count in left node's item.</param>
-        void SetState(Node<T> current, int totalLeftCountInList);
+        void SetState(Node<T> current, long totalLeftCountInList);
     }
 
     public struct LeastFetch<T> : ILeastFetch<T>
     {
         public Node<T> Node { get; private set; }
-        public int TotalLeftCount { get; private set; }
-        public LeastFetch(Node<T> node, int totalLeft)
+        public long TotalLeftCount { get; private set; }
+        public LeastFetch(Node<T> node, long totalLeft)
         {
             Node = node;
             TotalLeftCount = totalLeft;
@@ -60,9 +60,9 @@ namespace FooProject.Collection
             return item;
         }
 
-        public FixedList<T> CreateList(int init_capacity,int maxcapacity)
+        public FixedList<T> CreateList(long init_capacity, long maxcapacity)
         {
-            var list = new FixedList<T>(init_capacity, maxcapacity);
+            var list = new FixedList<T>((int)init_capacity, (int)maxcapacity);
             return list;
         }
 
@@ -90,12 +90,12 @@ namespace FooProject.Collection
             return new LeafNode<T>(list.Count,list);
         }
 
-        public LeafNode<T> CreateLeafNode(int count, FixedList<T> items)
+        public LeafNode<T> CreateLeafNode(long count, FixedList<T> items)
         {
             return new LeafNode<T>(count, items);
         }
 
-        public void SetState(Node<T> current, int totalLeftCountInList)
+        public void SetState(Node<T> current, long totalLeftCountInList)
         {
             this.LeastFetch = new LeastFetch<T>(current, totalLeftCountInList);
         }

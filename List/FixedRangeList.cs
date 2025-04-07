@@ -32,7 +32,7 @@ namespace FooProject.Collection
 
                 this.collection[index] = newValue;
 
-                int deltaLength = newValue.length - oldValue.length;
+                long deltaLength = newValue.length - oldValue.length;
 
                 this.TotalCount += deltaLength;
 
@@ -43,7 +43,7 @@ namespace FooProject.Collection
             }
         }
 
-        public int TotalCount
+        public long TotalCount
         {
             get; private set;
         }
@@ -55,7 +55,7 @@ namespace FooProject.Collection
 
         public override void AddRange(IEnumerable<T> collection, int collection_length = -1)
         {
-            int deltaLength = 0;
+            long deltaLength = 0;
             foreach (var item in collection)
             {
                 deltaLength += item.length;
@@ -63,7 +63,7 @@ namespace FooProject.Collection
 
             int updateStartIndex = this.collection.Count;
 
-            int newIndexIntoRange = this.TotalCount;
+            long newIndexIntoRange = this.TotalCount;
 
             this.TotalCount += deltaLength;
 
@@ -83,7 +83,7 @@ namespace FooProject.Collection
 
         public override void InsertRange(int index, IEnumerable<T> collection, int collection_length = -1)
         {
-            int deltaLength = 0;
+            long deltaLength = 0;
             foreach (var item in collection)
             {
                 deltaLength += item.length;
@@ -99,7 +99,7 @@ namespace FooProject.Collection
             base.InsertRange(index, collection, collection_length);
 
             int previousIndex = index;
-            int newIndexIntoRange = 0;
+            long newIndexIntoRange = 0;
             if (index > 0)
             {
                 previousIndex = index - 1;
@@ -124,7 +124,7 @@ namespace FooProject.Collection
 
         public override void RemoveRange(int index,int count)
         {
-            int deltaLength = 0;
+            long deltaLength = 0;
             foreach (var item in collection.GetRage(index,count))
             {
                 deltaLength += item.length;
@@ -202,7 +202,7 @@ namespace FooProject.Collection
         /// </summary>
         /// <param name="row"></param>
         /// <returns></returns>
-        public int GetLineHeadIndex(int row)
+        public long GetLineHeadIndex(int row)
         {
             if (this.collection.Count == 0)
                 return 0;
