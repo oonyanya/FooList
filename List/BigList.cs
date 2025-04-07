@@ -117,7 +117,10 @@ namespace FooProject.Collection
 
             long relativeIndex;
             LeafNode<T> curLeaf = (LeafNode<T>)IndexOfNode(index, out relativeIndex);
-            return curLeaf.items[(int)relativeIndex];
+            checked
+            {
+                return curLeaf.items[(int)relativeIndex];
+            }
         }
 
         public virtual void Set(long index, T value)
@@ -130,7 +133,10 @@ namespace FooProject.Collection
 
             long relativeIndex;
             LeafNode<T> curLeaf = (LeafNode<T>)IndexOfNode(index, out relativeIndex);
-            curLeaf.items[(int)relativeIndex] = value;
+            checked
+            {
+                curLeaf.items[(int)relativeIndex] = value;
+            }
         }
 
         private Node<T> IndexOfNode(long index,out long resultRelativeIndex)

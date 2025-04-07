@@ -100,7 +100,10 @@ namespace FooProject.Collection
         {
             if (Count < BigList<T>.MAXLEAF)
             {
-                items.Insert((int)Count, item);
+                checked
+                {
+                    items.Insert((int)Count, item);
+                }
                 NotifyUpdate(Count, 1, args);
                 Count += 1;
                 return this;
@@ -119,7 +122,10 @@ namespace FooProject.Collection
             long newCount;
             if (otherLeaf != null && (newCount = otherLeaf.Count + this.Count) <= BigList<T>.MAXLEAF)
             {
-                items.InsertRange(0, otherLeaf.items, (int)otherLeaf.Count);
+                checked
+                {
+                    items.InsertRange(0, otherLeaf.items, (int)otherLeaf.Count);
+                }
                 NotifyUpdate(0, otherLeaf.Count, args);
                 Count = newCount;
                 return true;
@@ -132,7 +138,10 @@ namespace FooProject.Collection
             long newCount;
             if (otherLeaf != null && (newCount = otherLeaf.Count + this.Count) <= BigList<T>.MAXLEAF)
             {
-                items.AddRange(otherLeaf.items, (int)otherLeaf.Count);
+                checked
+                {
+                    items.AddRange(otherLeaf.items, (int)otherLeaf.Count);
+                }
                 NotifyUpdate(items.Count, otherLeaf.Count, args);
                 Count = newCount;
                 return true;
@@ -228,8 +237,13 @@ if (leafNodeEnumrator != null && nodeBelongLeafNodeEnumrator != null)
                 else
                 {
                     // Split into two nodes, and put the new item at the end of the first.
-                    int leftItemCount = (int)index + 1;
-                    int splitLength = (int)index;
+                    int leftItemCount;
+                    int splitLength;
+                    checked
+                    {
+                        leftItemCount = (int)index + 1;
+                        splitLength = (int)index;
+                    }
                     FixedList<T> leftItems = args.CustomBuilder.CreateList(leftItemCount, BigList<T>.MAXLEAF);
                     leftItems.AddRange(items.GetRange(0, splitLength),splitLength);
                     leftItems.Add(item);
@@ -275,9 +289,13 @@ if (leafNodeEnumrator != null && nodeBelongLeafNodeEnumrator != null)
             else
             {
                 // Split existing node into two nodes at the insertion point, then concat all three nodes together.
-
-                int leftItemCount = (int)index;
-                int splitLength = (int)index;
+                int leftItemCount;
+                int splitLength;
+                checked
+                {
+                    leftItemCount = (int)index;
+                    splitLength = (int)index;
+                }
                 FixedList<T> leftItems = args.CustomBuilder.CreateList(leftItemCount,BigList<T>.MAXLEAF);
                 leftItems.AddRange(items.GetRange(0, splitLength),splitLength);
                 var leftLeafNode = args.CustomBuilder.CreateLeafNode(index, leftItems);
@@ -285,7 +303,11 @@ if (leafNodeEnumrator != null && nodeBelongLeafNodeEnumrator != null)
                 Node<T> leftNode = leftLeafNode;
                 leafNodeEnumrator.Replace(this, leftLeafNode);
 
-                int rightItemCount = items.Count - (int)index;
+                int rightItemCount;
+                checked
+                {
+                    rightItemCount = items.Count - (int)index;
+                }
                 FixedList<T> rightItems = args.CustomBuilder.CreateList(rightItemCount, BigList<T>.MAXLEAF);
                 rightItems.AddRange(items.GetRange(splitLength, rightItemCount), rightItemCount);
                 var rightLeafNode = args.CustomBuilder.CreateLeafNode(Count - index, rightItems);
@@ -337,7 +359,10 @@ if (leafNodeEnumrator != null && nodeBelongLeafNodeEnumrator != null)
                 last = Count - 1;
             long newCount = first + (Count - last - 1);      // number of items remaining.
             long removeLength = last - first + 1;
-            items.RemoveRange((int)first, (int)removeLength);
+            checked
+            {
+                items.RemoveRange((int)first, (int)removeLength);
+            }
             NotifyUpdate(first, -removeLength, args);
             Count = newCount;
             return this;

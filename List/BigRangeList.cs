@@ -51,7 +51,10 @@ namespace FooProject.Collection
                 if (relativeIndex >= 0 && relativeIndex < CustomConverter.LeastFetch.Node.Count)
                 {
                     leafNode = (LeafNode<T>)CustomConverter.LeastFetch.Node;
-                    return leafNode.items[(int)relativeIndex];
+                    checked
+                    {
+                        return leafNode.items[(int)relativeIndex];
+                    }
                 }
             }
 
@@ -70,7 +73,10 @@ namespace FooProject.Collection
                 }
             });
             leafNode = (LeafNode<T>)CustomConverter.LeastFetch.Node;
-            return leafNode.items[(int)relativeIndex];
+            checked
+            {
+                return leafNode.items[(int)relativeIndex];
+            }
         }
 
         public long GetIndexFromIndexIntoRange(long indexIntoRange)
@@ -111,6 +117,9 @@ namespace FooProject.Collection
         {
             if (start < 0)
                 throw new ArgumentOutOfRangeException("indexに負の値を設定することはできません");
+
+            if (start > Int32.MaxValue - 1)
+                throw new ArgumentOutOfRangeException("要素数が大きすぎます");
 
             nearIndex = -1;
             if (collection.Count == 0)
