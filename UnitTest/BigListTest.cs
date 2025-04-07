@@ -1130,5 +1130,122 @@ namespace UnitTest
             list1.Add(4);
             InterfaceTests.TestReadOnlyListGeneric<int>(list2, new int[] { 4 }, null);
         }
+
+        [TestMethod]
+        public void TooLarge()
+        {
+            const int MAXSIZE = 10000;
+            BigList<int> listMaxSize = new BigList<int>();
+            BigList<int>.MaxCapacity = MAXSIZE;
+            for (int i = 0; i < MAXSIZE; i++)
+                listMaxSize.Add(6);
+            Assert.AreEqual(MAXSIZE, listMaxSize.Count);
+
+            try
+            {
+                listMaxSize.Add(3);
+                Assert.Fail("should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is InvalidOperationException);
+            }
+
+            try
+            {
+                listMaxSize.AddToFront(3);
+                Assert.Fail("should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is InvalidOperationException);
+            }
+
+            try
+            {
+                listMaxSize.Insert(123456, 3);
+                Assert.Fail("should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is InvalidOperationException);
+            }
+
+            listMaxSize = new BigList<int>();
+            for (int i = 0; i < MAXSIZE - 15; i++)
+                listMaxSize.Add(6);
+            Assert.AreEqual(MAXSIZE - 15, listMaxSize.Count);
+
+            try
+            {
+                listMaxSize.AddRange(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 });
+                Assert.Fail("should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is InvalidOperationException);
+            }
+
+            try
+            {
+                listMaxSize.AddRangeToFront(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 });
+                Assert.Fail("should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is InvalidOperationException);
+            }
+
+            try
+            {
+                listMaxSize.AddRange(new BigList<int>(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 }));
+                Assert.Fail("should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is InvalidOperationException);
+            }
+
+            try
+            {
+                listMaxSize.AddRangeToFront(new BigList<int>(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 }));
+                Assert.Fail("should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is InvalidOperationException);
+            }
+
+            try
+            {
+                listMaxSize.InsertRange(1, new BigList<int>(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 }));
+                Assert.Fail("should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is InvalidOperationException);
+            }
+
+            try
+            {
+                listMaxSize.InsertRange(14, new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 });
+                Assert.Fail("should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is InvalidOperationException);
+            }
+
+            try
+            {
+                listMaxSize.AddRange(listMaxSize);
+                Assert.Fail("should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is InvalidOperationException);
+            }
+        }
+
     }
 }
