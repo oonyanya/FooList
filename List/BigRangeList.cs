@@ -7,15 +7,37 @@ using System.Threading.Tasks;
 
 namespace FooProject.Collection
 {
+    /// <summary>
+    /// 範囲を表す
+    /// </summary>
     public interface IRange
     {
+        /// <summary>
+        /// 開始位置
+        /// </summary>
         long start { get; set; }
+        /// <summary>
+        /// 長さ
+        /// </summary>
         long length { get; set; }
 
+        /// <summary>
+        /// ディープコピーを行う
+        /// </summary>
+        /// <returns>複製したクラスのインスタンスを返す</returns>
         IRange DeepCopy();
     }
+
+    /// <summary>
+    /// 範囲変換テーブル
+    /// </summary>
+    /// <typeparam name="T">IRangeを実装したT</typeparam>
+    /// <remarks>連続した範囲でないとうまく動きません</remarks>
     public class BigRangeList<T> : BigList<T> where T : IRange
     {
+        /// <summary>
+        /// コンストラクター
+        /// </summary>
         public BigRangeList() :base()
         {
             var custom = new RangeConverter<T>();
@@ -23,23 +45,48 @@ namespace FooProject.Collection
             this.CustomBuilder = custom;
         }
 
+        /// <summary>
+        /// 要素を取得する
+        /// </summary>
+        /// <param name="index">0から始まる数値</param>
+        /// <returns>Tを返す。IRangeインターフェイスのstartの値は変換されない</returns>
         public override T Get(long index)
         {
             var result = GetRawData(index);
             return result;
         }
 
+        /// <summary>
+        /// 要素を設定する
+        /// </summary>
+        /// <param name="index">0から始まる数値</param>
+        /// <param name="value">設定したいT</param>
         public override void Set(long index, T value)
         {
             var args = new BigListArgs<T>(CustomBuilder, CustomConverter);
             Root.SetAtInPlace(index, value, args);
         }
 
+        [Obsolete]
         public T GetIndexIntoRange(long index)
+        {
+            return GetWithConvertAbsolteIndex(index);
+        }
+        /// <summary>
+        /// 要素を返す
+        /// </summary>
+        /// <param name="index">0から始まる数値</param>
+        /// <returns>Tを返すが、IRangeインターフェイスのstartの値が絶対的な位置に変換される</returns>
+        public T GetWithConvertAbsolteIndex(long index)
         {
             return CustomConverter.ConvertBack(GetRawData(index));
         }
 
+        /// <summary>
+        /// 要素を取得する
+        /// </summary>
+        /// <param name="index">0から始まる数値</param>
+        /// <returns>Tを返す。IRangeインターフェイスのstartの値は変換されない</returns>
         public T GetRawData(long index)
         {
             RangeConverter<T> myCustomConverter = (RangeConverter<T>)CustomConverter;
@@ -79,7 +126,18 @@ namespace FooProject.Collection
             }
         }
 
+        [Obsolete]
         public long GetIndexFromIndexIntoRange(long indexIntoRange)
+        {
+            return GetIndexFromAbsoluteIndexIntoRange(indexIntoRange);
+        }
+
+        /// <summary>
+        /// 絶対的な位置、すなわちインデックスに対応する要素の番号を返す
+        /// </summary>
+        /// <param name="index">0から始まる数値。絶対的な位置を指定しないといけない</param>
+        /// <returns>0から始まる要素の番号。見つからない場合は-1を返す</returns>
+        public long GetIndexFromAbsoluteIndexIntoRange(long indexIntoRange)
         {
             RangeConverter<T> myCustomConverter = (RangeConverter<T>)CustomConverter;
             long relativeIndexIntoRange = indexIntoRange;
@@ -159,11 +217,16 @@ namespace FooProject.Collection
             return -1;
         }
 
+        /// <summary>
+        /// 列挙子を取得する
+        /// </summary>
+        /// <returns>列挙子を取得する</returns>
+        /// <remarks>IRangeインターフェイスのstartの値は変換される</remarks>
         public override IEnumerator<T> GetEnumerator()
         {
             for(int i = 0; i < this.Count; i++)
             {
-                yield return GetIndexIntoRange(i);
+                yield return GetWithConvertAbsolteIndex(i);
             }
         }
     }

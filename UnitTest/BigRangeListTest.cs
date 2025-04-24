@@ -15,7 +15,7 @@ namespace UnitTest
         {
             for (int i = 0; i < list.Count; i++)
             {
-                var n = list.GetIndexIntoRange(i);
+                var n = list.GetWithConvertAbsolteIndex(i);
                 Assert.AreEqual(expected[i], n.start);
             }
         }
@@ -199,8 +199,8 @@ namespace UnitTest
             var expected = new long[] { 0, 3, 6, 9, 12, 15, 18, 21, 24, 27, };
             foreach(var item in expected)
             {
-                var absoluteindex = list.GetIndexFromIndexIntoRange(item);
-                var range = list.GetIndexIntoRange(absoluteindex);
+                var absoluteindex = list.GetIndexFromAbsoluteIndexIntoRange(item);
+                var range = list.GetWithConvertAbsolteIndex(absoluteindex);
                 Assert.AreEqual(item, range.start);
             }
         }
