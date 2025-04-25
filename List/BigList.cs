@@ -255,7 +255,7 @@ namespace FooProject.Collection
         private void CheckBalance()
         {
             if (_root != null &&
-                (_root.Depth > BALANCEFACTOR && !(_root.Depth - BALANCEFACTOR <= MAXFIB && Count >= FIBONACCI[_root.Depth - BALANCEFACTOR])))
+                (_root.Depth > BALANCEFACTOR && !(_root.Depth - BALANCEFACTOR <= MAXFIB && LongCount >= FIBONACCI[_root.Depth - BALANCEFACTOR])))
             {
                 Rebalance();
             }
@@ -281,7 +281,7 @@ namespace FooProject.Collection
 
             if (_root == null)
                 return;
-            if (_root.Depth <= 1 || (_root.Depth - 2 <= MAXFIB && Count >= FIBONACCI[_root.Depth - 2]))
+            if (_root.Depth <= 1 || (_root.Depth - 2 <= MAXFIB && LongCount >= FIBONACCI[_root.Depth - 2]))
                 return;      // already sufficiently balanced.
 
             // How many slots does the rebalance array need?
@@ -310,7 +310,7 @@ namespace FooProject.Collection
 
             // And we're done. Check that it worked!
             _root = result;
-            Debug.Assert(_root.Depth <= 1 || (_root.Depth - 2 <= MAXFIB && Count >= FIBONACCI[_root.Depth - 2]));
+            Debug.Assert(_root.Depth <= 1 || (_root.Depth - 2 <= MAXFIB && LongCount >= FIBONACCI[_root.Depth - 2]));
         }
 
         /// <summary>
@@ -643,9 +643,9 @@ namespace FooProject.Collection
             if (count == 0)
                 yield break;
 
-            if (index < 0 || index >= Count)
+            if (index < 0 || index >= LongCount)
                 throw new ArgumentOutOfRangeException("index");
-            if (count < 0 || count > Count - index)
+            if (count < 0 || count > LongCount - index)
                 throw new ArgumentOutOfRangeException("count");
 
             long relativeIndex;
@@ -724,11 +724,11 @@ namespace FooProject.Collection
             if (LongCount + 1 > MAXITEMS)
                 throw new InvalidOperationException("too large");
 
-            if (index <= 0 || index >= Count)
+            if (index <= 0 || index >= LongCount)
             {
                 if (index == 0)
                     AddToFront(item);
-                else if (index == Count)
+                else if (index == LongCount)
                     Add(item);
                 else
                     throw new ArgumentOutOfRangeException("index");
@@ -760,11 +760,11 @@ namespace FooProject.Collection
             if (collection == null)
                 throw new ArgumentNullException("collection");
 
-            if (index <= 0 || index >= Count)
+            if (index <= 0 || index >= LongCount)
             {
                 if (index == 0)
                     AddRangeToFront(collection);
-                else if (index == Count)
+                else if (index == LongCount)
                     AddRange(collection);
                 else
                     throw new ArgumentOutOfRangeException("index");
@@ -822,9 +822,9 @@ namespace FooProject.Collection
         {
             if (count == 0)
                 return;              // nothing to do.
-            if (index < 0 || index >= Count)
+            if (index < 0 || index >= LongCount)
                 throw new ArgumentOutOfRangeException("index");
-            if (count < 0 || count > Count - index)
+            if (count < 0 || count > LongCount - index)
                 throw new ArgumentOutOfRangeException("count");
 
             var args = new BigListArgs<T>(CustomBuilder, CustomConverter);
