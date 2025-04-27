@@ -255,7 +255,7 @@ namespace FooProject.Collection
         private void CheckBalance()
         {
             if (_root != null &&
-                (_root.Depth > BALANCEFACTOR && !(_root.Depth - BALANCEFACTOR <= MAXFIB && LongCount >= FIBONACCI[_root.Depth - BALANCEFACTOR])))
+                (_root.Depth > BALANCEFACTOR && !(_root.Depth - BALANCEFACTOR <= MAXFIB && _root.NodeCount >= FIBONACCI[_root.Depth - BALANCEFACTOR])))
             {
                 Rebalance();
             }
@@ -281,12 +281,12 @@ namespace FooProject.Collection
 
             if (_root == null)
                 return;
-            if (_root.Depth <= 1 || (_root.Depth - 2 <= MAXFIB && LongCount >= FIBONACCI[_root.Depth - 2]))
+            if (_root.Depth <= 1 || (_root.Depth - 2 <= MAXFIB && _root.NodeCount >= FIBONACCI[_root.Depth - 2]))
                 return;      // already sufficiently balanced.
 
             // How many slots does the rebalance array need?
             for (slots = 0; slots <= MAXFIB; ++slots)
-                if (_root.Count < FIBONACCI[slots])
+                if (_root.NodeCount < FIBONACCI[slots])
                     break;
             rebalanceArray = new Node<T>[slots];
 
@@ -310,7 +310,7 @@ namespace FooProject.Collection
 
             // And we're done. Check that it worked!
             _root = result;
-            Debug.Assert(_root.Depth <= 1 || (_root.Depth - 2 <= MAXFIB && LongCount >= FIBONACCI[_root.Depth - 2]));
+            Debug.Assert(_root.Depth <= 1 || (_root.Depth - 2 <= MAXFIB && _root.NodeCount >= FIBONACCI[_root.Depth - 2]));
         }
 
         /// <summary>
@@ -344,11 +344,11 @@ namespace FooProject.Collection
         private static void AddBalancedNodeToRebalanceArray(Node<T>[] rebalanceArray, Node<T> balancedNode, BigListArgs<T> args)
         {
             int slot;
-            int count;
+            long count;
             Node<T> accum = null;
             Debug.Assert(balancedNode.IsBalanced());
 
-            count = (int)balancedNode.Count;
+            count = balancedNode.NodeCount;
             slot = 0;
             while (count >= FIBONACCI[slot + 1])
             {
@@ -377,7 +377,7 @@ namespace FooProject.Collection
                     balancedNode = balancedNode.PrependInPlace(n,null, null, args);
                 }
 
-                if (balancedNode.Count < FIBONACCI[slot + 1])
+                if (balancedNode.NodeCount < FIBONACCI[slot + 1])
                 {
                     rebalanceArray[slot] = balancedNode;
                     break;

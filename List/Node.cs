@@ -21,6 +21,8 @@ namespace FooProject.Collection
 
         public long Depth {  get; set; }
 
+        public long NodeCount { get; set; }
+
         // TODO
         public long Count { get; set; }
 
@@ -37,12 +39,12 @@ namespace FooProject.Collection
 
         public bool IsBalanced()
         {
-            return (Depth <= BigList<T>.MAXFIB && Count >= BigList<T>.FIBONACCI[Depth]);
+            return (Depth <= BigList<T>.MAXFIB && NodeCount >= BigList<T>.FIBONACCI[Depth]);
         }
 
         public bool IsAlmostBalanced()
         {
-            return (Depth == 0 || (Depth - 1 <= BigList<T>.MAXFIB && Count >= BigList<T>.FIBONACCI[Depth - 1]));
+            return (Depth == 0 || (Depth - 1 <= BigList<T>.MAXFIB && NodeCount >= BigList<T>.FIBONACCI[Depth - 1]));
         }
 
         public abstract Node<T> SetAtInPlace(long index, T item,BigListArgs<T> args);
@@ -73,6 +75,7 @@ namespace FooProject.Collection
         {
             this.Previous = null;
             this.Next = null;
+            this.NodeCount = 1;
         }
 
         [Obsolete]
@@ -378,6 +381,7 @@ if (leafNodeEnumrator != null && nodeBelongLeafNodeEnumrator != null)
             this.Right = node.Right;
             this.Count = node.Count;
             this.Depth = node.Depth;
+            this.NodeCount  = node.Left.NodeCount + node.Right.NodeCount;
         }
 
         public ConcatNode(Node<T> left, Node<T> right) : base(left, right)
@@ -386,6 +390,7 @@ if (leafNodeEnumrator != null && nodeBelongLeafNodeEnumrator != null)
             this.Left = left;
             this.Right = right;
             this.Count = left.Count + right.Count;
+            this.NodeCount = left.NodeCount + right.NodeCount;
             if (left.Depth > right.Depth)
                 this.Depth = (short)(left.Depth + 1);
             else
@@ -402,6 +407,7 @@ if (leafNodeEnumrator != null && nodeBelongLeafNodeEnumrator != null)
             Left = newLeft;
             Right = newRight;
             Count = Left.Count + Right.Count;
+            NodeCount = Left.NodeCount + Right.NodeCount;
             if (Left.Depth > Right.Depth)
                 Depth = (short)(Left.Depth + 1);
             else
