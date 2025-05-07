@@ -12,6 +12,8 @@ namespace FooProject.Collection
     /// <typeparam name="T"></typeparam>
     public class DefaultCustomConverter<T> : ICustomConverter<T>, ICustomBuilder<T>
     {
+        public IPinableContainerStore<FixedList<T>> DataStore { get; set; }
+
         public ILeastFetch<T> LeastFetch { get; private set; }
 
         public T Convert(T item)
@@ -43,7 +45,9 @@ namespace FooProject.Collection
         public LeafNode<T> CreateLeafNode()
         {
             var newLeafNode = new LeafNode<T>();
-            newLeafNode.items = this.CreateList(4, BigList<T>.MAXLEAF);
+            var container = new PinableContainer<FixedList<T>>(this.CreateList(4, BigList<T>.MAXLEAF));
+            newLeafNode.container = container;
+            this.DataStore.Set(container);
             return newLeafNode;
         }
 
@@ -51,12 +55,16 @@ namespace FooProject.Collection
         {
             var list = this.CreateList(4, BigList<T>.MAXLEAF);
             list.Add(item);
-            return new LeafNode<T>(list.Count, list);
+            var container = new PinableContainer<FixedList<T>>(list);
+            this.DataStore.Set(container);
+            return new LeafNode<T>(list.Count, container);
         }
 
         public LeafNode<T> CreateLeafNode(long count, FixedList<T> items)
         {
-            return new LeafNode<T>(count, items);
+            var container = new PinableContainer<FixedList<T>>(items);
+            this.DataStore.Set(container);
+            return new LeafNode<T>(count, container);
         }
 
         public void SetState(Node<T> current, long totalLeftCountInList)

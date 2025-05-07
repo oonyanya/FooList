@@ -13,6 +13,11 @@ namespace FooProject.Collection
     public interface ICustomBuilder<T>
     {
         /// <summary>
+        /// データーストア
+        /// </summary>
+        IPinableContainerStore<FixedList<T>> DataStore { get; set; }
+
+        /// <summary>
         /// リストを作成する
         /// </summary>
         /// <param name="init_capacity">最小の容量</param>

@@ -62,6 +62,7 @@ namespace FooProject.Collection
         {
             _root = null;
             var custom = new DefaultCustomConverter<T>();
+            custom.DataStore = new MemoryPinableContentDataStore<FixedList<T>>();
             CustomConverter = custom;
             CustomBuilder = custom;
         }
@@ -132,7 +133,11 @@ namespace FooProject.Collection
             LeafNode<T> curLeaf = (LeafNode<T>)IndexOfNode(index, out relativeIndex);
             checked
             {
-                return curLeaf.items[(int)relativeIndex];
+                using (var pinnedContent = CustomBuilder.DataStore.Get(curLeaf.container))
+                {
+                    var items = pinnedContent.Content;
+                    return items[(int)relativeIndex];
+                }
             }
         }
 
@@ -148,7 +153,11 @@ namespace FooProject.Collection
             LeafNode<T> curLeaf = (LeafNode<T>)IndexOfNode(index, out relativeIndex);
             checked
             {
-                curLeaf.items[(int)relativeIndex] = value;
+                using (var pinnedContent = CustomBuilder.DataStore.Get(curLeaf.container))
+                {
+                    var items = pinnedContent.Content;
+                    items[(int)relativeIndex] = value;
+                }
             }
         }
 
@@ -650,35 +659,44 @@ namespace FooProject.Collection
 
             long relativeIndex;
             var node = (LeafNode<T>)IndexOfNode(index, out relativeIndex);
-            var items = node.items.Skip((int)relativeIndex).ToArray();
-            if (count > items.Length)
+            long nodeItemsLength;
+            using (var pinnedContent = CustomBuilder.DataStore.Get(node.container))
             {
-                foreach (var item in items)
-                    yield return item;
-            }
-            else
-            {
-                foreach (var item in items.Take((int)count))
-                    yield return item;
-                yield break;
+                var nodeItems = pinnedContent.Content;
+                var items = nodeItems.Skip((int)relativeIndex).ToArray();
+                nodeItemsLength = items.Length;
+                if (count > items.Length)
+                {
+                    foreach (var item in items)
+                        yield return item;
+                }
+                else
+                {
+                    foreach (var item in items.Take((int)count))
+                        yield return item;
+                    yield break;
+                }
             }
 
-            long leftCount = count - items.Length;
+            long leftCount = count - nodeItemsLength;
             LeafNode<T> current = node.Next;
             while (leftCount > 0 && current != null)
             {
-                var currentItems = current.items;
-                if (leftCount > currentItems.Count)
+                using (var pinnedContent = CustomBuilder.DataStore.Get(current.container))
                 {
-                    foreach (var item in currentItems)
-                        yield return item;
+                    var currentItems = pinnedContent.Content;
+                    if (leftCount > currentItems.Count)
+                    {
+                        foreach (var item in currentItems)
+                            yield return item;
+                    }
+                    else if (leftCount > 0)
+                    {
+                        foreach (var item in currentItems.Take((int)leftCount))
+                            yield return item;
+                    }
+                    leftCount -= currentItems.Count;
                 }
-                else if (leftCount > 0)
-                {
-                    foreach (var item in currentItems.Take((int)leftCount))
-                        yield return item;
-                }
-                leftCount -= currentItems.Count;
                 current = current.Next;
             }
         }
@@ -707,9 +725,13 @@ namespace FooProject.Collection
             //どうせMAXITEMSまでしか保持できないので、インデクサーで取得しても問題はない
             foreach (var node in leafNodeEnumrator)
             {
-                foreach(T item in node.items)
+                using (var pinnedContent = CustomBuilder.DataStore.Get(node.container))
                 {
-                    yield return item;
+                    var nodeItems = pinnedContent.Content;
+                    foreach (T item in nodeItems)
+                    {
+                        yield return item;
+                    }
                 }
             }
         }

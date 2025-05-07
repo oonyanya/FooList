@@ -11,6 +11,18 @@ namespace UnitTest
     [TestClass]
     public class BigList_LeafEnumrator
     {
+        private FixedList<int> GetItems(LeafNode<int> leafNode)
+        {
+            return leafNode.container.Content;
+        }
+        private LeafNode<int> CreateLeafNode(int item)
+        {
+            var items = new FixedList<int>(4);
+            items.Add(item);
+            var pinabile = new PinableContainer<FixedList<int>>(items);
+            return new LeafNode<int>(1, pinabile);
+        }
+
         [TestMethod]
         public void AddLast()
         {
@@ -18,7 +30,7 @@ namespace UnitTest
 
             var numberList = new List<int>() { 1, 2, 3 };
             foreach (var number in numberList)
-                leafNodeEnumrator.AddLast(new LeafNode<int>(number));
+                leafNodeEnumrator.AddLast(CreateLeafNode(number));
 
             AssertEuqaltyCollection(leafNodeEnumrator, numberList.ToArray());
             AssertEuqaltyCollectionBackword(leafNodeEnumrator, numberList.Reverse<int>().ToArray());
@@ -29,23 +41,23 @@ namespace UnitTest
         {
             var leafNodeEnumrator = new LeafNodeEnumrator<int>();
 
-            var node1 = new LeafNode<int>(1);
+            var node1 = CreateLeafNode(1);
             leafNodeEnumrator.AddNext(leafNodeEnumrator.FirstNode, node1);
 
-            var node2 = new LeafNode<int>(4);
+            var node2 = CreateLeafNode(4);
             leafNodeEnumrator.AddNext(leafNodeEnumrator.LastNode, node2);
 
-            var node3 = new LeafNode<int>(2);
+            var node3 = CreateLeafNode(2);
             leafNodeEnumrator.AddNext(leafNodeEnumrator.FirstNode, node3);
 
-            var node4 = new LeafNode<int>(3);
+            var node4 = CreateLeafNode(3);
             leafNodeEnumrator.AddNext(node3, node4);
 
             var expectNumberList = new List<int>() { 1, 2, 3, 4 };
             AssertEuqaltyCollection(leafNodeEnumrator, expectNumberList.ToArray());
             AssertEuqaltyCollectionBackword(leafNodeEnumrator, expectNumberList.Reverse<int>().ToArray());
 
-            Assert.AreEqual(4, leafNodeEnumrator.LastNode.items[0]);
+            Assert.AreEqual(4, GetItems(leafNodeEnumrator.LastNode)[0]);
         }
 
         private LeafNodeEnumrator<int> CreateList(int start,int end)
@@ -53,7 +65,7 @@ namespace UnitTest
             var leafNodeEnumrator = new LeafNodeEnumrator<int>();
             for (int i = start; i <= end; i++)
             {
-                var node = new LeafNode<int>(i);
+                var node = CreateLeafNode(i);
                 leafNodeEnumrator.AddLast(node);
             }
             return leafNodeEnumrator;
@@ -64,7 +76,7 @@ namespace UnitTest
             var node = leafNodeEnumrator.FirstNode;
             for (int i = 0; i < expect.Length; i++)
             {
-                Assert.AreEqual(expect[i], node.items[0]);
+                Assert.AreEqual(expect[i], GetItems(node)[0]);
                 node = (LeafNode<int>)node.Next;
             }
         }
@@ -74,7 +86,7 @@ namespace UnitTest
             var node = leafNodeEnumrator.LastNode;
             for (int i = 0; i < expect.Length; i++)
             {
-                Assert.AreEqual(expect[i], node.items[0]);
+                Assert.AreEqual(expect[i], GetItems(node)[0]);
                 node = (LeafNode<int>)node.Previous;
             }
         }
@@ -88,8 +100,8 @@ namespace UnitTest
             var expectList = new int[] { 0, 1, 2, 3, 4, 5, 6, 7 };
             AssertEuqaltyCollection(leafNodeEnumrator, expectList);
             AssertEuqaltyCollectionBackword(leafNodeEnumrator, expectList.Reverse<int>().ToArray());
-            Assert.AreEqual(0, leafNodeEnumrator.FirstNode.items[0]);
-            Assert.AreEqual(7, leafNodeEnumrator.LastNode.items[0]);
+            Assert.AreEqual(0, GetItems(leafNodeEnumrator.FirstNode)[0]);
+            Assert.AreEqual(7, GetItems(leafNodeEnumrator.LastNode)[0]);
 
             leafNodeEnumrator = CreateList(0, 3);
             otherLeafNodeEnumrator = CreateList(4, 7);
@@ -97,8 +109,8 @@ namespace UnitTest
             expectList = new int[] { 0, 4, 5, 6, 7, 1, 2, 3 };
             AssertEuqaltyCollection(leafNodeEnumrator, expectList);
             AssertEuqaltyCollectionBackword(leafNodeEnumrator, expectList.Reverse<int>().ToArray());
-            Assert.AreEqual(0, leafNodeEnumrator.FirstNode.items[0]);
-            Assert.AreEqual(3, leafNodeEnumrator.LastNode.items[0]);
+            Assert.AreEqual(0, GetItems(leafNodeEnumrator.FirstNode)[0]);
+            Assert.AreEqual(3, GetItems(leafNodeEnumrator.LastNode)[0]);
 
             leafNodeEnumrator = CreateList(0, 3);
             otherLeafNodeEnumrator = CreateList(4, 7);
@@ -106,8 +118,8 @@ namespace UnitTest
             expectList = new int[] { 0, 1, 4, 5, 6, 7, 2, 3 };
             AssertEuqaltyCollection(leafNodeEnumrator, expectList);
             AssertEuqaltyCollectionBackword(leafNodeEnumrator, expectList.Reverse<int>().ToArray());
-            Assert.AreEqual(0, leafNodeEnumrator.FirstNode.items[0]);
-            Assert.AreEqual(3, leafNodeEnumrator.LastNode.items[0]);
+            Assert.AreEqual(0, GetItems(leafNodeEnumrator.FirstNode)[0]);
+            Assert.AreEqual(3, GetItems(leafNodeEnumrator.LastNode)[0]);
         }
 
         [TestMethod]
@@ -115,23 +127,23 @@ namespace UnitTest
         {
             var leafNodeEnumrator = new LeafNodeEnumrator<int>();
 
-            var node1 = new LeafNode<int>(4);
+            var node1 = CreateLeafNode(4);
             leafNodeEnumrator.AddBefore(leafNodeEnumrator.FirstNode, node1);
 
-            var node2 = new LeafNode<int>(1);
+            var node2 = CreateLeafNode(1);
             leafNodeEnumrator.AddBefore(leafNodeEnumrator.LastNode, node2);
 
-            var node3 = new LeafNode<int>(3);
+            var node3 = CreateLeafNode(3);
             leafNodeEnumrator.AddBefore(node1, node3);
 
-            var node4 = new LeafNode<int>(2);
+            var node4 = CreateLeafNode(2);
             leafNodeEnumrator.AddBefore(node3, node4);
 
             var expectNumberList = new List<int>() { 1, 2, 3, 4 };
             AssertEuqaltyCollection(leafNodeEnumrator, expectNumberList.ToArray());
             AssertEuqaltyCollectionBackword(leafNodeEnumrator, expectNumberList.Reverse<int>().ToArray());
 
-            Assert.AreEqual(4, leafNodeEnumrator.LastNode.items[0]);
+            Assert.AreEqual(4, GetItems(leafNodeEnumrator.LastNode)[0]);
         }
 
         [TestMethod]
@@ -143,8 +155,8 @@ namespace UnitTest
             var expectNumberList = new int[] { 0, 1, 2, 4, 5, 6, 7, 3 };
             AssertEuqaltyCollection(leafNodeEnumrator, expectNumberList);
             AssertEuqaltyCollectionBackword(leafNodeEnumrator, expectNumberList.Reverse<int>().ToArray());
-            Assert.AreEqual(0, leafNodeEnumrator.FirstNode.items[0]);
-            Assert.AreEqual(3, leafNodeEnumrator.LastNode.items[0]);
+            Assert.AreEqual(0, GetItems(leafNodeEnumrator.FirstNode)[0]);
+            Assert.AreEqual(3, GetItems(leafNodeEnumrator.LastNode)[0]);
 
             leafNodeEnumrator = CreateList(0, 3);
             otherLeafNodeEnumrator = CreateList(4, 7);
@@ -152,8 +164,8 @@ namespace UnitTest
             expectNumberList = new int[] { 4, 5, 6, 7, 0, 1, 2, 3 };
             AssertEuqaltyCollection(leafNodeEnumrator, expectNumberList);
             AssertEuqaltyCollectionBackword(leafNodeEnumrator, expectNumberList.Reverse<int>().ToArray());
-            Assert.AreEqual(4, leafNodeEnumrator.FirstNode.items[0]);
-            Assert.AreEqual(3, leafNodeEnumrator.LastNode.items[0]);
+            Assert.AreEqual(4, GetItems(leafNodeEnumrator.FirstNode)[0]);
+            Assert.AreEqual(3, GetItems(leafNodeEnumrator.LastNode)[0]);
 
             leafNodeEnumrator = CreateList(0, 3);
             otherLeafNodeEnumrator = CreateList(4, 7);
@@ -161,8 +173,8 @@ namespace UnitTest
             expectNumberList = new int[] { 0, 4, 5, 6, 7, 1, 2, 3 };
             AssertEuqaltyCollection(leafNodeEnumrator, expectNumberList);
             AssertEuqaltyCollectionBackword(leafNodeEnumrator, expectNumberList.Reverse<int>().ToArray());
-            Assert.AreEqual(0, leafNodeEnumrator.FirstNode.items[0]);
-            Assert.AreEqual(3, leafNodeEnumrator.LastNode.items[0]);
+            Assert.AreEqual(0, GetItems(leafNodeEnumrator.FirstNode)[0]);
+            Assert.AreEqual(3, GetItems(leafNodeEnumrator.LastNode)[0]);
 
         }
 
@@ -171,13 +183,13 @@ namespace UnitTest
         {
             var leafNodeEnumrator = new LeafNodeEnumrator<int>();
 
-            var node1 = new LeafNode<int>(1);
+            var node1 = CreateLeafNode(1);
             leafNodeEnumrator.AddLast(node1);
-            var node2 = new LeafNode<int>(2);
+            var node2 = CreateLeafNode(2);
             leafNodeEnumrator.AddLast(node2);
-            var node3 = new LeafNode<int>(3);
+            var node3 = CreateLeafNode(3);
             leafNodeEnumrator.AddLast(node3);
-            var node4 = new LeafNode<int>(4);
+            var node4 = CreateLeafNode(4);
             leafNodeEnumrator.AddLast(node4);
 
             leafNodeEnumrator.Remove(node2);
@@ -199,7 +211,7 @@ namespace UnitTest
             Assert.IsNull(node4.Previous);
 
             var firstNode = leafNodeEnumrator.FirstNode;
-            Assert.AreEqual(3, firstNode.items[0]);
+            Assert.AreEqual(3, GetItems(firstNode)[0]);
             Assert.IsNull(firstNode.Next);
             Assert.IsNull(firstNode.Previous);
         }
@@ -209,16 +221,16 @@ namespace UnitTest
         {
             var leafNodeEnumrator = new LeafNodeEnumrator<int>();
 
-            var node1 = new LeafNode<int>(1);
+            var node1 = CreateLeafNode(1);
             leafNodeEnumrator.AddLast(node1);
-            var node2 = new LeafNode<int>(2);
+            var node2 = CreateLeafNode(2);
             leafNodeEnumrator.AddLast(node2);
-            var node3 = new LeafNode<int>(3);
+            var node3 = CreateLeafNode(3);
             leafNodeEnumrator.AddLast(node3);
-            var node4 = new LeafNode<int>(4);
+            var node4 = CreateLeafNode(4);
             leafNodeEnumrator.AddLast(node4);
 
-            var newNode = new LeafNode<int>(5);
+            var newNode = CreateLeafNode(5);
             leafNodeEnumrator.Replace(node2,newNode);
             Assert.IsNotNull(newNode.Next);
             Assert.IsNotNull(newNode.Previous);
@@ -228,19 +240,19 @@ namespace UnitTest
             AssertEuqaltyCollection(leafNodeEnumrator, expectNumberList);
             AssertEuqaltyCollectionBackword(leafNodeEnumrator, expectNumberList.Reverse<int>().ToArray());
 
-            var newNode2 = new LeafNode<int>(2);
+            var newNode2 = CreateLeafNode(2);
             leafNodeEnumrator.AddNext(newNode,newNode2);
             expectNumberList = new int[] { 1, 5, 2, 3, 4 };
             AssertEuqaltyCollection(leafNodeEnumrator, expectNumberList);
             AssertEuqaltyCollectionBackword(leafNodeEnumrator, expectNumberList.Reverse<int>().ToArray());
 
-            var newNode3 = new LeafNode<int>(-2);
+            var newNode3 = CreateLeafNode(-2);
             leafNodeEnumrator.AddBefore(newNode, newNode3);
             expectNumberList = new int[] { 1, -2, 5, 2, 3, 4 };
             AssertEuqaltyCollection(leafNodeEnumrator, expectNumberList);
             AssertEuqaltyCollectionBackword(leafNodeEnumrator, expectNumberList.Reverse<int>().ToArray());
 
-            newNode = new LeafNode<int>(5);
+            newNode = CreateLeafNode(5);
             leafNodeEnumrator.Replace(node1, newNode);
             Assert.IsNotNull(newNode.Next);
             Assert.IsNull(newNode.Previous);
@@ -250,19 +262,19 @@ namespace UnitTest
             AssertEuqaltyCollection(leafNodeEnumrator, expectNumberList);
             AssertEuqaltyCollectionBackword(leafNodeEnumrator, expectNumberList.Reverse<int>().ToArray());
 
-            newNode2 = new LeafNode<int>(2);
+            newNode2 = CreateLeafNode(2);
             leafNodeEnumrator.AddNext(newNode, newNode2);
             expectNumberList = new int[] { 5, 2, -2, 5, 2, 3, 4 };
             AssertEuqaltyCollection(leafNodeEnumrator, expectNumberList);
             AssertEuqaltyCollectionBackword(leafNodeEnumrator, expectNumberList.Reverse<int>().ToArray());
 
-            newNode3 = new LeafNode<int>(-2);
+            newNode3 = CreateLeafNode(-2);
             leafNodeEnumrator.AddBefore(newNode, newNode3);
             expectNumberList = new int[] {-2, 5, 2 ,-2, 5, 2, 3, 4 };
             AssertEuqaltyCollection(leafNodeEnumrator, expectNumberList);
             AssertEuqaltyCollectionBackword(leafNodeEnumrator, expectNumberList.Reverse<int>().ToArray());
 
-            newNode = new LeafNode<int>(5);
+            newNode = CreateLeafNode(5);
             leafNodeEnumrator.Replace(node4, newNode);
             Assert.IsNotNull(newNode.Previous);
             Assert.IsNull(newNode.Next);
@@ -272,19 +284,19 @@ namespace UnitTest
             AssertEuqaltyCollection(leafNodeEnumrator, expectNumberList);
             AssertEuqaltyCollectionBackword(leafNodeEnumrator, expectNumberList.Reverse<int>().ToArray());
 
-            newNode2 = new LeafNode<int>(2);
+            newNode2 = CreateLeafNode(2);
             leafNodeEnumrator.AddNext(newNode, newNode2);
             expectNumberList = new int[] { -2, 5, 2, -2, 5, 2, 3, 5, 2 };
             AssertEuqaltyCollection(leafNodeEnumrator, expectNumberList);
             AssertEuqaltyCollectionBackword(leafNodeEnumrator, expectNumberList.Reverse<int>().ToArray());
 
-            newNode3 = new LeafNode<int>(-2);
+            newNode3 = CreateLeafNode(-2);
             leafNodeEnumrator.AddBefore(newNode, newNode3);
             expectNumberList = new int[] { -2, 5, 2, -2, 5, 2, 3, -2 ,5, 2 };
             AssertEuqaltyCollection(leafNodeEnumrator, expectNumberList);
             AssertEuqaltyCollectionBackword(leafNodeEnumrator, expectNumberList.Reverse<int>().ToArray());
 
-            newNode = new LeafNode<int>(5);
+            newNode = CreateLeafNode(5);
             leafNodeEnumrator.Replace(node3, newNode);
             Assert.IsNotNull(newNode.Previous);
             Assert.IsNotNull(newNode.Next);
@@ -294,13 +306,13 @@ namespace UnitTest
             AssertEuqaltyCollection(leafNodeEnumrator, expectNumberList);
             AssertEuqaltyCollectionBackword(leafNodeEnumrator, expectNumberList.Reverse<int>().ToArray());
 
-            newNode2 = new LeafNode<int>(2);
+            newNode2 = CreateLeafNode(2);
             leafNodeEnumrator.AddNext(newNode, newNode2);
             expectNumberList = new int[] { -2, 5, 2, -2, 5, 2, 5, 2, -2, 5, 2 };
             AssertEuqaltyCollection(leafNodeEnumrator, expectNumberList);
             AssertEuqaltyCollectionBackword(leafNodeEnumrator, expectNumberList.Reverse<int>().ToArray());
 
-            newNode3 = new LeafNode<int>(-2);
+            newNode3 = CreateLeafNode(-2);
             leafNodeEnumrator.AddBefore(newNode, newNode3);
             expectNumberList = new int[] { -2, 5, 2, -2, 5, 2, -2, 5, 2, -2, 5, 2 };
             AssertEuqaltyCollection(leafNodeEnumrator, expectNumberList);

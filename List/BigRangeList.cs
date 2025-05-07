@@ -41,6 +41,7 @@ namespace FooProject.Collection
         public BigRangeList() :base()
         {
             var custom = new RangeConverter<T>();
+            custom.DataStore = new MemoryPinableContentDataStore<FixedList<T>>();
             this.CustomConverter = custom;
             this.CustomBuilder = custom;
         }
@@ -98,9 +99,13 @@ namespace FooProject.Collection
                 if (relativeIndex >= 0 && relativeIndex < CustomConverter.LeastFetch.Node.Count)
                 {
                     leafNode = (LeafNode<T>)CustomConverter.LeastFetch.Node;
-                    checked
+                    using (var pinnedContent = CustomBuilder.DataStore.Get(leafNode.container))
                     {
-                        return leafNode.items[(int)relativeIndex];
+                        var leafNodeItems = pinnedContent.Content;
+                        checked
+                        {
+                            return leafNodeItems[(int)relativeIndex];
+                        }
                     }
                 }
             }
@@ -120,9 +125,13 @@ namespace FooProject.Collection
                 }
             });
             leafNode = (LeafNode<T>)CustomConverter.LeastFetch.Node;
-            checked
+            using (var pinnedContent = CustomBuilder.DataStore.Get(leafNode.container))
             {
-                return leafNode.items[(int)relativeIndex];
+                var leafNodeItems = pinnedContent.Content;
+                checked
+                {
+                    return leafNodeItems[(int)relativeIndex];
+                }
             }
         }
 
@@ -161,7 +170,11 @@ namespace FooProject.Collection
 
             long relativeIndex, relativeNearIndex;
             var leafNode = (LeafNode<T>)node;
-            relativeIndex = this.IndexOfNearest(leafNode.items, relativeIndexIntoRange, out relativeNearIndex);
+            using (var pinnedContent = CustomBuilder.DataStore.Get(leafNode.container))
+            {
+                var leafNodeItems = pinnedContent.Content;
+                relativeIndex = this.IndexOfNearest(leafNodeItems, relativeIndexIntoRange, out relativeNearIndex);
+            }
 
             if (relativeIndex == -1)
             {
@@ -270,19 +283,18 @@ namespace FooProject.Collection
             TotalRangeCount = 0;
         }
 
-        public RangeLeafNode(T item) : base(item)
-        {
-            TotalRangeCount = item.length;
-        }
-
-        public RangeLeafNode(long count, FixedList<T> items) : base(count, items)
+        public RangeLeafNode(long count, PinableContainer<FixedList<T>> container) : base(count, container)
         {
         }
 
         public override void NotifyUpdate(long startIndex, long count, BigListArgs<T> args)
         {
-            var fixedRangeList = (FixedRangeList<T>)this.items;
-            TotalRangeCount = fixedRangeList.TotalCount;
+            using (var pinnedContent = args.CustomBuilder.DataStore.Get(this.container))
+            {
+                var items = pinnedContent.Content;
+                var fixedRangeList = (FixedRangeList<T>)items;
+                TotalRangeCount = fixedRangeList.TotalCount;
+            }
         }
 
         public long TotalRangeCount { get; private set; }
@@ -303,6 +315,8 @@ namespace FooProject.Collection
 
     internal class RangeConverter<T> : ICustomConverter<T>,ICustomBuilder<T> where T : IRange
     {
+        public IPinableContainerStore<FixedList<T>> DataStore { get; set; }
+
         public ILeastFetch<T> LeastFetch { get { return customLeastFetch; } }
 
         public RangeLeastFetch<T> customLeastFetch { get; set; }
@@ -340,7 +354,9 @@ namespace FooProject.Collection
         public LeafNode<T> CreateLeafNode()
         {
             var newLeafNode = new RangeLeafNode<T>();
-            newLeafNode.items = this.CreateList(4, BigList<T>.MAXLEAF);
+            var container = new PinableContainer<FixedList<T>>(this.CreateList(4, BigList<T>.MAXLEAF));
+            newLeafNode.container = container;
+            this.DataStore.Set(container);
             return newLeafNode;
         }
 
@@ -348,12 +364,16 @@ namespace FooProject.Collection
         {
             var list = this.CreateList(4, BigList<T>.MAXLEAF);
             list.Add(item);
-            return new RangeLeafNode<T>(list.Count, list);
+            var container = new PinableContainer<FixedList<T>>(list);
+            this.DataStore.Set(container);
+            return new RangeLeafNode<T>(list.Count, container);
         }
 
         public LeafNode<T> CreateLeafNode(long count, FixedList<T> items)
         {
-            return new RangeLeafNode<T>(count, items);
+            var container = new PinableContainer<FixedList<T>>(items);
+            this.DataStore.Set(container);
+            return new RangeLeafNode<T>(count, container);
         }
 
         public void SetState(Node<T> current, long totalLeftCountInList)
