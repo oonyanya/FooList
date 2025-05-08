@@ -32,7 +32,7 @@ namespace Slusser.Collections.Generic
 
         private const double TRIM_THRESHOLD = 0.9;
         
-		private const int MIN_CAPACITY = 4096;
+		private const int MIN_CAPACITY = 4;
 		
 		private T[] _buffer;
 		private int _gapStart;
