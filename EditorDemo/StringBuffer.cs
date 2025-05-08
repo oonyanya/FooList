@@ -211,8 +211,7 @@ namespace FooEditEngine
 
         public IEnumerator<char> GetEnumerator()
         {
-            for (int i = 0; i < this.Length; i++)
-                yield return this.buf[i];
+            return buf.GetEnumerator();
         }
 
         #endregion
