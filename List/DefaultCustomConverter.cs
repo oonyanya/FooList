@@ -42,18 +42,18 @@ namespace FooProject.Collection
             return new ConcatNode<T>(left, right);
         }
 
-        public LeafNode<T> CreateLeafNode()
+        public LeafNode<T> CreateLeafNode(int blocksize)
         {
             var newLeafNode = new LeafNode<T>();
-            var container = new PinableContainer<FixedList<T>>(this.CreateList(4, BigList<T>.MAXLEAF));
+            var container = new PinableContainer<FixedList<T>>(this.CreateList(4, blocksize));
             newLeafNode.container = container;
             this.DataStore.Set(container);
             return newLeafNode;
         }
 
-        public LeafNode<T> CreateLeafNode(T item)
+        public LeafNode<T> CreateLeafNode(T item, int blocksize)
         {
-            var list = this.CreateList(4, BigList<T>.MAXLEAF);
+            var list = this.CreateList(4, blocksize);
             list.Add(item);
             var container = new PinableContainer<FixedList<T>>(list);
             this.DataStore.Set(container);

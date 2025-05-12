@@ -64,7 +64,7 @@ namespace FooProject.Collection
         /// <param name="value">設定したいT</param>
         public override void Set(long index, T value)
         {
-            var args = new BigListArgs<T>(CustomBuilder, CustomConverter);
+            var args = new BigListArgs<T>(CustomBuilder, CustomConverter, this.BlockSize);
             Root.SetAtInPlace(index, value, args);
         }
 
@@ -351,18 +351,18 @@ namespace FooProject.Collection
             return new RangeConcatNode<T>(left, right);
         }
 
-        public LeafNode<T> CreateLeafNode()
+        public LeafNode<T> CreateLeafNode(int blocksize)
         {
             var newLeafNode = new RangeLeafNode<T>();
-            var container = new PinableContainer<FixedList<T>>(this.CreateList(4, BigList<T>.MAXLEAF));
+            var container = new PinableContainer<FixedList<T>>(this.CreateList(4, blocksize));
             newLeafNode.container = container;
             this.DataStore.Set(container);
             return newLeafNode;
         }
 
-        public LeafNode<T> CreateLeafNode(T item)
+        public LeafNode<T> CreateLeafNode(T item,int blocksize)
         {
-            var list = this.CreateList(4, BigList<T>.MAXLEAF);
+            var list = this.CreateList(4, blocksize);
             list.Add(item);
             var container = new PinableContainer<FixedList<T>>(list);
             this.DataStore.Set(container);

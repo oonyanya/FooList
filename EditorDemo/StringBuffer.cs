@@ -118,7 +118,7 @@ namespace FooEditEngine
 
         public StringBuffer()
         {
-            BigList<char>.BlockSize = 32768;
+            buf.BlockSize = 32768;
             this.Update = (s, e) => { };
         }
 

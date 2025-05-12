@@ -23,10 +23,14 @@ namespace FooProject.Collection
     {
         public ICustomConverter<T> CustomConverter { get; set; }
         public ICustomBuilder<T> CustomBuilder { get; set; }
-        public BigListArgs(ICustomBuilder<T> builder, ICustomConverter<T> conv) 
+
+        public int BlockSize { get; set; }
+
+        public BigListArgs(ICustomBuilder<T> builder, ICustomConverter<T> conv, int blockSize) 
         {
             CustomConverter = conv;
             CustomBuilder = builder;
+            BlockSize = blockSize;
         }
     }
 
@@ -39,7 +43,7 @@ namespace FooProject.Collection
     /// <typeparam name="T">The item type of the collection.</typeparam>
     public class BigList<T> : ReadOnlyList<T>, IList<T>
     {
-        internal static long MAXITEMS = int.MaxValue - 1;    // maximum number of items in a BigList.
+        internal const long MAXITEMS = int.MaxValue - 1;    // maximum number of items in a BigList.
         // The fibonacci numbers. Used in the rebalancing algorithm. Final MaxValue makes sure we don't go off the end.
         internal static readonly int[] FIBONACCI = {1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597, 2584,
             4181, 6765, 10946, 17711, 28657, 46368, 75025, 121393, 196418, 317811, 514229, 832040,
@@ -65,6 +69,8 @@ namespace FooProject.Collection
             custom.DataStore = new MemoryPinableContentDataStore<FixedList<T>>();
             CustomConverter = custom;
             CustomBuilder = custom;
+            MaxCapacity = MAXITEMS;
+            BlockSize = MAXLEAF;
         }
 
         public BigList(IEnumerable<T> items) : this()
@@ -78,31 +84,17 @@ namespace FooProject.Collection
         /// <remarks>
         /// It represent block size in each leaf. 
         /// </remarks>
-        public static int BlockSize
+        public int BlockSize
         {
-            get
-            {
-                return MAXLEAF;
-            }
-            set
-            {
-                MAXLEAF = value;
-            }
+            get; set;
         }
 
         /// <summary>
         /// get or set max items
         /// </summary>
-        public static long MaxCapacity
+        public long MaxCapacity
         {
-            get
-            {
-                return MAXITEMS;
-            }
-            set
-            {
-                MAXITEMS = value;
-            }
+            get; set;
         }
 
         public ICustomConverter<T> CustomConverter { get; set; }
@@ -304,7 +296,7 @@ namespace FooProject.Collection
 
             // Concatinate all the node in the rebalance array.
             Node<T> result = null;
-            var args = new BigListArgs<T>(CustomBuilder, CustomConverter);
+            var args = new BigListArgs<T>(CustomBuilder, CustomConverter, this.BlockSize);
             for (int slot = 0; slot < slots; ++slot)
             {
                 Node<T> n = rebalanceArray[slot];
@@ -334,7 +326,7 @@ namespace FooProject.Collection
         {
             if (node.IsBalanced())
             {
-                var args = new BigListArgs<T>(CustomBuilder, CustomConverter);
+                var args = new BigListArgs<T>(CustomBuilder, CustomConverter, this.BlockSize);
                 AddBalancedNodeToRebalanceArray(rebalanceArray, node, args);
             }
             else
@@ -446,19 +438,19 @@ namespace FooProject.Collection
 
         public void AddToFront(T item)
         {
-            if (LongCount + 1 > MAXITEMS)
+            if (LongCount + 1 > MaxCapacity)
                 throw new InvalidOperationException("too large");
 
             if (_root == null)
             {
-                var newLeaf = CustomBuilder.CreateLeafNode(item);
+                var newLeaf = CustomBuilder.CreateLeafNode(item, this.BlockSize);
                 _root = newLeaf;
                 leafNodeEnumrator.AddLast(newLeaf);
 
             }
             else
             {
-                var args = new BigListArgs<T>(CustomBuilder, CustomConverter);
+                var args = new BigListArgs<T>(CustomBuilder, CustomConverter, this.BlockSize);
                 Node<T> newRoot = _root.PrependInPlace(item, leafNodeEnumrator, args);
                 if (newRoot != _root)
                 {
@@ -471,18 +463,18 @@ namespace FooProject.Collection
 
         public new void Add(T item)
         {
-            if (LongCount + 1 > MAXITEMS)
+            if (LongCount + 1 > MaxCapacity)
                 throw new InvalidOperationException("too large");
 
             if (_root == null)
             {
-                var newLeaf = CustomBuilder.CreateLeafNode(item);
+                var newLeaf = CustomBuilder.CreateLeafNode(item, this.BlockSize);
                 _root = newLeaf;
                 leafNodeEnumrator.AddLast(newLeaf);
             }
             else
             {
-                var args = new BigListArgs<T>(CustomBuilder, CustomConverter);
+                var args = new BigListArgs<T>(CustomBuilder, CustomConverter, this.BlockSize);
                 Node<T> newRoot = _root.AppendInPlace(item, leafNodeEnumrator, args);
                 if (newRoot != _root)
                 {
@@ -498,14 +490,14 @@ namespace FooProject.Collection
             int i = 0;
             FixedList<T> items = null;
 
-            while (i < MAXLEAF && enumerator.MoveNext())
+            while (i < args.BlockSize && enumerator.MoveNext())
             {
                 if (i == 0)
                 {
-                    if(collection_count < MAXLEAF)
-                        items = args.CustomBuilder.CreateList(collection_count, MAXLEAF);
+                    if(collection_count < args.BlockSize)
+                        items = args.CustomBuilder.CreateList(collection_count, args.BlockSize);
                     else
-                        items = args.CustomBuilder.CreateList(MAXLEAF, MAXLEAF);
+                        items = args.CustomBuilder.CreateList(args.BlockSize, args.BlockSize);
                 }
 
                 if (items != null)
@@ -528,7 +520,7 @@ namespace FooProject.Collection
             }
         }
 
-        private static Node<T> NodeFromEnumerable(IEnumerable<T> collection, LeafNodeEnumrator<T> leafNodeEnumrator,BigListArgs<T> args)
+        private Node<T> NodeFromEnumerable(IEnumerable<T> collection, LeafNodeEnumrator<T> leafNodeEnumrator,BigListArgs<T> args)
         {
             Node<T> node = null;
             LeafNode<T> leaf;
@@ -553,7 +545,7 @@ namespace FooProject.Collection
                 }
                 else
                 {
-                    if (node.Count + leaf.Count > MAXITEMS)
+                    if (node.Count + leaf.Count > MaxCapacity)
                         throw new InvalidOperationException("too large");
 
                     //このメソッドでもリンクドリストに追加されるがこのメソッドで追加すると後の処理が面倒になる
@@ -577,7 +569,7 @@ namespace FooProject.Collection
                 throw new ArgumentNullException("collection");
 
             var tempLeafNodeEnumrator = new LeafNodeEnumrator<T>();
-            var args = new BigListArgs<T>(CustomBuilder, CustomConverter);
+            var args = new BigListArgs<T>(CustomBuilder, CustomConverter, this.BlockSize);
             Node<T> node = NodeFromEnumerable(collection, tempLeafNodeEnumrator, args);
             if (node == null)
                 return;
@@ -589,7 +581,7 @@ namespace FooProject.Collection
             }
             else
             {
-                if (LongCount + node.Count > MAXITEMS)
+                if (LongCount + node.Count > MaxCapacity)
                     throw new InvalidOperationException("too large");
 
                 Node<T> newRoot = _root.AppendInPlace(node, leafNodeEnumrator,tempLeafNodeEnumrator, args);
@@ -615,7 +607,7 @@ namespace FooProject.Collection
                 throw new ArgumentNullException("collection");
 
             var tempLeafNodeEnumrator = new LeafNodeEnumrator<T>();
-            var args = new BigListArgs<T>(CustomBuilder, CustomConverter);
+            var args = new BigListArgs<T>(CustomBuilder, CustomConverter, this.BlockSize);
             Node<T> node = NodeFromEnumerable(collection, tempLeafNodeEnumrator, args);
             if (node == null)
                 return;
@@ -627,7 +619,7 @@ namespace FooProject.Collection
             }
             else
             {
-                if (LongCount + node.Count > MAXITEMS)
+                if (LongCount + node.Count > MaxCapacity)
                     throw new InvalidOperationException("too large");
 
                 Node<T> newRoot = _root.PrependInPlace(node, leafNodeEnumrator, tempLeafNodeEnumrator, args);
@@ -719,7 +711,7 @@ namespace FooProject.Collection
 
         public override IEnumerator<T> GetEnumerator()
         {
-            if (LongCount + 1 > MAXITEMS)
+            if (LongCount + 1 > MaxCapacity)
                 throw new InvalidOperationException("too large");
 
             //どうせMAXITEMSまでしか保持できないので、インデクサーで取得しても問題はない
@@ -743,7 +735,7 @@ namespace FooProject.Collection
         }
         public virtual void Insert(long index, T item)
         {
-            if (LongCount + 1 > MAXITEMS)
+            if (LongCount + 1 > MaxCapacity)
                 throw new InvalidOperationException("too large");
 
             if (index <= 0 || index >= LongCount)
@@ -759,13 +751,13 @@ namespace FooProject.Collection
             {
                 if (_root == null)
                 {
-                    var newLeafNode = CustomBuilder.CreateLeafNode(item);
+                    var newLeafNode = CustomBuilder.CreateLeafNode(item, this.BlockSize);
                     _root = newLeafNode;
                     leafNodeEnumrator.AddLast(newLeafNode);
                 }
                 else
                 {
-                    var args = new BigListArgs<T>(CustomBuilder, CustomConverter);
+                    var args = new BigListArgs<T>(CustomBuilder, CustomConverter, this.BlockSize);
                     Node<T> newRoot = _root.InsertInPlace(index, item, leafNodeEnumrator, args);
                     if (newRoot != _root)
                     {
@@ -794,7 +786,7 @@ namespace FooProject.Collection
             else
             {
                 var tempLeafNodeEnumrator = new LeafNodeEnumrator<T>();
-                var args = new BigListArgs<T>(CustomBuilder, CustomConverter);
+                var args = new BigListArgs<T>(CustomBuilder, CustomConverter, this.BlockSize);
                 Node<T> node = NodeFromEnumerable(collection, tempLeafNodeEnumrator, args);
                 if (node == null)
                     return;
@@ -802,7 +794,7 @@ namespace FooProject.Collection
                     _root = node;
                 else
                 {
-                    if (LongCount + node.Count > MAXITEMS)
+                    if (LongCount + node.Count > MaxCapacity)
                         throw new InvalidOperationException("too large");
 
                     Node<T> newRoot = _root.InsertInPlace(index, node, leafNodeEnumrator, tempLeafNodeEnumrator, args);
@@ -849,7 +841,7 @@ namespace FooProject.Collection
             if (count < 0 || count > LongCount - index)
                 throw new ArgumentOutOfRangeException("count");
 
-            var args = new BigListArgs<T>(CustomBuilder, CustomConverter);
+            var args = new BigListArgs<T>(CustomBuilder, CustomConverter, this.BlockSize);
             Node<T> newRoot = _root.RemoveRangeInPlace(index, index + count - 1, leafNodeEnumrator, args);
             if (newRoot != _root)
             {

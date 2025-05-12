@@ -29,14 +29,15 @@ namespace FooProject.Collection
         /// 空のリーフノードを作成する
         /// </summary>
         /// <returns>リーフノード</returns>
-        LeafNode<T> CreateLeafNode();
+        LeafNode<T> CreateLeafNode(int blocksize);
 
         /// <summary>
         /// リーフノードを作成する
         /// </summary>
         /// <param name="item">追加するアイテム</param>
+        /// <param name="blocksize">ブロックサイズ</param>
         /// <returns>リーフノードを返すが、アイテムは追加済みでなければならない</returns>
-        LeafNode<T> CreateLeafNode(T item);
+        LeafNode<T> CreateLeafNode(T item, int blocksize);
 
         /// <summary>
         /// リーフノードを作成する

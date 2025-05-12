@@ -17,9 +17,10 @@ namespace UnitTest
         public void BlockSizeTest()
         {
             var buf = new FooProject.Collection.BigList<char>();
-            FooProject.Collection.BigList<char>.BlockSize = 100;
+            buf.BlockSize = 100;
             buf.Add('t');
         }
+
         [TestMethod]
         public void GetEnumratorTest()
         {
@@ -1136,7 +1137,7 @@ namespace UnitTest
         {
             const int MAXSIZE = 10000;
             BigList<int> listMaxSize = new BigList<int>();
-            BigList<int>.MaxCapacity = MAXSIZE;
+            listMaxSize.MaxCapacity = MAXSIZE;
             for (int i = 0; i < MAXSIZE; i++)
                 listMaxSize.Add(6);
             Assert.AreEqual(MAXSIZE, listMaxSize.Count);
@@ -1172,6 +1173,7 @@ namespace UnitTest
             }
 
             listMaxSize = new BigList<int>();
+            listMaxSize.MaxCapacity = MAXSIZE;
             for (int i = 0; i < MAXSIZE - 15; i++)
                 listMaxSize.Add(6);
             Assert.AreEqual(MAXSIZE - 15, listMaxSize.Count);

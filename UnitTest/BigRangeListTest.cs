@@ -218,7 +218,7 @@ namespace UnitTest
             }
 
             var list = new BigRangeList<MyRange>();
-            BigRangeList<MyRange>.BlockSize = 8;
+            list.BlockSize = 8;
             list.AddRange(rangeList);
 
             Assert.AreEqual(0,list[0].start);

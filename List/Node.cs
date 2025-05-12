@@ -97,7 +97,7 @@ namespace FooProject.Collection
 
         public override Node<T> AppendInPlace(T item, LeafNodeEnumrator<T> leafNodeEnumrator,BigListArgs<T> args)
         {
-            if (Count < BigList<T>.MAXLEAF)
+            if (Count < args.BlockSize)
             {
                 using (var pinnedContent = args.CustomBuilder.DataStore.Get(this.container))
                 {
@@ -113,7 +113,7 @@ namespace FooProject.Collection
             }
             else
             {
-                var newLeafNode = args.CustomBuilder.CreateLeafNode(item);
+                var newLeafNode = args.CustomBuilder.CreateLeafNode(item, args.BlockSize);
                 newLeafNode.NotifyUpdate(0, 1, args);
                 leafNodeEnumrator.AddNext(this,newLeafNode);
                 return args.CustomBuilder.CreateConcatNode(this, newLeafNode);
@@ -123,7 +123,7 @@ namespace FooProject.Collection
         {
             LeafNode<T> otherLeaf = (other as LeafNode<T>);
             long newCount;
-            if (otherLeaf != null && (newCount = otherLeaf.Count + this.Count) <= BigList<T>.MAXLEAF)
+            if (otherLeaf != null && (newCount = otherLeaf.Count + this.Count) <= args.BlockSize)
             {
                 using(var pinnedContent = args.CustomBuilder.DataStore.Get(this.container))
                 using(var otherLeafPinnedCotent = args.CustomBuilder.DataStore.Get(otherLeaf.container))
@@ -145,7 +145,7 @@ namespace FooProject.Collection
         {
             LeafNode<T> otherLeaf = (other as LeafNode<T>);
             long newCount;
-            if (otherLeaf != null && (newCount = otherLeaf.Count + this.Count) <= BigList<T>.MAXLEAF)
+            if (otherLeaf != null && (newCount = otherLeaf.Count + this.Count) <= args.BlockSize)
             {
                 long itemsCount;
                 using (var pinnedContent = args.CustomBuilder.DataStore.Get(this.container))
@@ -226,7 +226,7 @@ if (leafNodeEnumrator != null && nodeBelongLeafNodeEnumrator != null)
 
         public override Node<T> InsertInPlace(long index, T item, LeafNodeEnumrator<T> leafNodeEnumrator,BigListArgs<T> args)
         {
-            if (Count < BigList<T>.MAXLEAF)
+            if (Count < args.BlockSize)
             {
                 using (var pinnedContent = args.CustomBuilder.DataStore.Get(this.container))
                 {
@@ -241,7 +241,7 @@ if (leafNodeEnumrator != null && nodeBelongLeafNodeEnumrator != null)
             {
                 if (index == Count)
                 {
-                    var newLeafNode = args.CustomBuilder.CreateLeafNode(item);
+                    var newLeafNode = args.CustomBuilder.CreateLeafNode(item,args.BlockSize);
                     newLeafNode.NotifyUpdate(0, 1, args);
                     leafNodeEnumrator.AddNext(this, newLeafNode);
                     // Inserting at count is just an appending operation.
@@ -249,7 +249,7 @@ if (leafNodeEnumrator != null && nodeBelongLeafNodeEnumrator != null)
                 }
                 else if (index == 0)
                 {
-                    var newLeafNode = args.CustomBuilder.CreateLeafNode(item);
+                    var newLeafNode = args.CustomBuilder.CreateLeafNode(item, args.BlockSize);
                     newLeafNode.NotifyUpdate(0, 1, args);
                     leafNodeEnumrator.AddBefore(this, newLeafNode);
                     // Inserting at 0 is just a prepending operation.
@@ -270,7 +270,7 @@ if (leafNodeEnumrator != null && nodeBelongLeafNodeEnumrator != null)
                     {
                         items = pinnedContent.Content;
                     }
-                    FixedList<T> leftItems = args.CustomBuilder.CreateList(leftItemCount, BigList<T>.MAXLEAF);
+                    FixedList<T> leftItems = args.CustomBuilder.CreateList(leftItemCount, args.BlockSize);
                     leftItems.AddRange(items.GetRange(0, splitLength), splitLength);
                     leftItems.Add(item);
                     LeafNode<T> leftNode = args.CustomBuilder.CreateLeafNode(index + 1, leftItems);
@@ -278,7 +278,7 @@ if (leafNodeEnumrator != null && nodeBelongLeafNodeEnumrator != null)
                     leafNodeEnumrator.Replace(this, leftNode);
 
                     int rightItemCount = items.Count - (int)index;
-                    FixedList<T> rightItems = args.CustomBuilder.CreateList(rightItemCount, BigList<T>.MAXLEAF);
+                    FixedList<T> rightItems = args.CustomBuilder.CreateList(rightItemCount, args.BlockSize);
                     rightItems.AddRange(items.GetRange(splitLength, rightItemCount), rightItemCount);
                     LeafNode<T> rightNode = args.CustomBuilder.CreateLeafNode(Count - index, rightItems);
                     rightNode.NotifyUpdate(0, rightItems.Count, args);
@@ -293,7 +293,7 @@ if (leafNodeEnumrator != null && nodeBelongLeafNodeEnumrator != null)
         {
             LeafNode<T> otherLeaf = (node as LeafNode<T>);
             long newCount;
-            if (otherLeaf != null && (newCount = otherLeaf.Count + this.Count) <= BigList<T>.MAXLEAF)
+            if (otherLeaf != null && (newCount = otherLeaf.Count + this.Count) <= args.BlockSize)
             {
                 using (var pinnedContent = args.CustomBuilder.DataStore.Get(this.container))
                 using (var otherLeafPinnedCotent = args.CustomBuilder.DataStore.Get(otherLeaf.container))
@@ -336,7 +336,7 @@ if (leafNodeEnumrator != null && nodeBelongLeafNodeEnumrator != null)
                     items = pinnedContent.Content;
                 }
 
-                FixedList<T> leftItems = args.CustomBuilder.CreateList(leftItemCount, BigList<T>.MAXLEAF);
+                FixedList<T> leftItems = args.CustomBuilder.CreateList(leftItemCount, args.BlockSize);
                 leftItems.AddRange(items.GetRange(0, splitLength), splitLength);
                 var leftLeafNode = args.CustomBuilder.CreateLeafNode(index, leftItems);
                 leftLeafNode.NotifyUpdate(0, leftItems.Count, args);
@@ -348,7 +348,7 @@ if (leafNodeEnumrator != null && nodeBelongLeafNodeEnumrator != null)
                 {
                     rightItemCount = items.Count - (int)index;
                 }
-                FixedList<T> rightItems = args.CustomBuilder.CreateList(rightItemCount, BigList<T>.MAXLEAF);
+                FixedList<T> rightItems = args.CustomBuilder.CreateList(rightItemCount, args.BlockSize);
                 rightItems.AddRange(items.GetRange(splitLength, rightItemCount), rightItemCount);
                 var rightLeafNode = args.CustomBuilder.CreateLeafNode(Count - index, rightItems);
                 rightLeafNode.NotifyUpdate(0, rightItems.Count, args);
@@ -365,7 +365,7 @@ if (leafNodeEnumrator != null && nodeBelongLeafNodeEnumrator != null)
         public override Node<T> PrependInPlace(T item, LeafNodeEnumrator<T> leafNodeEnumrator,BigListArgs<T> args)
         {
             // Add into the current leaf, if possible.
-            if (Count < BigList<T>.MAXLEAF)
+            if (Count < args.BlockSize)
             {
                 using (var pinnedContent = args.CustomBuilder.DataStore.Get(this.container))
                 {
@@ -379,7 +379,7 @@ if (leafNodeEnumrator != null && nodeBelongLeafNodeEnumrator != null)
             }
             else
             {
-                var newLeafNode = args.CustomBuilder.CreateLeafNode(item);
+                var newLeafNode = args.CustomBuilder.CreateLeafNode(item, args.BlockSize);
                 long newLeafNodeItemsCount;
                 using (var pinnedContent = args.CustomBuilder.DataStore.Get(newLeafNode.container))
                 {
@@ -484,7 +484,7 @@ if (leafNodeEnumrator != null && nodeBelongLeafNodeEnumrator != null)
 
         public override Node<T> PrependInPlace(Node<T> node, LeafNodeEnumrator<T> leafNodeEnumrator, LeafNodeEnumrator<T> nodeBelongLeafNodeEnumrator,BigListArgs<T> args)
         {
-            if (Left.Count + node.Count <= BigList<T>.MAXLEAF && Left is LeafNode<T> && node is LeafNode<T>)
+            if (Left.Count + node.Count <= args.BlockSize && Left is LeafNode<T> && node is LeafNode<T>)
                 return NewNodeInPlace(Left.PrependInPlace(node, leafNodeEnumrator, nodeBelongLeafNodeEnumrator, args), Right);
             if (leafNodeEnumrator != null)
             {
@@ -499,7 +499,7 @@ if (leafNodeEnumrator != null && nodeBelongLeafNodeEnumrator != null)
 
         public override Node<T> AppendInPlace(Node<T> node, LeafNodeEnumrator<T> leafNodeEnumrator, LeafNodeEnumrator<T> nodeBelongLeafNodeEnumrator,BigListArgs<T> args)
         {
-            if (Right.Count + node.Count <= BigList<T>.MAXLEAF && Right is LeafNode<T> && node is LeafNode<T>)
+            if (Right.Count + node.Count <= args.BlockSize && Right is LeafNode<T> && node is LeafNode<T>)
                 return NewNodeInPlace(Left, Right.AppendInPlace(node, leafNodeEnumrator, nodeBelongLeafNodeEnumrator, args));
             if (leafNodeEnumrator != null)
             {
@@ -515,7 +515,7 @@ if (leafNodeEnumrator != null && nodeBelongLeafNodeEnumrator != null)
         public override Node<T> AppendInPlace(T item, LeafNodeEnumrator<T> leafNodeEnumrator,BigListArgs<T> args)
         {
             LeafNode<T> rightLeaf;
-            if (Right.Count < BigList<T>.MAXLEAF && (rightLeaf = Right as LeafNode<T>) != null)
+            if (Right.Count < args.BlockSize && (rightLeaf = Right as LeafNode<T>) != null)
             {
                 using (var pinnedContent = args.CustomBuilder.DataStore.Get(rightLeaf.container))
                 {
@@ -529,7 +529,7 @@ if (leafNodeEnumrator != null && nodeBelongLeafNodeEnumrator != null)
             }
             else
             {
-                var newLeafNode = args.CustomBuilder.CreateLeafNode(item);
+                var newLeafNode = args.CustomBuilder.CreateLeafNode(item, args.BlockSize);
                 newLeafNode.NotifyUpdate(0, newLeafNode.Count, args);
                 leafNodeEnumrator.AddNext(BigList<T>.GetMostRightNode(this), newLeafNode);
                 return args.CustomBuilder.CreateConcatNode(this, newLeafNode);
@@ -557,7 +557,7 @@ if (leafNodeEnumrator != null && nodeBelongLeafNodeEnumrator != null)
         public override Node<T> PrependInPlace(T item, LeafNodeEnumrator<T> leafNodeEnumrator,BigListArgs<T> args)
         {
             LeafNode<T> leftLeaf;
-            if (Left.Count < BigList<T>.MAXLEAF && (leftLeaf = Left as LeafNode<T>) != null)
+            if (Left.Count < args.BlockSize && (leftLeaf = Left as LeafNode<T>) != null)
             {
                 using (var pinnedContent = args.CustomBuilder.DataStore.Get(leftLeaf.container))
                 {
@@ -573,7 +573,7 @@ if (leafNodeEnumrator != null && nodeBelongLeafNodeEnumrator != null)
             }
             else
             {
-                var newLeaf = args.CustomBuilder.CreateLeafNode(item);
+                var newLeaf = args.CustomBuilder.CreateLeafNode(item, args.BlockSize);
                 newLeaf.NotifyUpdate(0, 1, args);
                 leafNodeEnumrator.AddBefore(BigList<T>.GetMostLeftNode(this), newLeaf);
                 return args.CustomBuilder.CreateConcatNode(newLeaf, this);
