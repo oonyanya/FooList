@@ -527,7 +527,7 @@ namespace FooProject.Collection
             IEnumerator<T> enumerator = collection.GetEnumerator();
 
             int collection_count;
-#if NET8_0_OR_GREATER
+#if NET6_0_OR_GREATER
             if(collection.TryGetNonEnumeratedCount(out collection_count) == false)
             {
                 collection_count = collection.Count();

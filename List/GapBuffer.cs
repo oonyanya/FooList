@@ -579,7 +579,7 @@ namespace Slusser.Collections.Generic
             int collection_count;
             if (collection_length == -1)
 			{
-#if NET8_0_OR_GREATER
+#if NET6_0_OR_GREATER
                 if (collection.TryGetNonEnumeratedCount(out collection_count) == false)
                 {
                     collection_count = collection.Count();

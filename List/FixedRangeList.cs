@@ -106,7 +106,7 @@ namespace FooProject.Collection
                 newIndexIntoRange = this.collection[index - 1].start + this.collection[index - 1].length;
             }
             int insert_collection_count;
-#if NET8_0_OR_GREATER
+#if NET6_0_OR_GREATER
             if (collection.TryGetNonEnumeratedCount(out insert_collection_count) == false)
             {
                 insert_collection_count = collection.Count();
