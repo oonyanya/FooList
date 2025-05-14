@@ -8,19 +8,19 @@ namespace FooProject.Collection
 {
     public class PinableContainer<T>
     {
-        long index;
+        public long Index { get; private set; }
         public T Content { get; private set; }
 
         public PinableContainer(T content)
         {
             this.Content = content;
-            this.index = -1;
+            this.Index = -1;
         }
 
         public void SetConent(long index, T content)
         {
             this.Content = content;
-            this.index = index;
+            this.Index = index;
         }
 
         public void RemoveContent()
