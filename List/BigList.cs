@@ -16,6 +16,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.VisualBasic;
+using FooProject.Collection.DataStore;
 
 namespace FooProject.Collection
 {
