@@ -67,12 +67,15 @@ namespace FooProject.Collection.DataStore
 
             var data = this.serializer.Serialize(pinableContainer.Content);
 
-            if (pinableContainer.Index == -1)
+            long dataLength = data.Length + 4;
+            long alignedDataLength = dataLength + PAGESIZE - (dataLength % PAGESIZE);
+
+            if (pinableContainer.Index == -1 || alignedDataLength > pinableContainer.Length)
             {
-                pinableContainer.SetConent(emptyIndex, default(T));
+                pinableContainer.SetConent(emptyIndex, default(T), alignedDataLength);
+
                 writer.BaseStream.Position = emptyIndex;
-                long dataLength = data.Length + 4;
-                long alignedDataLength = dataLength + PAGESIZE - (dataLength % PAGESIZE);
+
                 emptyIndex += alignedDataLength;
             }
             else
