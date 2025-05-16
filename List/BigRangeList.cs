@@ -30,7 +30,7 @@ namespace FooProject.Collection
     }
 
     /// <summary>
-    /// 範囲変換テーブル
+    /// 二次元であらわされた位置から一次元であらわされた位置に変換するためのテーブルです。例えば、行と桁であらわされたカーソルをバイト数であらわすカーソルに変換することができます。
     /// </summary>
     /// <typeparam name="T">IRangeを実装したT</typeparam>
     /// <remarks>連続した範囲でないとうまく動きません</remarks>
