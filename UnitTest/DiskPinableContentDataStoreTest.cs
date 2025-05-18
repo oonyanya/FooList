@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using FooProject.Collection;
@@ -39,7 +40,8 @@ namespace UnitTest
             var serializer = new TestSerializer();
             var disk = new DiskPinableContentDataStore<int[]>(serializer);
             var test_data = new int[] { 100, 200,300,400 };
-            foreach(var item in test_data)
+            List<PinableContainer<int[]>> containers = new List<PinableContainer<int[]>>();
+            foreach (var item in test_data)
             {
                 var data = new PinableContainer<int[]>(new int[] { item });
                 disk.Set(data);
@@ -52,10 +54,34 @@ namespace UnitTest
                 pinned = disk.Get(data);
                 Assert.AreEqual(item + 1,pinned.Content[0]);
                 pinned.Dispose();
+
+                containers.Add(data);
             }
+
+            foreach(var data in containers)
+            {
+                var pinned = disk.Get(data);
+                pinned.RemoveContent();
+                pinned.Dispose();
+            }
+
+            containers.Clear();
+
+            foreach (var item in test_data)
+            {
+                var data = new PinableContainer<int[]>(new int[] { item });
+                disk.Set(data);
+
+                var pinned = disk.Get(data);
+                Assert.AreEqual(item, pinned.Content[0]);
+                pinned.Dispose();
+
+                containers.Add(data);
+            }
+
         }
 
-        [TestMethod]
+            [TestMethod]
         public void GetTest()
         {
             var serializer = new TestSerializer();

@@ -27,6 +27,11 @@ namespace FooProject.Collection
             this.DataStore = dataStore;
         }
 
+        public void RemoveContent()
+        {
+            this.container.RemoveContent();
+        }
+
         public void Dispose()
         {
             this.DataStore.Set(this.container);
