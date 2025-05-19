@@ -35,6 +35,8 @@ namespace FooProject.Collection
 
         public int Count { get { return collection.Count; } }
 
+        public int MaxCapacity { get { return collection.MaxCapacity; } set { collection.MaxCapacity = value; } }
+
         public bool IsReadOnly => false;
 
         public virtual void Add(T item)

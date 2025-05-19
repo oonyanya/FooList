@@ -9,6 +9,9 @@
 You should have received a copy of the GNU General Public License along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 //#define TEST_ASYNC
+
+//ディスク上に保存するならコメントアウトする
+//#define DISKBASE_BUFFER
 using System;
 using System.IO;
 using System.Collections.Generic;
@@ -20,6 +23,7 @@ using Nito.AsyncEx;
 using System.Threading;
 using System.Threading.Tasks;
 using Foo=FooProject.Collection;
+using FooProject.Collection.DataStore;
 using FooProject.Collection;
 
 namespace FooEditEngine
@@ -110,14 +114,55 @@ namespace FooEditEngine
         T this[int index] { get; }
     }
 
+    class StringBufferSerializer : ISerializeData<FixedList<char>>
+    {
+        public FixedList<char> DeSerialize(byte[] inputData)
+        {
+            var memStream = new MemoryStream(inputData);
+            var reader = new BinaryReader(memStream);
+            var arrayCount = reader.ReadInt32();
+            var maxcapacity = reader.ReadInt32();
+            var array = new FixedList<char>(arrayCount, maxcapacity);
+            for (int i = 0; i < arrayCount; i++)
+            {
+                array.Add(reader.ReadChar());
+            }
+            return array;
+        }
+
+        public byte[] Serialize(FixedList<char> data)
+        {
+            var output = new byte[data.MaxCapacity * 4 + 4 + 4]; //int32のサイズは4byte
+            var memStream = new MemoryStream(output);
+            var writer = new BinaryWriter(memStream);
+            writer.Write(data.Count);
+            writer.Write(data.MaxCapacity);
+            for (int i = 0; i < data.Count; i++)
+            {
+                writer.Write(data[i]);
+            }
+            writer.Close();
+            memStream.Dispose();
+            return output;
+        }
+    }
+
     sealed class StringBuffer : IEnumerable<char>, IRandomEnumrator<char>
     {
         Foo.BigList<char> buf = new Foo.BigList<char>();
+#if DISKBASE_BUFFER
+        DiskPinableContentDataStore<FixedList<char>> dataStore;
+#endif
 
         internal DocumentUpdateEventHandler Update;
 
         public StringBuffer()
         {
+#if DISKBASE_BUFFER
+            var serializer = new StringBufferSerializer();
+            dataStore = new DiskPinableContentDataStore<FixedList<char>>(serializer);
+            buf.CustomBuilder.DataStore = dataStore;
+#endif
             buf.BlockSize = 32768;
             this.Update = (s, e) => { };
         }
