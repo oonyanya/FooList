@@ -24,7 +24,7 @@ namespace FooProject.Collection.DataStore
 
     public class DiskPinableContentDataStore<T> : IPinableContainerStore<T>, IDisposable
     {
-        const int PAGESIZE = 32768;
+        const int PAGESIZE = 4096;
 
         string tempFilePath;
         long emptyIndex;
