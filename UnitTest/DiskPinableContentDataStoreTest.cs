@@ -16,15 +16,25 @@ namespace UnitTest
         {
             var memStream = new MemoryStream(inputData);
             var reader = new BinaryReader(memStream);
-            return new int[] { reader.ReadInt32() };
+            var arrayCount = reader.ReadInt32();
+            var array = new int[arrayCount];
+            for (int i = 0; i < arrayCount; i++)
+            {
+                array[i] = reader.ReadInt32();
+            }
+            return array;
         }
 
         public byte[] Serialize(int[] data)
         {
-            var output = new byte[4];
+            var output = new byte[data.Length * 4 + 4]; //int32のサイズは4byte
             var memStream = new MemoryStream(output);
             var writer = new BinaryWriter(memStream);
-            writer.Write(data[0]);
+            writer.Write(data.Length);
+            for(int i = 0; i < data.Length; i++)
+            {
+                writer.Write(data[i]);
+            }
             writer.Close();
             memStream.Dispose();
             return output;
@@ -38,50 +48,59 @@ namespace UnitTest
         public void SetTest()
         {
             var serializer = new TestSerializer();
-            var disk = new DiskPinableContentDataStore<int[]>(serializer);
             var test_data = new int[] { 100, 200,300,400 };
-            List<PinableContainer<int[]>> containers = new List<PinableContainer<int[]>>();
-            foreach (var item in test_data)
+
+            //ページサイズが32KBなので、初めはページサイズに収まる奴でテストし、次はページサイズからあふれる奴でテストする
+            //1回目：4096 Byte + ヘッダーサイズ、２回目：32768 Byte + ヘッダーサイズ
+            int[] repeatLengths = new int[] { 1024, 8192 };
+
+            foreach (var repeatLength in repeatLengths)
             {
-                var data = new PinableContainer<int[]>(new int[] { item });
-                disk.Set(data);
-                Assert.AreEqual(null, data.Content);
+                List<PinableContainer<int[]>> containers = new List<PinableContainer<int[]>>();
+                var disk = new DiskPinableContentDataStore<int[]>(serializer);
+                foreach (var item in test_data)
+                {
+                    var data = new PinableContainer<int[]>(Enumerable.Repeat(item, repeatLength).ToArray());
+                    disk.Set(data);
+                    Assert.AreEqual(null, data.Content);
 
-                var pinned = disk.Get(data);
-                pinned.Content[0] = item + 1;
-                pinned.Dispose();
+                    var pinned = disk.Get(data);
+                    pinned.Content[0] = item + 1;
+                    pinned.Dispose();
 
-                pinned = disk.Get(data);
-                Assert.AreEqual(item + 1,pinned.Content[0]);
-                pinned.Dispose();
+                    pinned = disk.Get(data);
+                    Assert.AreEqual(item + 1, pinned.Content[0]);
+                    pinned.Dispose();
 
-                containers.Add(data);
+                    containers.Add(data);
+                }
+
+                foreach (var data in containers)
+                {
+                    var pinned = disk.Get(data);
+                    pinned.RemoveContent();
+                    pinned.Dispose();
+                }
+
+                containers.Clear();
+
+                foreach (var item in test_data)
+                {
+                    var data = new PinableContainer<int[]>(Enumerable.Repeat(item, repeatLength / 2).ToArray());
+                    disk.Set(data);
+
+                    var pinned = disk.Get(data);
+                    Assert.AreEqual(item, pinned.Content[0]);
+                    pinned.Dispose();
+
+                    containers.Add(data);
+                }
+
+                disk.Dispose();
             }
-
-            foreach(var data in containers)
-            {
-                var pinned = disk.Get(data);
-                pinned.RemoveContent();
-                pinned.Dispose();
-            }
-
-            containers.Clear();
-
-            foreach (var item in test_data)
-            {
-                var data = new PinableContainer<int[]>(new int[] { item });
-                disk.Set(data);
-
-                var pinned = disk.Get(data);
-                Assert.AreEqual(item, pinned.Content[0]);
-                pinned.Dispose();
-
-                containers.Add(data);
-            }
-
         }
 
-            [TestMethod]
+        [TestMethod]
         public void GetTest()
         {
             var serializer = new TestSerializer();
@@ -105,5 +124,6 @@ namespace UnitTest
             }
 
         }
+
     }
 }

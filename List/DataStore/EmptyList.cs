@@ -44,17 +44,48 @@ namespace FooProject.Collection.DataStore
             this.emptylist[msb].Push(Info);
         }
 
-        public DiskAllocationInfo GetEmptyList(int dataLength)
+        DiskAllocationInfo FindEmptyList(int msb, int requireDataLength)
         {
-            if (dataLength == -1)
+            if(msb < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(msb));
+            }
+
+            for (int i = msb; i < this.emptylist.Length; i++)
+            {
+                if (this.emptylist[i] != null && this.emptylist[i].Count > 0)
+                {
+                    var popedInfo = this.emptylist[i].Pop();
+                    var newInfo = new DiskAllocationInfo(popedInfo.Index + requireDataLength, popedInfo.AlignedLength - requireDataLength);
+                    this.SetEmptyList(newInfo);
+                    return new DiskAllocationInfo(popedInfo.Index, requireDataLength);
+                }
+            }
+            return null;
+        }
+
+        public DiskAllocationInfo GetEmptyList(int requireDataLength)
+        {
+            if (requireDataLength == -1)
                 return null;
 
-            int msb = Log2(dataLength);
+            int msb = Log2(requireDataLength);
 
             if (this.emptylist[msb] == null || this.emptylist[msb].Count == 0)
-                return null;
+            {
+                return FindEmptyList(msb,requireDataLength);
+            }
 
             return this.emptylist[msb].Pop();
+        }
+
+        public void Clear()
+        {
+            for (int i = 0; i < this.emptylist.Length;i++)
+            {
+                this.emptylist[i]?.Clear();
+                this.emptylist[i] = null;
+            }
         }
     }
 }

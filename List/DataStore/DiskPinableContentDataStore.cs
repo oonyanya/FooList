@@ -21,7 +21,7 @@ namespace FooProject.Collection.DataStore
         }
     }
 
-    public class DiskPinableContentDataStore<T> : IPinableContainerStore<T>
+    public class DiskPinableContentDataStore<T> : IPinableContainerStore<T>, IDisposable
     {
         const int PAGESIZE = 32768;
 
@@ -29,6 +29,7 @@ namespace FooProject.Collection.DataStore
         long emptyIndex;
         ISerializeData<T> serializer;
         EmptyList emptyList = new EmptyList();
+        bool disposedValue = false;
 
 
         public DiskPinableContentDataStore(ISerializeData<T> serializer)
@@ -132,6 +133,45 @@ namespace FooProject.Collection.DataStore
             dataStream.Close();
 
             return;
+        }
+
+        public void Dispose()
+        {
+            //GC前にプログラム的にリソースを破棄するので
+            //管理,非管理リソース両方が破棄されるようにする
+            Dispose(true);
+            GC.SuppressFinalize(this);//破棄処理は完了しているのでGC不要の合図
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposedValue)
+            {
+                return;
+            }
+
+            if (disposing)
+            {
+                //管理リソースの破棄処理
+            }
+
+            //非管理リソースの破棄処理
+            try
+            {
+                File.Delete(this.tempFilePath);
+            }
+            catch
+            {
+                throw;
+            }
+
+            disposedValue = true;
+        }
+
+        ~DiskPinableContentDataStore()
+        {
+            //GC時に実行されるデストラクタでは非管理リソースの削除のみ
+            Dispose(false);
         }
     }
 }
