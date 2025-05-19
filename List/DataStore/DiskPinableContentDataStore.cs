@@ -24,12 +24,11 @@ namespace FooProject.Collection.DataStore
     public class DiskPinableContentDataStore<T> : IPinableContainerStore<T>
     {
         const int PAGESIZE = 32768;
-        const int EMPTYLISTSIZE = 32;   //ひとまず2^32までとする
 
         string tempFilePath;
         long emptyIndex;
         ISerializeData<T> serializer;
-        Stack<DiskAllocationInfo>[] emptylist = new Stack<DiskAllocationInfo>[EMPTYLISTSIZE];
+        EmptyList emptyList = new EmptyList();
 
 
         public DiskPinableContentDataStore(ISerializeData<T> serializer)
@@ -76,52 +75,11 @@ namespace FooProject.Collection.DataStore
             return true;
         }
 
-        public static int Log2(int v)
-        {
-            int r = 0xFFFF - v >> 31 & 0x10;
-            v >>= r;
-            int shift = 0xFF - v >> 31 & 0x8;
-            v >>= shift;
-            r |= shift;
-            shift = 0xF - v >> 31 & 0x4;
-            v >>= shift;
-            r |= shift;
-            shift = 0x3 - v >> 31 & 0x2;
-            v >>= shift;
-            r |= shift;
-            r |= (v >> 1);
-            return r;
-        }
-
-        void SetEmptyList(DiskAllocationInfo Info)
-        {
-            int msb = Log2(Info.AlignedLength);
-
-            if(this.emptylist[msb] == null)
-            {
-                this.emptylist[msb] = new Stack<DiskAllocationInfo>();
-            }
-            this.emptylist[msb].Push(Info);
-        }
-
-        DiskAllocationInfo GetEmptyList(int dataLength)
-        {
-            if(dataLength == -1)
-                return null;
-
-            int msb = Log2(dataLength);
-
-            if (this.emptylist[msb] == null || this.emptylist[msb].Count == 0)
-                return null;
-
-            return this.emptylist[msb].Pop();
-        }
-
         public void Set(PinableContainer<T> pinableContainer)
         {
             if (pinableContainer.Content == null)
             {
-                this.SetEmptyList(pinableContainer.Info);
+                this.emptyList.SetEmptyList(pinableContainer.Info);
                 pinableContainer.ReleaseInfo();
                 return;
             }
@@ -137,13 +95,13 @@ namespace FooProject.Collection.DataStore
 
             if(pinableContainer.Info != null && alignedDataLength > pinableContainer.Info.AlignedLength)
             {
-                this.SetEmptyList(pinableContainer.Info);
+                this.emptyList.SetEmptyList(pinableContainer.Info);
                 pinableContainer.ReleaseInfo();
             }
 
             if (pinableContainer.Info == null)
             {
-                var emptyInfo = GetEmptyList(alignedDataLength);
+                var emptyInfo = this.emptyList.GetEmptyList(alignedDataLength);
                 if (emptyInfo == null)
                 {
                     pinableContainer.SetConent(emptyIndex, default(T), alignedDataLength);
