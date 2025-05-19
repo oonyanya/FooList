@@ -13,6 +13,7 @@ namespace FooProject.Collection.DataStore
     {
         public long Index { get; set; }
         public int AlignedLength { get; set; }
+        public byte[] SerializedData { get; set; }
 
         public DiskAllocationInfo(long index, int length)
         {
@@ -30,12 +31,13 @@ namespace FooProject.Collection.DataStore
         ISerializeData<T> serializer;
         EmptyList emptyList = new EmptyList();
         bool disposedValue = false;
+        CacheList<long, PinableContainer<T>> cacheList = new CacheList<long, PinableContainer<T>>();
 
-
-        public DiskPinableContentDataStore(ISerializeData<T> serializer)
+        public DiskPinableContentDataStore(ISerializeData<T> serializer,int cache_limit = 128)
         {
             tempFilePath = System.IO.Path.GetTempFileName();
             this.serializer = serializer;
+            this.cacheList.Limit = cache_limit;
         }
 
         public PinnedContent<T> Get(PinableContainer<T> pinableContainer)
@@ -55,23 +57,28 @@ namespace FooProject.Collection.DataStore
                 return true;
             }
 
-            var dataStream = File.Open(tempFilePath, FileMode.Open);
+            PinableContainer<T> cached_container;
+            if(this.cacheList.TryGet(pinableContainer.Info.Index, out cached_container))
+            {
+                pinableContainer.SetConent(this.serializer.DeSerialize(cached_container.Info.SerializedData), null);
 
-            var reader = new BinaryReader(dataStream);
+                result = new PinnedContent<T>(pinableContainer, this);
+            }
+            else
+            {
+                using (var dataStream = File.Open(tempFilePath, FileMode.Open))
+                using (var reader = new BinaryReader(dataStream))
+                {
+                    reader.BaseStream.Position = pinableContainer.Info.Index;
 
-            reader.BaseStream.Position = pinableContainer.Info.Index;
+                    int count = reader.ReadInt32();
 
-            int count = reader.ReadInt32();
+                    var data = reader.ReadBytes(count);
 
-            var data = reader.ReadBytes(count);
-
-            pinableContainer.SetConent(this.serializer.DeSerialize(data));
-
-            result = new PinnedContent<T>(pinableContainer, this);
-
-            reader.Close();
-
-            dataStream.Close();
+                    pinableContainer.SetConent(this.serializer.DeSerialize(data), null);
+                    result = new PinnedContent<T>(pinableContainer, this);
+                }
+            }
 
             return true;
         }
@@ -84,10 +91,6 @@ namespace FooProject.Collection.DataStore
                 pinableContainer.ReleaseInfo();
                 return;
             }
-
-            var dataStream = File.Open(tempFilePath, FileMode.Open);
-
-            var writer = new BinaryWriter(dataStream);
 
             var data = this.serializer.Serialize(pinableContainer.Content);
 
@@ -105,32 +108,31 @@ namespace FooProject.Collection.DataStore
                 var emptyInfo = this.emptyList.GetEmptyList(alignedDataLength);
                 if (emptyInfo == null)
                 {
-                    pinableContainer.SetConent(emptyIndex, default(T), alignedDataLength);
-
-                    writer.BaseStream.Position = emptyIndex;
+                    pinableContainer.SetConent(emptyIndex, default(T), data, alignedDataLength);
 
                     emptyIndex += alignedDataLength;
                 }
                 else
                 {
-                    pinableContainer.SetConent(emptyInfo.Index, default(T), alignedDataLength);
-
-                    writer.BaseStream.Position = emptyInfo.Index;
+                    pinableContainer.SetConent(emptyInfo.Index, default(T), data, alignedDataLength);
                 }
             }
             else
             {
-                pinableContainer.SetConent(default(T));
-
-                writer.BaseStream.Position = pinableContainer.Info.Index;
+                pinableContainer.SetConent(default(T), data);
             }
 
-            writer.Write(data.Length);
-            writer.Write(data);
-
-            writer.Close();
-
-            dataStream.Close();
+            PinableContainer<T> outed_item;
+            if (this.cacheList.Set(pinableContainer.Info.Index, pinableContainer, out outed_item))
+            {
+                using (var dataStream = File.Open(tempFilePath, FileMode.Open))
+                using (var writer = new BinaryWriter(dataStream))
+                {
+                    writer.BaseStream.Position = pinableContainer.Info.Index;
+                    writer.Write(data.Length);
+                    writer.Write(data);
+                }
+            }
 
             return;
         }

@@ -19,12 +19,13 @@ namespace FooProject.Collection
             this.Info = null;
         }
 
-        public void SetConent(T content)
+        public void SetConent(T content, byte[] data)
         {
+            this.Info.SerializedData = data;
             this.Content = content;
         }
 
-        public void SetConent(long index, T content,int length)
+        public void SetConent(long index, T content, byte[] data,int length)
         {
             if(this.Info == null)
             {
@@ -35,6 +36,7 @@ namespace FooProject.Collection
                 this.Info.Index = index;
                 this.Info.AlignedLength = length;
             }
+            this.Info.SerializedData = data;
             this.Content = content;
         }
 

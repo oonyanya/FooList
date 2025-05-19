@@ -57,7 +57,7 @@ namespace UnitTest
             foreach (var repeatLength in repeatLengths)
             {
                 List<PinableContainer<int[]>> containers = new List<PinableContainer<int[]>>();
-                var disk = new DiskPinableContentDataStore<int[]>(serializer);
+                var disk = new DiskPinableContentDataStore<int[]>(serializer, 1);
                 foreach (var item in test_data)
                 {
                     var data = new PinableContainer<int[]>(Enumerable.Repeat(item, repeatLength).ToArray());
@@ -104,7 +104,7 @@ namespace UnitTest
         public void GetTest()
         {
             var serializer = new TestSerializer();
-            var disk = new DiskPinableContentDataStore<int[]>(serializer);
+            var disk = new DiskPinableContentDataStore<int[]>(serializer, 1);
             var test_data = new int[] { 100, 200, 300, 400 };
             List<PinableContainer<int[]>> containers = new List<PinableContainer<int[]>>();
             foreach (var item in test_data)
