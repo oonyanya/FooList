@@ -128,9 +128,9 @@ namespace FooProject.Collection.DataStore
                 using (var dataStream = File.Open(tempFilePath, FileMode.Open))
                 using (var writer = new BinaryWriter(dataStream))
                 {
-                    writer.BaseStream.Position = pinableContainer.Info.Index;
-                    writer.Write(data.Length);
-                    writer.Write(data);
+                    writer.BaseStream.Position = outed_item.Info.Index;
+                    writer.Write(outed_item.Info.SerializedData.Length);
+                    writer.Write(outed_item.Info.SerializedData);
                 }
             }
 
