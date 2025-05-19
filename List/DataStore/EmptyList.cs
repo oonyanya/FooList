@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -13,6 +14,9 @@ namespace FooProject.Collection.DataStore
 
         static int Log2(int v)
         {
+#if NET5_0_OR_GREATER
+            return BitOperations.Log2((uint)v);
+#else
             int r = 0xFFFF - v >> 31 & 0x10;
             v >>= r;
             int shift = 0xFF - v >> 31 & 0x8;
@@ -26,6 +30,7 @@ namespace FooProject.Collection.DataStore
             r |= shift;
             r |= (v >> 1);
             return r;
+#endif
         }
 
         public void SetEmptyList(DiskAllocationInfo Info)
