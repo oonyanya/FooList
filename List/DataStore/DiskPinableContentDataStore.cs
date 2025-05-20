@@ -32,8 +32,8 @@ namespace FooProject.Collection.DataStore
     {
         //ファイル内部の割り当ての最小単位
         const int PAGESIZE = 4096;
-        //FileStreamのバッファーサイズ。512KBぐらいがちょうどいいようだ。https://www.cc.u-tokyo.ac.jp/public/VOL8/No5/data_no1_0609.pdf
-        const int BUFFERSIZE = 512 * 1024;
+        //FileStreamのバッファーサイズ。
+        const int BUFFERSIZE = 4096;
 
         string tempFilePath;
         long emptyIndex;
