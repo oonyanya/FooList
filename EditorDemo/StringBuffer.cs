@@ -123,10 +123,7 @@ namespace FooEditEngine
             var arrayCount = reader.ReadInt32();
             var maxcapacity = reader.ReadInt32();
             var array = new FixedList<char>(arrayCount, maxcapacity);
-            for (int i = 0; i < arrayCount; i++)
-            {
-                array.Add(reader.ReadChar());
-            }
+            array.AddRange(reader.ReadChars(arrayCount));
             return array;
         }
 
@@ -137,10 +134,7 @@ namespace FooEditEngine
             var writer = new BinaryWriter(memStream);
             writer.Write(data.Count);
             writer.Write(data.MaxCapacity);
-            for (int i = 0; i < data.Count; i++)
-            {
-                writer.Write(data[i]);
-            }
+            writer.Write(data.ToArray());
             writer.Close();
             memStream.Dispose();
             return output;
