@@ -15,7 +15,13 @@ namespace FooProject.Collection.DataStore
         public int AlignedLength { get; set; }
         public byte[] SerializedData { get; set; }
 
-        public DiskAllocationInfo(long index, int length)
+        public bool IsRemoved { get; set; }
+
+        public DiskAllocationInfo()
+        {
+            IsRemoved = false;
+        }
+        public DiskAllocationInfo(long index, int length) : this()
         {
             Index = index;
             AlignedLength = length;
@@ -63,7 +69,7 @@ namespace FooProject.Collection.DataStore
             PinableContainer<T> cached_container;
             if(this.cacheList.TryGet(pinableContainer.Info.Index, out cached_container))
             {
-                pinableContainer.SetConent(this.serializer.DeSerialize(cached_container.Info.SerializedData), null);
+                pinableContainer.Content = this.serializer.DeSerialize(cached_container.Info.SerializedData);
 
                 result = new PinnedContent<T>(pinableContainer, this);
             }
@@ -78,7 +84,7 @@ namespace FooProject.Collection.DataStore
 
                     var data = reader.ReadBytes(count);
 
-                    pinableContainer.SetConent(this.serializer.DeSerialize(data), null);
+                    pinableContainer.Content = this.serializer.DeSerialize(data);
                     result = new PinnedContent<T>(pinableContainer, this);
                 }
             }
@@ -88,10 +94,10 @@ namespace FooProject.Collection.DataStore
 
         public void Set(PinableContainer<T> pinableContainer)
         {
-            if (pinableContainer.Content == null)
+            if (pinableContainer.Info != null && pinableContainer.Info.IsRemoved)
             {
                 this.emptyList.SetEmptyList(pinableContainer.Info);
-                pinableContainer.ReleaseInfo();
+                pinableContainer.Info = null;
                 return;
             }
 
@@ -103,26 +109,31 @@ namespace FooProject.Collection.DataStore
             if(pinableContainer.Info != null && alignedDataLength > pinableContainer.Info.AlignedLength)
             {
                 this.emptyList.SetEmptyList(pinableContainer.Info);
-                pinableContainer.ReleaseInfo();
+                pinableContainer.Info = null;
             }
 
             if (pinableContainer.Info == null)
             {
                 var emptyInfo = this.emptyList.GetEmptyList(alignedDataLength);
+                pinableContainer.Info = new DiskAllocationInfo();
                 if (emptyInfo == null)
                 {
-                    pinableContainer.SetConent(emptyIndex, default(T), data, alignedDataLength);
+                    pinableContainer.Info.Index = emptyIndex;
+                    pinableContainer.Info.AlignedLength = alignedDataLength;
+                    pinableContainer.Info.SerializedData = data;
 
                     emptyIndex += alignedDataLength;
                 }
                 else
                 {
-                    pinableContainer.SetConent(emptyInfo.Index, default(T), data, alignedDataLength);
+                    pinableContainer.Info.Index = emptyInfo.Index;
+                    pinableContainer.Info.AlignedLength = alignedDataLength;
+                    pinableContainer.Info.SerializedData = data;
                 }
             }
             else
             {
-                pinableContainer.SetConent(default(T), data);
+                pinableContainer.Info.SerializedData = data;
             }
 
             PinableContainer<T> outed_item;
@@ -134,6 +145,8 @@ namespace FooProject.Collection.DataStore
                     writer.BaseStream.Position = outed_item.Info.Index;
                     writer.Write(outed_item.Info.SerializedData.Length);
                     writer.Write(outed_item.Info.SerializedData);
+                    outed_item.Info.SerializedData = null;
+                    outed_item.Content = default(T);
                 }
             }
 

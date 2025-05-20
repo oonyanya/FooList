@@ -48,7 +48,7 @@ namespace UnitTest
         public void SetTest()
         {
             var serializer = new TestSerializer();
-            var test_data = new int[] { 100, 200,300,400 };
+            var test_data = new int[] { 100, 200,300,400,500,600,700,800,900,1000 };
 
             //ページサイズが32KBなので、初めはページサイズに収まる奴でテストし、次はページサイズからあふれる奴でテストする
             //1回目：4096 Byte + ヘッダーサイズ、２回目：32768 Byte + ヘッダーサイズ
@@ -62,7 +62,6 @@ namespace UnitTest
                 {
                     var data = new PinableContainer<int[]>(Enumerable.Repeat(item, repeatLength).ToArray());
                     disk.Set(data);
-                    Assert.AreEqual(null, data.Content);
 
                     var pinned = disk.Get(data);
                     pinned.Content[0] = item + 1;
@@ -105,7 +104,7 @@ namespace UnitTest
         {
             var serializer = new TestSerializer();
             var disk = new DiskPinableContentDataStore<int[]>(serializer, 1);
-            var test_data = new int[] { 100, 200, 300, 400 };
+            var test_data = new int[] { 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000 };
             List<PinableContainer<int[]>> containers = new List<PinableContainer<int[]>>();
             foreach (var item in test_data)
             {

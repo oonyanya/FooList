@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using FooProject.Collection;
+using FooProject.Collection.DataStore;
 
 namespace UnitTest
 {

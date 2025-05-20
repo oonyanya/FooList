@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FooProject.Collection
+namespace FooProject.Collection.DataStore
 {
     public class PinnedContent<T> : IDisposable
     {
@@ -23,18 +23,18 @@ namespace FooProject.Collection
 
         internal PinnedContent(PinableContainer<T> c, IPinableContainerStore<T> dataStore)
         {
-            this.container = c;
-            this.DataStore = dataStore;
+            container = c;
+            DataStore = dataStore;
         }
 
         public void RemoveContent()
         {
-            this.container.RemoveContent();
+            container.RemoveContent();
         }
 
         public void Dispose()
         {
-            this.DataStore.Set(this.container);
+            DataStore.Set(container);
         }
     }
 }
