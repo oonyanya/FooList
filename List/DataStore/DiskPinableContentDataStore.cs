@@ -24,7 +24,10 @@ namespace FooProject.Collection.DataStore
 
     public class DiskPinableContentDataStore<T> : IPinableContainerStore<T>, IDisposable
     {
+        //ファイル内部の割り当ての最小単位
         const int PAGESIZE = 4096;
+        //FileStreamのバッファーサイズ。512KBぐらいがちょうどいいようだ。https://www.cc.u-tokyo.ac.jp/public/VOL8/No5/data_no1_0609.pdf
+        const int BUFFERSIZE = 512 * 1024;
 
         string tempFilePath;
         long emptyIndex;
@@ -66,7 +69,7 @@ namespace FooProject.Collection.DataStore
             }
             else
             {
-                using (var dataStream = File.Open(tempFilePath, FileMode.Open))
+                using (var dataStream = new FileStream(tempFilePath, FileMode.Open, FileAccess.Read, FileShare.None, BUFFERSIZE, FileOptions.None))
                 using (var reader = new BinaryReader(dataStream))
                 {
                     reader.BaseStream.Position = pinableContainer.Info.Index;
@@ -125,7 +128,7 @@ namespace FooProject.Collection.DataStore
             PinableContainer<T> outed_item;
             if (this.cacheList.Set(pinableContainer.Info.Index, pinableContainer, out outed_item))
             {
-                using (var dataStream = File.Open(tempFilePath, FileMode.Open))
+                using (var dataStream = new FileStream(tempFilePath, FileMode.Open,FileAccess.Write,FileShare.None, BUFFERSIZE, FileOptions.None))
                 using (var writer = new BinaryWriter(dataStream))
                 {
                     writer.BaseStream.Position = outed_item.Info.Index;
