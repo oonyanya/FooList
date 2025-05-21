@@ -11,15 +11,12 @@ namespace FooProject.Collection.DataStore
 {
     internal class DiskAllocationInfo
     {
+
         public long Index { get; set; }
         public int AlignedLength { get; set; }
-        public byte[] SerializedData { get; set; }
-
-        public bool IsRemoved { get; set; }
 
         public DiskAllocationInfo()
         {
-            IsRemoved = false;
         }
         public DiskAllocationInfo(long index, int length) : this()
         {
@@ -31,12 +28,11 @@ namespace FooProject.Collection.DataStore
     public class DiskPinableContentDataStore<T> : IPinableContainerStore<T>, IDisposable
     {
         //ファイル内部の割り当ての最小単位
-        const int PAGESIZE = 4096;
+        const int PAGESIZE = 16384;
         //FileStreamのバッファーサイズ。
         const int BUFFERSIZE = 4096;
 
         string tempFilePath;
-        long emptyIndex;
         ISerializeData<T> serializer;
         EmptyList emptyList = new EmptyList();
         bool disposedValue = false;
@@ -60,17 +56,16 @@ namespace FooProject.Collection.DataStore
 
         public bool TryGet(PinableContainer<T> pinableContainer, out PinnedContent<T> result)
         {
-            if (pinableContainer.Info.Index == -1 || pinableContainer.Content?.Equals(default(T)) == false)
+            if (pinableContainer.CacheIndex != PinableContainer<T>.NOTCACHED || pinableContainer.Content?.Equals(default(T)) == false)
             {
                 result = new PinnedContent<T>(pinableContainer, this);
                 return true;
             }
 
-            PinableContainer<T> cached_container;
-            if(this.cacheList.TryGet(pinableContainer.Info.Index, out cached_container))
+            PinableContainer<T> _;
+            //キャッシュに存在してなかったら、読む
+            if(this.cacheList.TryGet(pinableContainer.Info.Index, out _) && pinableContainer.Content != null)
             {
-                pinableContainer.Content = this.serializer.DeSerialize(cached_container.Info.SerializedData);
-
                 result = new PinnedContent<T>(pinableContainer, this);
             }
             else
@@ -85,6 +80,7 @@ namespace FooProject.Collection.DataStore
                     var data = reader.ReadBytes(count);
 
                     pinableContainer.Content = this.serializer.DeSerialize(data);
+                    pinableContainer.CacheIndex = this.emptyList.GetID();
                     result = new PinnedContent<T>(pinableContainer, this);
                 }
             }
@@ -94,62 +90,57 @@ namespace FooProject.Collection.DataStore
 
         public void Set(PinableContainer<T> pinableContainer)
         {
-            if (pinableContainer.Info != null && pinableContainer.Info.IsRemoved)
+            if (pinableContainer.IsRemoved)
             {
-                this.emptyList.SetEmptyList(pinableContainer.Info);
+                if(pinableContainer.Info != null)
+                    this.emptyList.SetEmptyList(pinableContainer.Info);
+                this.emptyList.SetID(pinableContainer.CacheIndex);
                 pinableContainer.Info = null;
+                pinableContainer.Content = default(T);
+                pinableContainer.CacheIndex = PinableContainer<T>.NOTCACHED;
                 return;
             }
 
-            var data = this.serializer.Serialize(pinableContainer.Content);
-
-            int dataLength = data.Length + 4;
-            int alignedDataLength = dataLength + PAGESIZE - (dataLength % PAGESIZE);
-
-            if(pinableContainer.Info != null && alignedDataLength > pinableContainer.Info.AlignedLength)
+            if (pinableContainer.CacheIndex == PinableContainer<T>.NOTCACHED)
             {
-                this.emptyList.SetEmptyList(pinableContainer.Info);
-                pinableContainer.Info = null;
-            }
-
-            if (pinableContainer.Info == null)
-            {
-                var emptyInfo = this.emptyList.GetEmptyList(alignedDataLength);
-                pinableContainer.Info = new DiskAllocationInfo();
-                if (emptyInfo == null)
-                {
-                    pinableContainer.Info.Index = emptyIndex;
-                    pinableContainer.Info.AlignedLength = alignedDataLength;
-                    pinableContainer.Info.SerializedData = data;
-
-                    emptyIndex += alignedDataLength;
-                }
-                else
-                {
-                    pinableContainer.Info.Index = emptyInfo.Index;
-                    pinableContainer.Info.AlignedLength = alignedDataLength;
-                    pinableContainer.Info.SerializedData = data;
-                }
-            }
-            else
-            {
-                pinableContainer.Info.SerializedData = data;
+                pinableContainer.CacheIndex = this.emptyList.GetID();
             }
 
             PinableContainer<T> outed_item;
-            if (this.cacheList.Set(pinableContainer.Info.Index, pinableContainer, out outed_item))
+
+            //キャッシュからあふれたら、保存する
+            if (this.cacheList.Set(pinableContainer.CacheIndex, pinableContainer, out outed_item))
             {
-                using (var dataStream = new FileStream(tempFilePath, FileMode.Open,FileAccess.Write,FileShare.None, BUFFERSIZE, FileOptions.None))
+                if (outed_item.IsRemoved == true)
+                    return;
+
+                var data = this.serializer.Serialize(outed_item.Content);
+
+                int dataLength = data.Length + 4;
+                int alignedDataLength = dataLength + PAGESIZE - (dataLength % PAGESIZE);
+
+                if (outed_item.Info != null && alignedDataLength > outed_item.Info.AlignedLength)
+                {
+                    this.emptyList.SetEmptyList(outed_item.Info);
+                    outed_item.Info = null;
+                }
+
+                if (outed_item.Info == null)
+                {
+                    outed_item.Info = this.emptyList.GetEmptyList(alignedDataLength);
+                }
+
+                using (var dataStream = new FileStream(tempFilePath, FileMode.Open, FileAccess.Write, FileShare.None, BUFFERSIZE, FileOptions.None))
                 using (var writer = new BinaryWriter(dataStream))
                 {
                     writer.BaseStream.Position = outed_item.Info.Index;
-                    writer.Write(outed_item.Info.SerializedData.Length);
-                    writer.Write(outed_item.Info.SerializedData);
-                    outed_item.Info.SerializedData = null;
+                    writer.Write(data.Length);
+                    writer.Write(data);
                     outed_item.Content = default(T);
+                    this.emptyList.SetID(outed_item.CacheIndex);
+                    outed_item.CacheIndex = PinableContainer<T>.NOTCACHED;
                 }
             }
-
             return;
         }
 

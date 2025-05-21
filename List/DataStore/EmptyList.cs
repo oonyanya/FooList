@@ -11,6 +11,9 @@ namespace FooProject.Collection.DataStore
     {
         const int EMPTYLISTSIZE = 32;   //ひとまず2^32までとする
         Stack<DiskAllocationInfo>[] emptylist = new Stack<DiskAllocationInfo>[EMPTYLISTSIZE];
+        Stack<long> emptyIDList = new Stack<long>();
+        long currentID = 0;
+        long emptyIndex = 0;
 
         static int Log2(int v)
         {
@@ -33,9 +36,37 @@ namespace FooProject.Collection.DataStore
 #endif
         }
 
+        public EmptyList(int maxmsb = EMPTYLISTSIZE)
+        {
+            if (maxmsb <= 0)
+                throw new ArgumentOutOfRangeException("maxmsb must be grater 0.");
+            this.emptylist = new Stack<DiskAllocationInfo>[maxmsb];
+        }
+
+        public void SetID(long id)
+        {
+            this.emptyIDList.Push(id);
+        }
+
+        public long GetID()
+        {
+            if(emptyIDList.Count == 0)
+            {
+                return ++currentID;
+            }
+            else
+            {
+                return this.emptyIDList.Pop();
+            }
+        }
+
         public void SetEmptyList(DiskAllocationInfo Info)
         {
             int msb = Log2(Info.AlignedLength);
+            if(msb > this.emptylist.Length)
+            {
+                msb = this.emptylist.Length - 1;
+            }
 
             if (this.emptylist[msb] == null)
             {
@@ -51,17 +82,23 @@ namespace FooProject.Collection.DataStore
                 throw new ArgumentOutOfRangeException(nameof(msb));
             }
 
+            DiskAllocationInfo newInfo;
             for (int i = msb; i < this.emptylist.Length; i++)
             {
                 if (this.emptylist[i] != null && this.emptylist[i].Count > 0)
                 {
                     var popedInfo = this.emptylist[i].Pop();
-                    var newInfo = new DiskAllocationInfo(popedInfo.Index + requireDataLength, popedInfo.AlignedLength - requireDataLength);
+                    newInfo = new DiskAllocationInfo(popedInfo.Index + requireDataLength, popedInfo.AlignedLength - requireDataLength);
                     this.SetEmptyList(newInfo);
+
                     return new DiskAllocationInfo(popedInfo.Index, requireDataLength);
                 }
             }
-            return null;
+
+            newInfo = new DiskAllocationInfo(emptyIndex, requireDataLength);
+            emptyIndex += requireDataLength;
+
+            return newInfo;
         }
 
         public DiskAllocationInfo GetEmptyList(int requireDataLength)
@@ -70,6 +107,10 @@ namespace FooProject.Collection.DataStore
                 return null;
 
             int msb = Log2(requireDataLength);
+            if (msb > this.emptylist.Length)
+            {
+                msb = this.emptylist.Length - 1;
+            }
 
             if (this.emptylist[msb] == null || this.emptylist[msb].Count == 0)
             {
