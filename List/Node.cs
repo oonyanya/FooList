@@ -400,6 +400,10 @@ if (leafNodeEnumrator != null && nodeBelongLeafNodeEnumrator != null)
 
             if (first <= 0 && last >= Count - 1)
             {
+                using (var pinnedContent = args.CustomBuilder.DataStore.Get(this.container))
+                {
+                    pinnedContent.RemoveContent();
+                }
                 leafNodeEnumrator.Remove(this);
                 return null;     // removing entire node.
             }
