@@ -1,4 +1,6 @@
 ﻿// See https://aka.ms/new-console-template for more information
+//ディスク上に保存するならコメントアウトする
+#define DISKBASE_BUFFER
 
 using FooEditEngine;
 using FooProject.Collection;
@@ -8,7 +10,13 @@ using System.Globalization;
 using System.Runtime;
 using EditorDemo;
 
+#if DISKBASE_BUFFER
+const int BENCHMARK_SIZE = 1000;
+var buf = new StringBuffer(true);
+#else
 const int BENCHMARK_SIZE = 1000000;
+var buf = new StringBuffer();
+#endif
 
 GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
 
@@ -16,7 +24,6 @@ Console.WriteLine("benchmark start");
 Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}" + "bytes");
 
 Stopwatch sw = Stopwatch.StartNew();
-var buf = new StringBuffer();
 for(int i = 0; i< BENCHMARK_SIZE; i++)
 {
     var insertStr = "this is a pen.this is a pen.this is a pen.this is a pen.this is a pen.this is a pen.this is a pen.\n";

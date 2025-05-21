@@ -10,8 +10,6 @@ You should have received a copy of the GNU General Public License along with thi
  */
 //#define TEST_ASYNC
 
-//ディスク上に保存するならコメントアウトする
-//#define DISKBASE_BUFFER
 using System;
 using System.IO;
 using System.Collections.Generic;
@@ -144,19 +142,22 @@ namespace FooEditEngine
     sealed class StringBuffer : IEnumerable<char>, IRandomEnumrator<char>
     {
         Foo.BigList<char> buf = new Foo.BigList<char>();
-#if DISKBASE_BUFFER
-        DiskPinableContentDataStore<FixedList<char>> dataStore;
-#endif
+        IPinableContainerStore<FixedList<char>> dataStore;
 
         internal DocumentUpdateEventHandler Update;
 
-        public StringBuffer()
+        public StringBuffer(bool isDiskBase = false)
         {
-#if DISKBASE_BUFFER
-            var serializer = new StringBufferSerializer();
-            dataStore = new DiskPinableContentDataStore<FixedList<char>>(serializer);
+            if (isDiskBase)
+            {
+                var serializer = new StringBufferSerializer();
+                dataStore = new DiskPinableContentDataStore<FixedList<char>>(serializer);
+            }
+            else
+            {
+                dataStore = new MemoryPinableContentDataStore<FixedList<char>>();
+            }
             buf.CustomBuilder.DataStore = dataStore;
-#endif
             buf.BlockSize = 32768;
             this.Update = (s, e) => { };
         }

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace FooProject.Collection.DataStore
 {
-    internal class MemoryPinableContentDataStore<T> : IPinableContainerStore<T>
+    public class MemoryPinableContentDataStore<T> : IPinableContainerStore<T>
     {
         public PinnedContent<T> Get(PinableContainer<T> pinableContainer)
         {
