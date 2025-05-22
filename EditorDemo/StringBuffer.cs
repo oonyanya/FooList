@@ -117,7 +117,7 @@ namespace FooEditEngine
         public FixedList<char> DeSerialize(byte[] inputData)
         {
             var memStream = new MemoryStream(inputData);
-            var reader = new BinaryReader(memStream);
+            var reader = new BinaryReader(memStream, Encoding.Unicode);
             var arrayCount = reader.ReadInt32();
             var maxcapacity = reader.ReadInt32();
             var array = new FixedList<char>(arrayCount, maxcapacity);
@@ -127,9 +127,9 @@ namespace FooEditEngine
 
         public byte[] Serialize(FixedList<char> data)
         {
-            var output = new byte[data.MaxCapacity * 2 + 4 + 4]; //int32のサイズは4byte、charのサイズ2byte
+            var output = new byte[data.Count * 2 + 4 + 4]; //int32のサイズは4byte、charのサイズ2byte
             var memStream = new MemoryStream(output);
-            var writer = new BinaryWriter(memStream);
+            var writer = new BinaryWriter(memStream,Encoding.Unicode);
             writer.Write(data.Count);
             writer.Write(data.MaxCapacity);
             writer.Write(data.ToArray());
