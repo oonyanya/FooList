@@ -127,7 +127,7 @@ namespace FooEditEngine
 
         public byte[] Serialize(FixedList<char> data)
         {
-            var output = new byte[data.MaxCapacity * 4 + 4 + 4]; //int32のサイズは4byte
+            var output = new byte[data.MaxCapacity * 2 + 4 + 4]; //int32のサイズは4byte、charのサイズ2byte
             var memStream = new MemoryStream(output);
             var writer = new BinaryWriter(memStream);
             writer.Write(data.Count);
