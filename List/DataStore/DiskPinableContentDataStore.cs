@@ -1,4 +1,5 @@
-﻿using Slusser.Collections.Generic;
+﻿//#define KEEP_TEMPORARY_FILE
+using Slusser.Collections.Generic;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -167,7 +168,9 @@ namespace FooProject.Collection.DataStore
             //非管理リソースの破棄処理
             try
             {
-                //File.Delete(this.tempFilePath);
+#if KEEP_TEMPORARY_FILE
+                File.Delete(this.tempFilePath);
+#endif
             }
             catch
             {
