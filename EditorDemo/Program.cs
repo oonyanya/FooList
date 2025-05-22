@@ -1,6 +1,6 @@
 ﻿// See https://aka.ms/new-console-template for more information
 //ディスク上に保存するならコメントアウトする
-#define DISKBASE_BUFFER
+//#define DISKBASE_BUFFER
 
 using FooEditEngine;
 using FooProject.Collection;
@@ -10,11 +10,11 @@ using System.Globalization;
 using System.Runtime;
 using EditorDemo;
 
+const int BENCHMARK_SIZE = 1000000;
+
 #if DISKBASE_BUFFER
-const int BENCHMARK_SIZE = 1000;
 var buf = new StringBuffer(true);
 #else
-const int BENCHMARK_SIZE = 1000000;
 var buf = new StringBuffer();
 #endif
 
