@@ -167,7 +167,7 @@ namespace FooProject.Collection.DataStore
             //非管理リソースの破棄処理
             try
             {
-                File.Delete(this.tempFilePath);
+                //File.Delete(this.tempFilePath);
             }
             catch
             {
