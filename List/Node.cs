@@ -135,6 +135,7 @@ namespace FooProject.Collection
                     {
                         items.InsertRange(0, otherLeafItems, (int)otherLeaf.Count);
                     }
+                    otherLeafPinnedCotent.RemoveContent();
                 }
                 NotifyUpdate(0, otherLeaf.Count, args);
                 Count = newCount;
@@ -159,6 +160,7 @@ namespace FooProject.Collection
                     {
                         items.AddRange(otherLeafItems, (int)otherLeaf.Count);
                     }
+                    otherLeafPinnedCotent.RemoveContent();
                 }
                 NotifyUpdate(itemsCount, otherLeaf.Count, args);
                 Count = newCount;
@@ -270,6 +272,7 @@ if (leafNodeEnumrator != null && nodeBelongLeafNodeEnumrator != null)
                     using (var pinnedContent = args.CustomBuilder.DataStore.Get(this.container))
                     {
                         items = pinnedContent.Content;
+                        pinnedContent.RemoveContent();
                     }
                     FixedList<T> leftItems = args.CustomBuilder.CreateList(leftItemCount, args.BlockSize);
                     leftItems.AddRange(items.GetRange(0, splitLength), splitLength);
@@ -305,6 +308,8 @@ if (leafNodeEnumrator != null && nodeBelongLeafNodeEnumrator != null)
                     nodeBelongLeafNodeEnumrator.Remove(otherLeaf);
                     // Combine the two leaf nodes into one.
                     items.InsertRange((int)index, otherLeafItems);
+
+                    otherLeafPinnedCotent.RemoveContent();
                 }
                 NotifyUpdate(index, otherLeaf.Count, args);
                 Count = newCount;
@@ -335,6 +340,7 @@ if (leafNodeEnumrator != null && nodeBelongLeafNodeEnumrator != null)
                 using (var pinnedContent = args.CustomBuilder.DataStore.Get(this.container))
                 {
                     items = pinnedContent.Content;
+                    pinnedContent.RemoveContent();
                 }
 
                 FixedList<T> leftItems = args.CustomBuilder.CreateList(leftItemCount, args.BlockSize);
