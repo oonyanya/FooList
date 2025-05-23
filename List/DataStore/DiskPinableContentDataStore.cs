@@ -39,8 +39,14 @@ namespace FooProject.Collection.DataStore
         bool disposedValue = false;
         CacheList<long, PinableContainer<T>> writebackCacheList = new CacheList<long, PinableContainer<T>>();
 
+        /// <summary>
+        /// コンストラクター
+        /// </summary>
+        /// <param name="serializer">ISerializeDataを継承したクラスのインスタンス</param>
+        /// <param name="cache_limit">キャッシュしておく量。あまり小さくするとGetを連続で呼んだときにエラーを吐くことがあります。</param>
         public DiskPinableContentDataStore(ISerializeData<T> serializer,int cache_limit = 128)
         {
+            //LeafNodeで行う操作の関係で２以上にしないと落ちることがある
             if (cache_limit < 2)
                 throw new ArgumentOutOfRangeException("cache_limit must be grater than 1");
 
