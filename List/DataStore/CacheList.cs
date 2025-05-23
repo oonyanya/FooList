@@ -18,6 +18,15 @@ namespace FooProject.Collection.DataStore
             this.Limit = 128;
         }
 
+        public Action<K,V> CacheOuted { get; set; }
+
+        public void OnCacheOuted(K key, V value)
+        {
+            if(CacheOuted != null)
+                CacheOuted(key, value);
+        }
+
+
         public bool TryGet(K key,out V value)
         {
             if (this.store.ContainsKey(key))
@@ -30,6 +39,12 @@ namespace FooProject.Collection.DataStore
                 value = default(V);
                 return false;
             }
+        }
+
+        public bool Set(K key, V value)
+        {
+            V _;
+            return this.Set(key, value, out _);
         }
 
         public bool Set(K key,V value, out V outed_item)
@@ -51,6 +66,7 @@ namespace FooProject.Collection.DataStore
                     {
                         outed_item = this.store[outed_key];
                         this.store.Remove(outed_key);
+                        this.OnCacheOuted(outed_key, outed_item);
                     }
                     return true;
                 }

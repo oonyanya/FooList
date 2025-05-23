@@ -2,7 +2,7 @@
 //ディスク上に保存するならコメントアウトする
 #define DISKBASE_BUFFER
 //文字列の操作の結果を保存するならコメントアウトする
-#define SAVE_FILE
+//#define SAVE_FILE
 
 using FooEditEngine;
 using FooProject.Collection;
