@@ -1,6 +1,8 @@
 ﻿// See https://aka.ms/new-console-template for more information
 //ディスク上に保存するならコメントアウトする
-//#define DISKBASE_BUFFER
+#define DISKBASE_BUFFER
+//文字列の操作の結果を保存するならコメントアウトする
+#define SAVE_FILE
 
 using FooEditEngine;
 using FooProject.Collection;
@@ -54,8 +56,11 @@ Console.WriteLine(String.Format("replace 3 time:{0} ms", sw.ElapsedMilliseconds)
 Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}" + "bytes");
 
 sw = Stopwatch.StartNew();
-//StreamWriter streamWriter = new StreamWriter("test.txt");
+#if SAVE_FILE
+StreamWriter streamWriter = new StreamWriter("test.txt");
+#else
 StreamWriter streamWriter = new StreamWriter(Stream.Null);
+#endif
 List<char> writeBuffer = new List<char>(4 * 1024 * 1024);
 foreach(var item in buf)
 {
