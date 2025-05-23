@@ -37,7 +37,7 @@ namespace FooProject.Collection.DataStore
         ISerializeData<T> serializer;
         EmptyList emptyList = new EmptyList();
         bool disposedValue = false;
-        CacheList<long, PinableContainer<T>> cacheList = new CacheList<long, PinableContainer<T>>();
+        CacheList<long, PinableContainer<T>> writebackCacheList = new CacheList<long, PinableContainer<T>>();
 
         public DiskPinableContentDataStore(ISerializeData<T> serializer,int cache_limit = 128)
         {
@@ -46,8 +46,8 @@ namespace FooProject.Collection.DataStore
 
             tempFilePath = System.IO.Path.GetTempFileName();
             this.serializer = serializer;
-            this.cacheList.Limit = cache_limit;
-            this.cacheList.CacheOuted = new Action<long, PinableContainer<T>>( (key, outed_item)=>{
+            this.writebackCacheList.Limit = cache_limit;
+            this.writebackCacheList.CacheOuted = new Action<long, PinableContainer<T>>( (key, outed_item)=>{
                 if (outed_item.IsRemoved == true)
                     return;
 
@@ -99,7 +99,7 @@ namespace FooProject.Collection.DataStore
 
             PinableContainer<T> _;
             //キャッシュに存在してなかったら、読む
-            if(this.cacheList.TryGet(pinableContainer.Info.Index, out _) && pinableContainer.Content != null)
+            if(this.writebackCacheList.TryGet(pinableContainer.Info.Index, out _) && pinableContainer.Content != null)
             {
                 result = new PinnedContent<T>(pinableContainer, this);
             }
@@ -140,7 +140,7 @@ namespace FooProject.Collection.DataStore
                 pinableContainer.CacheIndex = this.emptyList.GetID();
             }
 
-            this.cacheList.Set(pinableContainer.CacheIndex, pinableContainer);
+            this.writebackCacheList.Set(pinableContainer.CacheIndex, pinableContainer);
             return;
         }
 
