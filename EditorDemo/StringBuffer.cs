@@ -188,9 +188,9 @@ namespace FooEditEngine
             return temp.ToString();
         }
 
-        public int Length
+        public long Length
         {
-            get { return this.buf.Count; }
+            get { return this.buf.LongCount; }
         }
 
         internal void Replace(Foo.BigList<char> buf)
@@ -305,7 +305,7 @@ namespace FooEditEngine
         public long IndexOf(Foo.BigList<char> buf, long start, long end)
         {
             //QuickSearch法
-            long buflen = buf.Count - 1;
+            long buflen = buf.LongCount - 1;
             long plen = this.patternLength;
             long i = start;
             long search_end = end - plen;
