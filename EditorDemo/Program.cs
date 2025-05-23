@@ -1,6 +1,6 @@
 ﻿// See https://aka.ms/new-console-template for more information
 //ディスク上に保存するならコメントアウトする
-#define DISKBASE_BUFFER
+//#define DISKBASE_BUFFER
 //文字列の操作の結果を保存するならコメントアウトする
 //#define SAVE_FILE
 

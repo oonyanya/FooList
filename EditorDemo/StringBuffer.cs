@@ -65,19 +65,19 @@ namespace FooEditEngine
         /// <summary>
         /// 開始位置
         /// </summary>
-        public int startIndex;
+        public long startIndex;
         /// <summary>
         /// 削除された長さ
         /// </summary>
-        public int removeLength;
+        public long removeLength;
         /// <summary>
         /// 追加された長さ
         /// </summary>
-        public int insertLength;
+        public long insertLength;
         /// <summary>
         /// 更新イベントが発生した行。行が不明な場合や行をまたぐ場合はnullを指定すること。
         /// </summary>
-        public int? row;
+        public long? row;
         /// <summary>
         /// コンストラクター
         /// </summary>
@@ -86,7 +86,7 @@ namespace FooEditEngine
         /// <param name="removeLength">削除された長さ</param>
         /// <param name="insertLength">追加された長さ</param>
         /// <param name="row">開始行。nullを指定することができる</param>
-        public DocumentUpdateEventArgs(UpdateType type, int startIndex = EmptyValue, int removeLength = EmptyValue, int insertLength = EmptyValue, int? row = null)
+        public DocumentUpdateEventArgs(UpdateType type, long startIndex = EmptyValue, long removeLength = EmptyValue, long insertLength = EmptyValue, long? row = null)
         {
             this.type = type;
             this.startIndex = startIndex;
@@ -159,6 +159,7 @@ namespace FooEditEngine
             }
             buf.CustomBuilder.DataStore = dataStore;
             buf.BlockSize = 32768;
+            buf.MaxCapacity = (long)1836311903 * (long)32768;
             this.Update = (s, e) => { };
         }
 
@@ -200,7 +201,7 @@ namespace FooEditEngine
             this.Update(this, new DocumentUpdateEventArgs(UpdateType.Replace, 0, 0, buf.Count));
         }
 
-        internal void Replace(int index, int length, IEnumerable<char> chars, int count)
+        internal void Replace(long index, long length, IEnumerable<char> chars, long count)
         {
             if (length > 0)
                 this.buf.RemoveRange(index, length);
@@ -212,10 +213,10 @@ namespace FooEditEngine
         {
             TextSearch ts = new TextSearch(target, ci);
             char[] pattern_chars = pattern.ToCharArray();
-            int left = 0, right = this.buf.Count;
+            long left = 0, right = this.buf.LongCount;
             while(right != -1)
             {
-                while ((right = ts.IndexOf(this.buf, left, this.buf.Count - 1)) != -1)
+                while ((right = ts.IndexOf(this.buf, left, this.buf.LongCount - 1)) != -1)
                 {
                     this.buf.RemoveRange(right, target.Length);
                     this.buf.InsertRange(right, pattern_chars);
@@ -225,10 +226,10 @@ namespace FooEditEngine
 
         }
 
-        internal int IndexOf(string target, int start, bool ci = false)
+        internal long IndexOf(string target, long start, bool ci = false)
         {
             TextSearch ts = new TextSearch(target, ci);
-            int patternIndex = ts.IndexOf(this.buf, start, this.buf.Count);
+            long patternIndex = ts.IndexOf(this.buf, start, this.buf.LongCount);
             return patternIndex;
         }
 
@@ -270,7 +271,7 @@ namespace FooEditEngine
     {
         char[] pattern;
         int patternLength;
-        Dictionary<char, int> qsTable = new Dictionary<char, int>();
+        Dictionary<char, long> qsTable = new Dictionary<char, long>();
         bool caseInsenstive;
         public TextSearch(string pattern, bool ci = false)
         {
@@ -301,22 +302,22 @@ namespace FooEditEngine
                     this.qsTable[pattern[i]] = len - i;
             }
         }
-        public int IndexOf(Foo.BigList<char> buf, int start, int end)
+        public long IndexOf(Foo.BigList<char> buf, long start, long end)
         {
             //QuickSearch法
-            int buflen = buf.Count - 1;
-            int plen = this.patternLength;
-            int i = start;
-            int search_end = end - plen;
+            long buflen = buf.Count - 1;
+            long plen = this.patternLength;
+            long i = start;
+            long search_end = end - plen;
             //最適化のためわざとコピペした
             if (this.caseInsenstive)
             {
                 while (i <= search_end)
                 {
-                    int j = 0;
+                    long j = 0;
                     while (j < plen)
                     {
-                        if (CharTool.ToUpperFastIf(buf[i + j]) != this.pattern[j])
+                        if (CharTool.ToUpperFastIf(buf.Get(i + j)) != this.pattern[j])
                             break;
                         j++;
                     }
@@ -326,11 +327,11 @@ namespace FooEditEngine
                     }
                     else
                     {
-                        int k = i + plen;
+                        long k = i + plen;
                         if (k <= buflen)	//buffer以降にアクセスする可能性がある
                         {
-                            int moveDelta;
-                            if (this.qsTable.TryGetValue(buf[k], out moveDelta))
+                            long moveDelta;
+                            if (this.qsTable.TryGetValue(buf.Get(k), out moveDelta))
                                 i += moveDelta;
                             else
                                 i += plen;
@@ -350,7 +351,7 @@ namespace FooEditEngine
                     int j = 0;
                     while (j < plen)
                     {
-                        if (buf[i + j] != this.pattern[j])
+                        if (buf.Get(i + j) != this.pattern[j])
                             break;
                         j++;
                     }
@@ -360,11 +361,11 @@ namespace FooEditEngine
                     }
                     else
                     {
-                        int k = i + plen;
+                        long k = i + plen;
                         if (k <= buflen)	//buffer以降にアクセスする可能性がある
                         {
-                            int moveDelta;
-                            if (this.qsTable.TryGetValue(buf[k], out moveDelta))
+                            long moveDelta;
+                            if (this.qsTable.TryGetValue(buf.Get(k), out moveDelta))
                                 i += moveDelta;
                             else
                                 i += plen;
