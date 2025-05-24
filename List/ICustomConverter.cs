@@ -22,7 +22,9 @@ namespace FooProject.Collection
     public enum NodeWalkDirection
     {
         Left,
-        Right
+        Right,
+        GoBack,
+        None
     }
     /// <summary>
     /// 変換用のインターフェイス

@@ -51,7 +51,7 @@ namespace FooProject.Collection
 
         public virtual void Insert(int index, T item)
         {
-            InsertRange(index, new T[1] { item });
+            this.collection.Insert(index, item);
         }
 
         public virtual void InsertRange(int index, IEnumerable<T> collection, int collection_length = -1)

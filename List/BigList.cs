@@ -3,6 +3,7 @@
  *  https://github.com/timdetering/Wintellect.PowerCollections
  *  Fooproject modify
  */
+#define MODIFY_NODE_BY_RECURSIVE
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -325,6 +326,25 @@ namespace FooProject.Collection
         /// of its parents was shared.</param>
         private void AddNodeToRebalanceArray(Node<T>[] rebalanceArray, Node<T> node, bool shared)
         {
+#if MODIFY_NODE_BY_RECURSIVE
+            Stack<Node<T>> stack = new Stack<Node<T>>(MAXFIB);
+            stack.Push(node);
+            while (stack.Count > 0)
+            {
+                var current = stack.Pop();
+                if (current.IsBalanced())
+                {
+                    var args = new BigListArgs<T>(CustomBuilder, CustomConverter, this.BlockSize);
+                    AddBalancedNodeToRebalanceArray(rebalanceArray, current, args);
+                }
+                else
+                {
+                    ConcatNode<T> n = (ConcatNode<T>)current;          // leaf nodes are always balanced.
+                    stack.Push(n.Right);
+                    stack.Push(n.Left);
+                }
+            }
+#else
             if (node.IsBalanced())
             {
                 var args = new BigListArgs<T>(CustomBuilder, CustomConverter, this.BlockSize);
@@ -336,6 +356,7 @@ namespace FooProject.Collection
                 AddNodeToRebalanceArray(rebalanceArray, n.Left, shared);
                 AddNodeToRebalanceArray(rebalanceArray, n.Right, shared);
             }
+#endif
         }
 
         /// <summary>

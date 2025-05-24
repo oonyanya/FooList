@@ -3,9 +3,11 @@
  *  https://github.com/timdetering/Wintellect.PowerCollections
  *  Fooproject modify
  */
+#define MODIFY_NODE_BY_RECURSIVE
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,6 +16,10 @@ using FooProject.Collection.DataStore;
 
 namespace FooProject.Collection
 {
+    public class NodeUtil
+    {
+
+    }
     public abstract class Node<T>
     {
         public Node<T> Left {  get; set; }
@@ -459,6 +465,34 @@ if (leafNodeEnumrator != null && nodeBelongLeafNodeEnumrator != null)
                 this.Depth = (short)(right.Depth + 1);
         }
 
+        sealed class NodeWalkInfo
+        {
+            public const int NOT_SETTED = -1;
+            public Node<T> node { get; private set; }
+            public NodeWalkDirection direction { get; private set; }
+            public long start { get; private set; }
+            public long end { get; private set; }
+            public int state { get; private set; }
+            public long left_count { get; private set; }
+            public NodeWalkInfo(Node<T> node, NodeWalkDirection direction)
+            {
+                this.node = node;
+                this.direction = direction;
+                this.start = NOT_SETTED;
+                this.end = NOT_SETTED;
+            }
+            public NodeWalkInfo(Node<T> node, NodeWalkDirection direction, long start, long end, int state, long left_count = NodeWalkInfo.NOT_SETTED)
+            {
+                this.node = node;
+                this.direction = direction;
+                this.start = start;
+                this.end = end;
+                this.state = state;
+                this.left_count = left_count;
+            }
+        }
+
+
         protected virtual Node<T> NewNodeInPlace(Node<T> newLeft, Node<T> newRight)
         {
             if (newLeft == null)
@@ -479,6 +513,58 @@ if (leafNodeEnumrator != null && nodeBelongLeafNodeEnumrator != null)
 
         public override Node<T> SetAtInPlace(long index, T item,BigListArgs<T> args)
         {
+#if MODIFY_NODE_BY_RECURSIVE
+            Stack<NodeWalkInfo> traklist = new Stack<NodeWalkInfo>();
+            Node<T> current = this;
+            long currentIndex = index;
+
+            while (current != null && current.Left != null && current.Right != null)
+            {
+                long leftCount = current.Left.Count;
+                if (currentIndex < leftCount)
+                {
+                    traklist.Push(new NodeWalkInfo(current, NodeWalkDirection.Left));
+                    current = current.Left;
+                }
+                else
+                {
+                    traklist.Push(new NodeWalkInfo(current, NodeWalkDirection.Right));
+                    current = current.Right;
+                    currentIndex -= leftCount;
+                }
+            }
+
+            System.Diagnostics.Debug.Assert(currentIndex >= 0);
+            Node<T> resultNode = current.SetAtInPlace(currentIndex,item,args);
+
+            NodeWalkInfo poped = null;
+
+            while (traklist.Count > 0)
+            {
+                poped = traklist.Pop();
+                var concatNodeCurrent = (ConcatNode<T>)poped.node;
+                if (poped.direction == NodeWalkDirection.Left)
+                {
+                    concatNodeCurrent.Left = resultNode;
+                    concatNodeCurrent.NewNodeInPlace(resultNode, concatNodeCurrent.Right);
+                    resultNode = concatNodeCurrent;
+                }
+                else
+                {
+                    concatNodeCurrent.Right = resultNode;
+                    concatNodeCurrent.NewNodeInPlace(concatNodeCurrent.Left, resultNode);
+                    resultNode = concatNodeCurrent;
+                }
+            }
+            if (poped != null)
+            {
+                return poped.node;
+            }
+            else
+            {
+                throw new Exception("something wrong");
+            }
+#else
             long leftCount = Left.Count;
 
             if (index < leftCount)
@@ -491,6 +577,7 @@ if (leafNodeEnumrator != null && nodeBelongLeafNodeEnumrator != null)
                 var newRight = Right.SetAtInPlace(index - leftCount, item, args);
                 return NewNodeInPlace(Left, newRight);
             }
+#endif
         }
 
         public override Node<T> PrependInPlace(Node<T> node, LeafNodeEnumrator<T> leafNodeEnumrator, LeafNodeEnumrator<T> nodeBelongLeafNodeEnumrator,BigListArgs<T> args)
@@ -549,20 +636,126 @@ if (leafNodeEnumrator != null && nodeBelongLeafNodeEnumrator != null)
 
         public override Node<T> InsertInPlace(long index, T item, LeafNodeEnumrator<T> leafNodeEnumrator,BigListArgs<T> args)
         {
+#if MODIFY_NODE_BY_RECURSIVE
+            Stack<NodeWalkInfo> traklist = new Stack<NodeWalkInfo>(BigList<T>.MAXFIB);
+            Node<T> current = this;
+            long currentIndex = index;
+
+            while (current != null && current.Left != null && current.Right != null)
+            {
+                long leftCount = current.Left.Count;
+                if (currentIndex <= leftCount)
+                {
+                    traklist.Push(new NodeWalkInfo(current, NodeWalkDirection.Left));
+                    current = current.Left;
+                }
+                else
+                {
+                    traklist.Push(new NodeWalkInfo(current, NodeWalkDirection.Right));
+                    current = current.Right;
+                    currentIndex -= leftCount;
+                }
+            }
+
+            System.Diagnostics.Debug.Assert(currentIndex >= 0);
+            Node<T> resultNode = current.InsertInPlace(currentIndex, item, leafNodeEnumrator, args);
+
+            NodeWalkInfo poped = null;
+
+            while (traklist.Count > 0)
+            {
+                poped = traklist.Pop();
+                var concatNodeCurrent = (ConcatNode<T>)poped.node;
+                if (poped.direction == NodeWalkDirection.Left)
+                {
+                    concatNodeCurrent.Left = resultNode;
+                    concatNodeCurrent.NewNodeInPlace(resultNode, concatNodeCurrent.Right);
+                    resultNode = concatNodeCurrent;
+                }
+                else
+                {
+                    concatNodeCurrent.Right = resultNode;
+                    concatNodeCurrent.NewNodeInPlace(concatNodeCurrent.Left, resultNode);
+                    resultNode = concatNodeCurrent;
+                }
+            }
+            if (poped != null)
+            {
+                return poped.node;
+            }
+            else
+            {
+                throw new Exception("something wrong");
+            }
+#else
             long leftCount = Left.Count;
             if (index <= leftCount)
                 return NewNodeInPlace(Left.InsertInPlace(index, item, leafNodeEnumrator, args), Right);
             else
                 return NewNodeInPlace(Left, Right.InsertInPlace(index - leftCount, item, leafNodeEnumrator,args));
+#endif
         }
 
         public override Node<T> InsertInPlace(long index, Node<T> node, LeafNodeEnumrator<T> leafNodeEnumrator, LeafNodeEnumrator<T> nodeBelongLeafNodeEnumrator,BigListArgs<T> args)
         {
+#if MODIFY_NODE_BY_RECURSIVE
+            Stack<NodeWalkInfo> traklist = new Stack<NodeWalkInfo>(BigList<T>.MAXFIB);
+            Node<T> current = this;
+            long currentIndex = index;
+
+            while (current != null && current.Left != null && current.Right != null)
+            {
+                long leftCount = current.Left.Count;
+                if (currentIndex <= leftCount)
+                {
+                    traklist.Push(new NodeWalkInfo(current, NodeWalkDirection.Left));
+                    current = current.Left;
+                }
+                else
+                {
+                    traklist.Push(new NodeWalkInfo(current, NodeWalkDirection.Right));
+                    current = current.Right;
+                    currentIndex -= leftCount;
+                }
+            }
+
+            System.Diagnostics.Debug.Assert(currentIndex >= 0);
+            Node<T> resultNode = current.InsertInPlace(currentIndex, node, leafNodeEnumrator, nodeBelongLeafNodeEnumrator, args);
+
+            NodeWalkInfo poped = null;
+
+            while (traklist.Count > 0)
+            {
+                poped = traklist.Pop();
+                var concatNodeCurrent = (ConcatNode<T>)poped.node;
+                if (poped.direction == NodeWalkDirection.Left)
+                {
+                    concatNodeCurrent.Left = resultNode;
+                    concatNodeCurrent.NewNodeInPlace(resultNode, concatNodeCurrent.Right);
+                    resultNode = concatNodeCurrent;
+                }
+                else
+                {
+                    concatNodeCurrent.Right = resultNode;
+                    concatNodeCurrent.NewNodeInPlace(concatNodeCurrent.Left, resultNode);
+                    resultNode = concatNodeCurrent;
+                }
+            }
+            if (poped != null)
+            {
+                return poped.node;
+            }
+            else
+            {
+                throw new Exception("something wrong");
+            }
+#else
             long leftCount = Left.Count;
             if (index < leftCount)
                 return NewNodeInPlace(Left.InsertInPlace(index, node, leafNodeEnumrator,nodeBelongLeafNodeEnumrator,args), Right);
             else
                 return NewNodeInPlace(Left, Right.InsertInPlace(index - leftCount, node, leafNodeEnumrator, nodeBelongLeafNodeEnumrator, args));
+#endif
         }
 
         public override Node<T> PrependInPlace(T item, LeafNodeEnumrator<T> leafNodeEnumrator,BigListArgs<T> args)
@@ -593,28 +786,92 @@ if (leafNodeEnumrator != null && nodeBelongLeafNodeEnumrator != null)
 
         public override Node<T> RemoveRangeInPlace(long first, long last, LeafNodeEnumrator<T> leafNodeEnumrator,BigListArgs<T> args)
         {
+#if MODIFY_NODE_BY_RECURSIVE
             Debug.Assert(first < Count);
             Debug.Assert(last >= 0);
 
-            /*
-             * TODO：まとめで削除できるケースがあるが、リンクドリストから削除するのが面倒なので再帰呼び出しで消す
-            if (first <= 0 && last >= Count - 1)
+            Stack<NodeWalkInfo> stack = new Stack<NodeWalkInfo>(BigList<T>.MAXFIB);
+            Stack<Node<T>>  ret_vals = new Stack<Node<T>>(BigList<T>.MAXFIB);
+
+            stack.Push(new NodeWalkInfo(this, NodeWalkDirection.None, first, last, 0));
+
+            while (stack.Count > 0)
             {
-                return null;
+                var current_info = stack.Pop();
+                Node<T> current = current_info.node;
+                if (current.Left == null && current.Right == null)
+                {
+                    var retval = current.RemoveRangeInPlace(current_info.start, current_info.end, leafNodeEnumrator, args);
+                    ret_vals.Push(retval);
+                    continue;
+                }
+
+                int state = current_info.state;
+                long start = current_info.start, end = current_info.end;
+                long leftCount;
+                if (state == 0)
+                {
+                    leftCount = current.Left.Count;
+                    state++;
+                    if (start < leftCount)
+                    {
+                        stack.Push(new NodeWalkInfo(current, NodeWalkDirection.Left, start, end, state, leftCount));
+                        stack.Push(new NodeWalkInfo(current.Left, NodeWalkDirection.Left, start, end, 0));
+                        continue;
+                    }
+                    else
+                    {
+                        ret_vals.Push(current.Left);
+                    }
+                }
+
+                if (state == 1)
+                {
+                    leftCount = current_info.left_count == NodeWalkInfo.NOT_SETTED ? current.Left.Count : current_info.left_count;
+                    state++;
+                    if (end >= leftCount)
+                    {
+                        stack.Push(new NodeWalkInfo(current, NodeWalkDirection.Right, start, end, state, leftCount));
+                        stack.Push(new NodeWalkInfo(current.Right, NodeWalkDirection.Right, start - leftCount, end - leftCount, 0));
+                        continue;
+                    }
+                    else
+                    {
+                        ret_vals.Push(current.Right);
+                    }
+                }
+
+                if (state == 2)
+                {
+                    var current_concat = current as ConcatNode<T>;
+                    System.Diagnostics.Debug.Assert(current_concat != null);
+                    var right = ret_vals.Pop();
+                    var left = ret_vals.Pop();
+                    var ret = current_concat.NewNodeInPlace(left, right);
+                    ret_vals.Push(ret);
+                    state = 0;
+                }
             }
-            */
+            return this;
+#else
+            // TODO：まとめで削除できるケースがあるが、リンクドリストから削除するのが面倒なので再帰呼び出しで消す
+           if (first <= 0 && last >= Count - 1)
+           {
+               return null;
+           }
 
-            long leftCount = Left.Count;
-            Node<T> newLeft = Left, newRight = Right;
+           long leftCount = Left.Count;
+           Node<T> newLeft = Left, newRight = Right;
 
-            // Is part of the left being removed?
-            if (first < leftCount)
-                newLeft = Left.RemoveRangeInPlace(first, last, leafNodeEnumrator, args);
-            // Is part of the right being remove?
-            if (last >= leftCount)
-                newRight = Right.RemoveRangeInPlace(first - leftCount, last - leftCount, leafNodeEnumrator, args);
+           // Is part of the left being removed?
+           if (first < leftCount)
+               newLeft = Left.RemoveRangeInPlace(first, last, leafNodeEnumrator, args);
+           // Is part of the right being remove?
+           if (last >= leftCount)
+               newRight = Right.RemoveRangeInPlace(first - leftCount, last - leftCount, leafNodeEnumrator, args);
 
-            return NewNodeInPlace(newLeft, newRight);
+           return NewNodeInPlace(newLeft, newRight);
+#endif
         }
 
     }
