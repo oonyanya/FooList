@@ -491,17 +491,55 @@ if (leafNodeEnumrator != null && nodeBelongLeafNodeEnumrator != null)
 
         public override Node<T> SetAtInPlace(long index, T item,BigListArgs<T> args)
         {
-            long leftCount = Left.Count;
+            Stack<NodeWalkInfo> traklist = new Stack<NodeWalkInfo>();
+            Node<T> current = this;
+            long currentIndex = index;
 
-            if (index < leftCount)
+            while (current != null && current.Left != null && current.Right != null)
             {
-                var newLeft = Left.SetAtInPlace(index, item, args);
-                return NewNodeInPlace(newLeft, Right);
+                long leftCount = current.Left.Count;
+                if (currentIndex <= leftCount)
+                {
+                    traklist.Push(new NodeWalkInfo(current, NodeWalkDirection.Left));
+                    current = current.Left;
+                }
+                else
+                {
+                    traklist.Push(new NodeWalkInfo(current, NodeWalkDirection.Right));
+                    current = current.Right;
+                    currentIndex -= leftCount;
+                }
+            }
+
+            System.Diagnostics.Debug.Assert(currentIndex >= 0);
+            Node<T> resultNode = current.SetAtInPlace(currentIndex,item,args);
+
+            NodeWalkInfo poped = null;
+
+            while (traklist.Count > 0)
+            {
+                poped = traklist.Pop();
+                var concatNodeCurrent = (ConcatNode<T>)poped.node;
+                if (poped.direction == NodeWalkDirection.Left)
+                {
+                    concatNodeCurrent.Left = resultNode;
+                    concatNodeCurrent.NewNodeInPlace(resultNode, concatNodeCurrent.Right);
+                    resultNode = concatNodeCurrent;
+                }
+                else
+                {
+                    concatNodeCurrent.Right = resultNode;
+                    concatNodeCurrent.NewNodeInPlace(concatNodeCurrent.Left, resultNode);
+                    resultNode = concatNodeCurrent;
+                }
+            }
+            if (poped != null)
+            {
+                return poped.node;
             }
             else
             {
-                var newRight = Right.SetAtInPlace(index - leftCount, item, args);
-                return NewNodeInPlace(Left, newRight);
+                throw new Exception("something wrong");
             }
         }
 
