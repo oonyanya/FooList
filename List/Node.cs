@@ -615,11 +615,56 @@ if (leafNodeEnumrator != null && nodeBelongLeafNodeEnumrator != null)
 
         public override Node<T> InsertInPlace(long index, Node<T> node, LeafNodeEnumrator<T> leafNodeEnumrator, LeafNodeEnumrator<T> nodeBelongLeafNodeEnumrator,BigListArgs<T> args)
         {
-            long leftCount = Left.Count;
-            if (index < leftCount)
-                return NewNodeInPlace(Left.InsertInPlace(index, node, leafNodeEnumrator,nodeBelongLeafNodeEnumrator,args), Right);
+            Stack<NodeWalkInfo> traklist = new Stack<NodeWalkInfo>();
+            Node<T> current = this;
+            long currentIndex = index;
+
+            while (current != null && current.Left != null && current.Right != null)
+            {
+                long leftCount = current.Left.Count;
+                if (currentIndex <= leftCount)
+                {
+                    traklist.Push(new NodeWalkInfo(current, NodeWalkDirection.Left));
+                    current = current.Left;
+                }
+                else
+                {
+                    traklist.Push(new NodeWalkInfo(current, NodeWalkDirection.Right));
+                    current = current.Right;
+                    currentIndex -= leftCount;
+                }
+            }
+
+            System.Diagnostics.Debug.Assert(currentIndex >= 0);
+            Node<T> resultNode = current.InsertInPlace(currentIndex, node , leafNodeEnumrator, nodeBelongLeafNodeEnumrator, args);
+
+            NodeWalkInfo poped = null;
+
+            while (traklist.Count > 0)
+            {
+                poped = traklist.Pop();
+                var concatNodeCurrent = (ConcatNode<T>)poped.node;
+                if (poped.direction == NodeWalkDirection.Left)
+                {
+                    concatNodeCurrent.Left = resultNode;
+                    concatNodeCurrent.NewNodeInPlace(resultNode, concatNodeCurrent.Right);
+                    resultNode = concatNodeCurrent;
+                }
+                else
+                {
+                    concatNodeCurrent.Right = resultNode;
+                    concatNodeCurrent.NewNodeInPlace(concatNodeCurrent.Left, resultNode);
+                    resultNode = concatNodeCurrent;
+                }
+            }
+            if (poped != null)
+            {
+                return poped.node;
+            }
             else
-                return NewNodeInPlace(Left, Right.InsertInPlace(index - leftCount, node, leafNodeEnumrator, nodeBelongLeafNodeEnumrator, args));
+            {
+                throw new Exception("something wrong");
+            }
         }
 
         public override Node<T> PrependInPlace(T item, LeafNodeEnumrator<T> leafNodeEnumrator,BigListArgs<T> args)
