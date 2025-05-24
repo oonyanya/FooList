@@ -459,6 +459,18 @@ if (leafNodeEnumrator != null && nodeBelongLeafNodeEnumrator != null)
                 this.Depth = (short)(right.Depth + 1);
         }
 
+        class NodeWalkInfo
+        {
+            public Node<T> node { get; private set; }
+            public NodeWalkDirection direction { get; private set; }
+            public NodeWalkInfo(Node<T> node, NodeWalkDirection direction)
+            {
+                this.node = node;
+                this.direction = direction;
+            }
+        }
+
+
         protected virtual Node<T> NewNodeInPlace(Node<T> newLeft, Node<T> newRight)
         {
             if (newLeft == null)
@@ -549,11 +561,56 @@ if (leafNodeEnumrator != null && nodeBelongLeafNodeEnumrator != null)
 
         public override Node<T> InsertInPlace(long index, T item, LeafNodeEnumrator<T> leafNodeEnumrator,BigListArgs<T> args)
         {
-            long leftCount = Left.Count;
-            if (index <= leftCount)
-                return NewNodeInPlace(Left.InsertInPlace(index, item, leafNodeEnumrator, args), Right);
+            Stack<NodeWalkInfo> traklist = new Stack<NodeWalkInfo>();
+            Node<T> current = this;
+            long currentIndex = index;
+
+            while (current != null && current.Left != null && current.Right != null)
+            {
+                long leftCount = current.Left.Count;
+                if (currentIndex <= leftCount)
+                {
+                    traklist.Push(new NodeWalkInfo(current, NodeWalkDirection.Left));
+                    current = current.Left;
+                }
+                else
+                {
+                    traklist.Push(new NodeWalkInfo(current, NodeWalkDirection.Right));
+                    current = current.Right;
+                    currentIndex -= leftCount;
+                }
+            }
+
+            System.Diagnostics.Debug.Assert(currentIndex >= 0);
+            Node<T> resultNode = current.InsertInPlace(currentIndex, item, leafNodeEnumrator, args);
+
+            NodeWalkInfo poped = null;
+
+            while (traklist.Count > 0)
+            {
+                poped = traklist.Pop();
+                var concatNodeCurrent = (ConcatNode<T>)poped.node;
+                if (poped.direction == NodeWalkDirection.Left)
+                {
+                    concatNodeCurrent.Left = resultNode;
+                    concatNodeCurrent.NewNodeInPlace(resultNode, concatNodeCurrent.Right);
+                    resultNode = concatNodeCurrent;
+                }
+                else
+                {
+                    concatNodeCurrent.Right = resultNode;
+                    concatNodeCurrent.NewNodeInPlace(concatNodeCurrent.Left, resultNode);
+                    resultNode = concatNodeCurrent;
+                }
+            }
+            if (poped != null)
+            {
+                return poped.node;
+            }
             else
-                return NewNodeInPlace(Left, Right.InsertInPlace(index - leftCount, item, leafNodeEnumrator,args));
+            {
+                throw new Exception("something wrong");
+            }
         }
 
         public override Node<T> InsertInPlace(long index, Node<T> node, LeafNodeEnumrator<T> leafNodeEnumrator, LeafNodeEnumrator<T> nodeBelongLeafNodeEnumrator,BigListArgs<T> args)
