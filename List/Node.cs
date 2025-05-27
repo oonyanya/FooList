@@ -3,7 +3,7 @@
  *  https://github.com/timdetering/Wintellect.PowerCollections
  *  Fooproject modify
  */
-#define MODIFY_NODE_BY_RECURSIVE
+//#define MODIFY_NODE_BY_RECURSIVE
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
