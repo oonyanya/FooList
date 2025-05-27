@@ -48,7 +48,7 @@ namespace UnitTest
         public void SetTest()
         {
             var serializer = new TestSerializer();
-            var test_data = new int[] { 100, 200,300,400,500,600,700,800,900,1000 };
+            var test_data = new int[] { 100, 200,300,400,500,600,700,800,900,1000,1100,1200,1300,1400,1500,1600,1700,1800,1900,2000 };
 
             //ページサイズが32KBなので、初めはページサイズに収まる奴でテストし、次はページサイズからあふれる奴でテストする
             //1回目：4096 Byte + ヘッダーサイズ、２回目：32768 Byte + ヘッダーサイズ
@@ -57,7 +57,7 @@ namespace UnitTest
             foreach (var repeatLength in repeatLengths)
             {
                 List<PinableContainer<int[]>> containers = new List<PinableContainer<int[]>>();
-                var disk = new DiskPinableContentDataStore<int[]>(serializer, 1);
+                var disk = new DiskPinableContentDataStore<int[]>(serializer, 2);
                 foreach (var item in test_data)
                 {
                     var data = new PinableContainer<int[]>(Enumerable.Repeat(item, repeatLength).ToArray());
@@ -103,8 +103,8 @@ namespace UnitTest
         public void GetTest()
         {
             var serializer = new TestSerializer();
-            var disk = new DiskPinableContentDataStore<int[]>(serializer, 1);
-            var test_data = new int[] { 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000 };
+            var disk = new DiskPinableContentDataStore<int[]>(serializer, 2);
+            var test_data = new int[] { 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900, 2000 };
             List<PinableContainer<int[]>> containers = new List<PinableContainer<int[]>>();
             foreach (var item in test_data)
             {
