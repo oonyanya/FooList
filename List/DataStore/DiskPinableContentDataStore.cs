@@ -173,7 +173,7 @@ namespace FooProject.Collection.DataStore
             //非管理リソースの破棄処理
             try
             {
-#if KEEP_TEMPORARY_FILE
+#if !KEEP_TEMPORARY_FILE
                 File.Delete(this.tempFilePath);
 #endif
             }
