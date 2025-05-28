@@ -23,6 +23,7 @@ var buf = new StringBuffer();
 GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
 
 Console.WriteLine("benchmark start");
+Console.WriteLine("size:" + BENCHMARK_SIZE);
 Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}" + "bytes");
 
 Stopwatch sw = Stopwatch.StartNew();
