@@ -38,6 +38,8 @@ namespace FooProject.Collection.DataStore
         EmptyList emptyList = new EmptyList();
         bool disposedValue = false;
         CacheList<long, PinableContainer<T>> writebackCacheList = new CacheList<long, PinableContainer<T>>();
+        BinaryWriter writer;
+        BinaryReader reader;
 
         /// <summary>
         /// コンストラクター
@@ -51,6 +53,9 @@ namespace FooProject.Collection.DataStore
                 throw new ArgumentOutOfRangeException("cache_limit must be grater than 1");
 
             tempFilePath = System.IO.Path.GetTempFileName();
+            var dataStream = new FileStream(tempFilePath, FileMode.Open, FileAccess.ReadWrite, FileShare.None, BUFFERSIZE, FileOptions.None);
+            this.writer = new BinaryWriter(dataStream);
+            this.reader = new BinaryReader(dataStream);
             this.serializer = serializer;
             this.writebackCacheList.Limit = cache_limit;
             this.writebackCacheList.CacheOuted = new Action<long, PinableContainer<T>>( (key, outed_item)=>{
@@ -73,16 +78,12 @@ namespace FooProject.Collection.DataStore
                     outed_item.Info = this.emptyList.GetEmptyList(alignedDataLength);
                 }
 
-                using (var dataStream = new FileStream(tempFilePath, FileMode.Open, FileAccess.Write, FileShare.None, BUFFERSIZE, FileOptions.None))
-                using (var writer = new BinaryWriter(dataStream))
-                {
-                    writer.BaseStream.Position = outed_item.Info.Index;
-                    writer.Write(data.Length);
-                    writer.Write(data);
-                    outed_item.Content = default(T);
-                    this.emptyList.SetID(outed_item.CacheIndex);
-                    outed_item.CacheIndex = PinableContainer<T>.NOTCACHED;
-                }
+                this.writer.BaseStream.Position = outed_item.Info.Index;
+                this.writer.Write(data.Length);
+                this.writer.Write(data);
+                outed_item.Content = default(T);
+                this.emptyList.SetID(outed_item.CacheIndex);
+                outed_item.CacheIndex = PinableContainer<T>.NOTCACHED;
             });
         }
 
@@ -111,18 +112,11 @@ namespace FooProject.Collection.DataStore
             }
             else
             {
-                using (var dataStream = new FileStream(tempFilePath, FileMode.Open, FileAccess.Read, FileShare.None, BUFFERSIZE, FileOptions.None))
-                using (var reader = new BinaryReader(dataStream))
-                {
-                    reader.BaseStream.Position = pinableContainer.Info.Index;
-
-                    int count = reader.ReadInt32();
-
-                    var data = reader.ReadBytes(count);
-
-                    pinableContainer.Content = this.serializer.DeSerialize(data);
-                    result = new PinnedContent<T>(pinableContainer, this);
-                }
+                this.reader.BaseStream.Position = pinableContainer.Info.Index;
+                int count = this.reader.ReadInt32();
+                var data = this.reader.ReadBytes(count);
+                pinableContainer.Content = this.serializer.DeSerialize(data);
+                result = new PinnedContent<T>(pinableContainer, this);
             }
 
             return true;
@@ -173,6 +167,8 @@ namespace FooProject.Collection.DataStore
             //非管理リソースの破棄処理
             try
             {
+                this.writer.Dispose();
+                this.reader.Dispose();
 #if !KEEP_TEMPORARY_FILE
                 File.Delete(this.tempFilePath);
 #endif
