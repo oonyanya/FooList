@@ -6,6 +6,7 @@
 
 using FooEditEngine;
 using FooProject.Collection;
+using FooProject.Collection.DataStore;
 using System.Runtime.CompilerServices;
 using System.Diagnostics;
 using System.Globalization;
@@ -26,7 +27,9 @@ Console.WriteLine("benchmark start");
 Console.WriteLine("size:" + BENCHMARK_SIZE);
 Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}" + "bytes");
 
-Stopwatch sw = Stopwatch.StartNew();
+Stopwatch sw;
+
+sw = Stopwatch.StartNew();
 for(int i = 0; i< BENCHMARK_SIZE; i++)
 {
     var insertStr = "this is a pen.this is a pen.this is a pen.this is a pen.this is a pen.this is a pen.this is a pen.\n";
@@ -91,6 +94,13 @@ Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}
 
 sw = Stopwatch.StartNew();
 var rangelist = new BigRangeList<LineToIndex>();
+#if DISKBASE_BUFFER
+    var serializer = new LineToIndexTableSerializer();
+    var dataStore = new DiskPinableContentDataStore<FixedList<LineToIndex>>(serializer);
+#else
+    var dataStore = new MemoryPinableContentDataStore<FixedList<LineToIndex>>();
+#endif
+rangelist.CustomBuilder.DataStore = dataStore;
 for (int i = 0; i < BENCHMARK_SIZE; i++)
 {
     rangelist.Add(new LineToIndex(i + 10, 10));
