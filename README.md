@@ -52,7 +52,6 @@ Finished.Hit Any Key
 ```
 
 ブロックサイズ32768、一時ファイルを作るモードで、一時ファイルはHDDに作成しています。文字列操作中のタスクマネージャーから見たメモリー使用量は500~900MB程度です。
-なお、add lineとupdate lineはオンメモリーで実行しています。
 ```
 benchmark start
 size:120000000
@@ -68,13 +67,13 @@ Allocated GC Memory:333,257,000bytes
 enumratotion time:1638579 ms
 Allocated GC Memory:331,904,816bytes
 clear buffer
-Allocated GC Memory:180,072bytes
-add line time:17935 ms
-Allocated GC Memory:4,916,166,568bytes
-update line time:2876 ms
-Allocated GC Memory:4,916,146,904bytes
+Allocated GC Memory:66,304bytes
+add line time:46649 ms
+Allocated GC Memory:86,939,136bytes
+update line time:77635 ms
+Allocated GC Memory:87,272,912bytes
 clear buffer
-Allocated GC Memory:172,104bytes
+Allocated GC Memory:69,448bytes
 Finished.Hit Any Key
 ```
 
