@@ -26,6 +26,10 @@ namespace FooProject.Collection.DataStore
         }
     }
 
+    /// <summary>
+    /// ディスクに格納するタイプのデーターストアです
+    /// </summary>
+    /// <typeparam name="T">データーストアに納める型を指定する</typeparam>
     public class DiskPinableContentDataStore<T> : IPinableContainerStore<T>, IDisposable
     {
         //ファイル内部の割り当ての最小単位
@@ -45,10 +49,10 @@ namespace FooProject.Collection.DataStore
         /// コンストラクター
         /// </summary>
         /// <param name="serializer">ISerializeDataを継承したクラスのインスタンス</param>
-        /// <param name="cache_limit">キャッシュしておく量。あまり小さくするとGetを連続で呼んだときにエラーを吐くことがあります。</param>
+        /// <param name="cache_limit">キャッシュしておく量。少なくとも２以上は指定する必要があります</param>
         public DiskPinableContentDataStore(ISerializeData<T> serializer,int cache_limit = 128)
         {
-            //LeafNodeで行う操作の関係で２以上にしないと落ちることがある
+            //LeafNodeクラスで行う操作の関係で２以上にしないと落ちることがある
             if (cache_limit < 2)
                 throw new ArgumentOutOfRangeException("cache_limit must be grater than 1");
 
