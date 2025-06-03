@@ -120,7 +120,25 @@ for (int i = 0; i < BENCHMARK_SIZE; i++)
     }
 }
 sw.Stop();
-Console.WriteLine(String.Format("update line time:{0} ms", sw.ElapsedMilliseconds));
+Console.WriteLine(String.Format("update line time(per 100 lines):{0} ms", sw.ElapsedMilliseconds));
+Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}" + "bytes");
+
+sw = Stopwatch.StartNew();
+for (int i = 0; i < BENCHMARK_SIZE; i++)
+{
+    var row = rangelist.GetIndexFromAbsoluteIndexIntoRange(i * 10 + 1);
+}
+sw.Stop();
+Console.WriteLine(String.Format("convert index to line time:{0} ms", sw.ElapsedMilliseconds));
+Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}" + "bytes");
+
+sw = Stopwatch.StartNew();
+for (int i = 0; i < BENCHMARK_SIZE; i++)
+{
+    var index = rangelist.GetWithConvertAbsolteIndex(i);
+}
+sw.Stop();
+Console.WriteLine(String.Format("convert line to index time:{0} ms", sw.ElapsedMilliseconds));
 Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}" + "bytes");
 
 rangelist.Clear();
