@@ -27,5 +27,9 @@ namespace FooProject.Collection.DataStore
         {
             return;
         }
+
+        public void Commit()
+        {
+        }
     }
 }

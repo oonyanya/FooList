@@ -14,5 +14,7 @@ namespace FooProject.Collection
         bool TryGet(PinableContainer<T> pinableContainer, out PinnedContent<T> result);
 
         void Set(PinableContainer<T> pinableContainer);
+
+        void Commit();
     }
 }

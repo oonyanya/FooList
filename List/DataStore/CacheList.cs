@@ -41,6 +41,20 @@ namespace FooProject.Collection.DataStore
             }
         }
 
+        public void Flush()
+        {
+            while (this.queue.Count > 0)
+            {
+                var outed_key = this.queue.Dequeue();
+                if (this.store.ContainsKey(outed_key))
+                {
+                    var outed_item = this.store[outed_key];
+                    this.store.Remove(outed_key);
+                    this.OnCacheOuted(outed_key, outed_item);
+                }
+            }
+        }
+
         public bool Set(K key, V value)
         {
             V _;

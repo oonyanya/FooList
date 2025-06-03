@@ -60,6 +60,8 @@ namespace UnitTest
                 var disk = new DiskPinableContentDataStore<int[]>(serializer, 2);
                 foreach (var item in test_data)
                 {
+                    if(item == 600)
+                        System.Diagnostics.Debugger.Break();
                     var data = new PinableContainer<int[]>(Enumerable.Repeat(item, repeatLength).ToArray());
                     disk.Set(data);
 
@@ -96,6 +98,32 @@ namespace UnitTest
                 }
 
                 disk.Dispose();
+            }
+        }
+
+        [TestMethod]
+        public void CommitTest()
+        {
+            var serializer = new TestSerializer();
+            var disk = new DiskPinableContentDataStore<int[]>(serializer, 10);
+            var test_data = new int[] { 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900, 2000 };
+            List<PinableContainer<int[]>> containers = new List<PinableContainer<int[]>>();
+            foreach (var item in test_data)
+            {
+                var data = new PinableContainer<int[]>(new int[] { item });
+                disk.Set(data);
+                containers.Add(data);
+            }
+
+            disk.Commit();
+
+            int i = 0;
+            foreach (var data in containers)
+            {
+                var pinned = disk.Get(data);
+                Assert.AreEqual(test_data[i], pinned.Content[0]);
+                pinned.Dispose();
+                i++;
             }
         }
 

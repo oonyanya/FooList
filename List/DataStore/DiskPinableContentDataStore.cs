@@ -91,6 +91,12 @@ namespace FooProject.Collection.DataStore
             });
         }
 
+        public void Commit()
+        {
+            this.writebackCacheList.Flush();
+            this.writer.Flush();
+        }
+
         public PinnedContent<T> Get(PinableContainer<T> pinableContainer)
         {
             PinnedContent<T> result;
