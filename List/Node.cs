@@ -854,11 +854,16 @@ if (leafNodeEnumrator != null && nodeBelongLeafNodeEnumrator != null)
             }
             return this;
 #else
+            Debug.Assert(first < Count);
+            Debug.Assert(last >= 0);
+
             // TODO：まとめで削除できるケースがあるが、リンクドリストから削除するのが面倒なので再帰呼び出しで消す
-           if (first <= 0 && last >= Count - 1)
+            /*
+            if (first <= 0 && last >= Count - 1)
            {
                return null;
            }
+            */
 
            long leftCount = Left.Count;
            Node<T> newLeft = Left, newRight = Right;
