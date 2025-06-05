@@ -22,7 +22,9 @@ namespace FooProject.Collection.DataStore
 
         public void OnCacheOuted(K key, V value)
         {
-            if(CacheOuted != null)
+            if (value is IDisposable)
+                ((IDisposable)value).Dispose();
+            if (CacheOuted != null)
                 CacheOuted(key, value);
         }
 
