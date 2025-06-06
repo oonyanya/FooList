@@ -45,6 +45,32 @@ namespace UnitTest
     public class DiskPinableContentDataStoreTest
     {
         [TestMethod]
+        public void ConstructorTest()
+        {
+            var serializer = new TestSerializer();
+            var disk = new DiskPinableContentDataStore<int[]>(serializer, Path.GetTempPath(), 2);
+            var test_data = new int[] { 100, 200, 300, 400, 500 };
+            List<PinableContainer<int[]>> containers = new List<PinableContainer<int[]>>();
+            foreach (var item in test_data)
+            {
+                var data = new PinableContainer<int[]>(new int[] { item });
+                disk.Set(data);
+                containers.Add(data);
+            }
+
+            int i = 0;
+            foreach (var data in containers)
+            {
+                var pinned = disk.Get(data);
+                Assert.AreEqual(test_data[i], pinned.Content[0]);
+                pinned.Dispose();
+                i++;
+            }
+
+            disk.Dispose();
+        }
+
+        [TestMethod]
         public void SetTest()
         {
             var serializer = new TestSerializer();

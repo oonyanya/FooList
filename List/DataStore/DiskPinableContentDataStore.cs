@@ -50,14 +50,27 @@ namespace FooProject.Collection.DataStore
         /// </summary>
         /// <param name="serializer">ISerializeDataを継承したクラスのインスタンス</param>
         /// <param name="cache_limit">キャッシュしておく量。少なくとも２以上は指定する必要があります</param>
-        public DiskPinableContentDataStore(ISerializeData<T> serializer,int cache_limit = 128)
+        public DiskPinableContentDataStore(ISerializeData<T> serializer, int cache_limit = 128): this(serializer,null,cache_limit)
+        {
+        }
+
+        /// <summary>
+        /// コンストラクター
+        /// </summary>
+        /// <param name="serializer">ISerializeDataを継承したクラスのインスタンス</param>
+        /// <param name="workfolderpath">ワークファイルを格納するフォルダーへのフルパス。nullの場合は%TEMP%を参照します。</param>
+        /// <param name="cache_limit">キャッシュしておく量。少なくとも２以上は指定する必要があります</param>
+        public DiskPinableContentDataStore(ISerializeData<T> serializer,string workfolderpath,int cache_limit = 128)
         {
             //LeafNodeクラスで行う操作の関係で２以上にしないと落ちることがある
             if (cache_limit < 2)
                 throw new ArgumentOutOfRangeException("cache_limit must be grater than 1");
 
-            tempFilePath = System.IO.Path.GetTempFileName();
-            var dataStream = new FileStream(tempFilePath, FileMode.Open, FileAccess.ReadWrite, FileShare.None, BUFFERSIZE, FileOptions.None);
+            if (workfolderpath == null)
+                tempFilePath = Path.GetTempFileName();
+            else
+                tempFilePath = Path.Combine(workfolderpath,Path.GetRandomFileName());
+            var dataStream = new FileStream(tempFilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None, BUFFERSIZE, FileOptions.None);
             this.writer = new BinaryWriter(dataStream);
             this.reader = new BinaryReader(dataStream);
             this.serializer = serializer;
