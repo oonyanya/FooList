@@ -21,6 +21,15 @@ using FooProject.Collection.DataStore;
 
 namespace FooProject.Collection
 {
+    public enum UpdateType
+    {
+        Add,
+        Insert,
+        Overwrite,
+        Remove,
+        Rebalance,
+    }
+
     public class BigListArgs<T>
     {
         public ICustomConverter<T> CustomConverter { get; set; }
@@ -28,7 +37,9 @@ namespace FooProject.Collection
 
         public int BlockSize { get; set; }
 
-        public BigListArgs(ICustomBuilder<T> builder, ICustomConverter<T> conv, int blockSize) 
+        public UpdateType Type { get; set; }
+
+        public BigListArgs(ICustomBuilder<T> builder, ICustomConverter<T> conv, int blockSize, UpdateType type) 
         {
             CustomConverter = conv;
             CustomBuilder = builder;
@@ -153,6 +164,8 @@ namespace FooProject.Collection
                     items[(int)relativeIndex] = value;
                 }
             }
+            var args = new BigListArgs<T>(CustomBuilder, CustomConverter, this.BlockSize, UpdateType.Overwrite);
+            curLeaf.NotifyUpdate(relativeIndex, 1, args);
         }
 
         private Node<T> IndexOfNode(long index,out long resultRelativeIndex)
@@ -298,7 +311,7 @@ namespace FooProject.Collection
 
             // Concatinate all the node in the rebalance array.
             Node<T> result = null;
-            var args = new BigListArgs<T>(CustomBuilder, CustomConverter, this.BlockSize);
+            var args = new BigListArgs<T>(CustomBuilder, CustomConverter, this.BlockSize, UpdateType.Rebalance);
             for (int slot = 0; slot < slots; ++slot)
             {
                 Node<T> n = rebalanceArray[slot];
@@ -347,7 +360,7 @@ namespace FooProject.Collection
 #else
             if (node.IsBalanced())
             {
-                var args = new BigListArgs<T>(CustomBuilder, CustomConverter, this.BlockSize);
+                var args = new BigListArgs<T>(CustomBuilder, CustomConverter, this.BlockSize, UpdateType.Rebalance);
                 AddBalancedNodeToRebalanceArray(rebalanceArray, node, args);
             }
             else
@@ -472,7 +485,7 @@ namespace FooProject.Collection
             }
             else
             {
-                var args = new BigListArgs<T>(CustomBuilder, CustomConverter, this.BlockSize);
+                var args = new BigListArgs<T>(CustomBuilder, CustomConverter, this.BlockSize, UpdateType.Add);
                 Node<T> newRoot = _root.PrependInPlace(item, leafNodeEnumrator, args);
                 if (newRoot != _root)
                 {
@@ -496,7 +509,7 @@ namespace FooProject.Collection
             }
             else
             {
-                var args = new BigListArgs<T>(CustomBuilder, CustomConverter, this.BlockSize);
+                var args = new BigListArgs<T>(CustomBuilder, CustomConverter, this.BlockSize, UpdateType.Add);
                 Node<T> newRoot = _root.AppendInPlace(item, leafNodeEnumrator, args);
                 if (newRoot != _root)
                 {
@@ -591,7 +604,7 @@ namespace FooProject.Collection
                 throw new ArgumentNullException("collection");
 
             var tempLeafNodeEnumrator = new LeafNodeEnumrator<T>();
-            var args = new BigListArgs<T>(CustomBuilder, CustomConverter, this.BlockSize);
+            var args = new BigListArgs<T>(CustomBuilder, CustomConverter, this.BlockSize, UpdateType.Add);
             Node<T> node = NodeFromEnumerable(collection, tempLeafNodeEnumrator, args);
             if (node == null)
                 return;
@@ -629,7 +642,7 @@ namespace FooProject.Collection
                 throw new ArgumentNullException("collection");
 
             var tempLeafNodeEnumrator = new LeafNodeEnumrator<T>();
-            var args = new BigListArgs<T>(CustomBuilder, CustomConverter, this.BlockSize);
+            var args = new BigListArgs<T>(CustomBuilder, CustomConverter, this.BlockSize, UpdateType.Add);
             Node<T> node = NodeFromEnumerable(collection, tempLeafNodeEnumrator, args);
             if (node == null)
                 return;
@@ -779,7 +792,7 @@ namespace FooProject.Collection
                 }
                 else
                 {
-                    var args = new BigListArgs<T>(CustomBuilder, CustomConverter, this.BlockSize);
+                    var args = new BigListArgs<T>(CustomBuilder, CustomConverter, this.BlockSize, UpdateType.Insert);
                     Node<T> newRoot = _root.InsertInPlace(index, item, leafNodeEnumrator, args);
                     if (newRoot != _root)
                     {
@@ -808,7 +821,7 @@ namespace FooProject.Collection
             else
             {
                 var tempLeafNodeEnumrator = new LeafNodeEnumrator<T>();
-                var args = new BigListArgs<T>(CustomBuilder, CustomConverter, this.BlockSize);
+                var args = new BigListArgs<T>(CustomBuilder, CustomConverter, this.BlockSize, UpdateType.Insert);
                 Node<T> node = NodeFromEnumerable(collection, tempLeafNodeEnumrator, args);
                 if (node == null)
                     return;
@@ -863,7 +876,7 @@ namespace FooProject.Collection
             if (count < 0 || count > LongCount - index)
                 throw new ArgumentOutOfRangeException("count");
 
-            var args = new BigListArgs<T>(CustomBuilder, CustomConverter, this.BlockSize);
+            var args = new BigListArgs<T>(CustomBuilder, CustomConverter, this.BlockSize, UpdateType.Remove);
             Node<T> newRoot = _root.RemoveRangeInPlace(index, index + count - 1, leafNodeEnumrator, args);
             if (newRoot != _root)
             {

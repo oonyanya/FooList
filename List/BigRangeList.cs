@@ -65,7 +65,7 @@ namespace FooProject.Collection
         /// <param name="value">設定したいT</param>
         public override void Set(long index, T value)
         {
-            var args = new BigListArgs<T>(CustomBuilder, CustomConverter, this.BlockSize);
+            var args = new BigListArgs<T>(CustomBuilder, CustomConverter, this.BlockSize, UpdateType.Overwrite);
             Root.SetAtInPlace(index, value, args);
         }
 
