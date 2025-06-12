@@ -104,6 +104,17 @@ namespace FooProject.Collection.DataStore
             });
         }
 
+        public IEnumerable<T> ForEachAvailableContent()
+        {
+            foreach(var pinableContainer in this.writebackCacheList.ForEachValue())
+            {
+                if (pinableContainer.CacheIndex != PinableContainer<T>.NOTCACHED || pinableContainer.Content?.Equals(default(T)) == false)
+                {
+                    yield return pinableContainer.Content;
+                }
+            }
+        }
+
         public void Commit()
         {
             this.writebackCacheList.Flush();

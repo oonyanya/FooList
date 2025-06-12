@@ -28,6 +28,13 @@ namespace FooProject.Collection.DataStore
                 CacheOuted(key, value);
         }
 
+        public IEnumerable<V> ForEachValue()
+        {
+            foreach(V value in store.Values)
+            {
+                yield return value;
+            }
+        }
 
         public bool TryGet(K key,out V value)
         {

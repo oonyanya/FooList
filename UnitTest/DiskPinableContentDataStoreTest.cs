@@ -128,6 +128,36 @@ namespace UnitTest
         }
 
         [TestMethod]
+        public void ForEachAvailableContentTest()
+        {
+            var serializer = new TestSerializer();
+            var disk = new DiskPinableContentDataStore<int[]>(serializer, 2);
+            var test_data = new int[] { 100, 200, 300, 400 };
+            List<PinableContainer<int[]>> containers = new List<PinableContainer<int[]>>();
+
+            foreach (var item in test_data)
+            {
+                var data = new PinableContainer<int[]>(new int[] { item });
+                disk.Set(data);
+                containers.Add(data);
+            }
+
+            var expected_data = new int[] { 400, 300 };
+            int i = 0;
+            foreach (var item in disk.ForEachAvailableContent())
+            {
+                Assert.AreEqual(expected_data[i], item[0]);
+                i++;
+            }
+
+            disk.Commit();
+
+            Assert.AreEqual(0, disk.ForEachAvailableContent().Count());
+
+            disk.Dispose();
+        }
+
+        [TestMethod]
         public void CommitTest()
         {
             var serializer = new TestSerializer();
