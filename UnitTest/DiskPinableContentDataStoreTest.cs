@@ -83,7 +83,13 @@ namespace UnitTest
             foreach (var repeatLength in repeatLengths)
             {
                 List<PinableContainer<int[]>> containers = new List<PinableContainer<int[]>>();
+                int disposedCount = 0;
                 var disk = new DiskPinableContentDataStore<int[]>(serializer, 2);
+                disk.Dispoing += (o) =>
+                {
+                    disposedCount++;
+                };
+
                 foreach (var item in test_data)
                 {
                     if(item == 600)
@@ -123,6 +129,8 @@ namespace UnitTest
                     containers.Add(data);
                 }
 
+                Assert.IsTrue(disposedCount > 0);
+
                 disk.Dispose();
             }
         }
@@ -161,7 +169,12 @@ namespace UnitTest
         public void CommitTest()
         {
             var serializer = new TestSerializer();
+            int disposedCount = 0;
             var disk = new DiskPinableContentDataStore<int[]>(serializer, 10);
+            disk.Dispoing += (o) =>
+            {
+                disposedCount++;
+            };
             var test_data = new int[] { 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900, 2000 };
             List<PinableContainer<int[]>> containers = new List<PinableContainer<int[]>>();
             foreach (var item in test_data)
@@ -171,7 +184,13 @@ namespace UnitTest
                 containers.Add(data);
             }
 
+            Assert.IsTrue(disposedCount > 0);
+
+            disposedCount = 0;
+
             disk.Commit();
+
+            Assert.IsTrue(disposedCount > 0);
 
             int i = 0;
             foreach (var data in containers)

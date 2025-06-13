@@ -76,6 +76,9 @@ namespace FooProject.Collection.DataStore
             this.serializer = serializer;
             this.writebackCacheList.Limit = cache_limit;
             this.writebackCacheList.CacheOuted = new Action<long, PinableContainer<T>>( (key, outed_item)=>{
+
+                this.OnDispoing(outed_item.Content);
+
                 if (outed_item.IsRemoved == true)
                     return;
 
@@ -102,6 +105,14 @@ namespace FooProject.Collection.DataStore
                 this.emptyList.SetID(outed_item.CacheIndex);
                 outed_item.CacheIndex = PinableContainer<T>.NOTCACHED;
             });
+        }
+
+        public event Action<T> Dispoing;
+
+        public void OnDispoing(T item)
+        {
+            if (this.Dispoing != null)
+                this.Dispoing(item);
         }
 
         public IEnumerable<T> ForEachAvailableContent()
