@@ -30,7 +30,7 @@ namespace FooProject.Collection.DataStore
     /// ディスクに格納するタイプのデーターストアです
     /// </summary>
     /// <typeparam name="T">データーストアに納める型を指定する</typeparam>
-    public class DiskPinableContentDataStore<T> : IPinableContainerStore<T>, IDisposable
+    public class DiskPinableContentDataStore<T> : IPinableContainerStoreWithAutoDisposer<T>, IDisposable
     {
         //ファイル内部の割り当ての最小単位
         const int PAGESIZE = 16384;
@@ -107,12 +107,12 @@ namespace FooProject.Collection.DataStore
             });
         }
 
-        public event Action<T> Dispoing;
+        public event Action<T> Disposeing;
 
         public void OnDispoing(T item)
         {
-            if (this.Dispoing != null)
-                this.Dispoing(item);
+            if (this.Disposeing != null)
+                this.Disposeing(item);
         }
 
         public IEnumerable<T> ForEachAvailableContent()

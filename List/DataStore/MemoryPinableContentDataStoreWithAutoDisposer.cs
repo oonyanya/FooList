@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace FooProject.Collection.DataStore
 {
-    public class MemoryPinableContentDataStoreWithAutoDisposer<T> : IPinableContainerStore<T>
+    public class MemoryPinableContentDataStoreWithAutoDisposer<T> : IPinableContainerStoreWithAutoDisposer<T>, IDisposable
     {
         EmptyList emptyList = new EmptyList();
         bool disposedValue = false;
@@ -21,12 +21,12 @@ namespace FooProject.Collection.DataStore
             };
         }
 
-        public event Action<T> Dispoing;
+        public event Action<T> Disposeing;
 
         public void OnDispoing(T item)
         {
-            if (this.Dispoing != null)
-                this.Dispoing(item);
+            if (this.Disposeing != null)
+                this.Disposeing(item);
         }
 
         public IEnumerable<T> ForEachAvailableContent()

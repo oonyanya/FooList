@@ -36,7 +36,7 @@ namespace UnitTest
             List<PinableContainer<TestContent>> containers = new List<PinableContainer<TestContent>>();
             int disposedCount = 0;
             var disk = new MemoryPinableContentDataStoreWithAutoDisposer<TestContent>(2);
-            disk.Dispoing += (o) =>
+            disk.Disposeing += (o) =>
             {
                 disposedCount++;
             };
@@ -87,7 +87,7 @@ namespace UnitTest
         {
             int disposedCount = 0;
             var disk = new MemoryPinableContentDataStoreWithAutoDisposer<TestContent>(10);
-            disk.Dispoing += (o) =>
+            disk.Disposeing += (o) =>
             {
                 disposedCount++;
             };

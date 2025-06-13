@@ -85,7 +85,7 @@ namespace UnitTest
                 List<PinableContainer<int[]>> containers = new List<PinableContainer<int[]>>();
                 int disposedCount = 0;
                 var disk = new DiskPinableContentDataStore<int[]>(serializer, 2);
-                disk.Dispoing += (o) =>
+                disk.Disposeing += (o) =>
                 {
                     disposedCount++;
                 };
@@ -171,7 +171,7 @@ namespace UnitTest
             var serializer = new TestSerializer();
             int disposedCount = 0;
             var disk = new DiskPinableContentDataStore<int[]>(serializer, 10);
-            disk.Dispoing += (o) =>
+            disk.Disposeing += (o) =>
             {
                 disposedCount++;
             };

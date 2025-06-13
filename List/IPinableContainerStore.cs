@@ -17,4 +17,11 @@ namespace FooProject.Collection
 
         void Commit();
     }
+
+    public interface IPinableContainerStoreWithAutoDisposer<T> : IPinableContainerStore<T>
+    {
+        event Action<T> Disposeing;
+
+        IEnumerable<T> ForEachAvailableContent();
+    }
 }
