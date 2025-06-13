@@ -3,7 +3,7 @@
  *  https://github.com/timdetering/Wintellect.PowerCollections
  *  Fooproject modify
  */
-//#define MODIFY_NODE_BY_RECURSIVE
+//#define MODIFY_NODE_BY_NORECURSIVE
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -513,7 +513,7 @@ if (leafNodeEnumrator != null && nodeBelongLeafNodeEnumrator != null)
 
         public override Node<T> SetAtInPlace(long index, T item,BigListArgs<T> args)
         {
-#if MODIFY_NODE_BY_RECURSIVE
+#if MODIFY_NODE_BY_NORECURSIVE
             Stack<NodeWalkInfo> traklist = new Stack<NodeWalkInfo>();
             Node<T> current = this;
             long currentIndex = index;
@@ -636,7 +636,7 @@ if (leafNodeEnumrator != null && nodeBelongLeafNodeEnumrator != null)
 
         public override Node<T> InsertInPlace(long index, T item, LeafNodeEnumrator<T> leafNodeEnumrator,BigListArgs<T> args)
         {
-#if MODIFY_NODE_BY_RECURSIVE
+#if MODIFY_NODE_BY_NORECURSIVE
             Stack<NodeWalkInfo> traklist = new Stack<NodeWalkInfo>(BigList<T>.MAXFIB);
             Node<T> current = this;
             long currentIndex = index;
@@ -698,7 +698,7 @@ if (leafNodeEnumrator != null && nodeBelongLeafNodeEnumrator != null)
 
         public override Node<T> InsertInPlace(long index, Node<T> node, LeafNodeEnumrator<T> leafNodeEnumrator, LeafNodeEnumrator<T> nodeBelongLeafNodeEnumrator,BigListArgs<T> args)
         {
-#if MODIFY_NODE_BY_RECURSIVE
+#if MODIFY_NODE_BY_NORECURSIVE
             Stack<NodeWalkInfo> traklist = new Stack<NodeWalkInfo>(BigList<T>.MAXFIB);
             Node<T> current = this;
             long currentIndex = index;
@@ -786,7 +786,7 @@ if (leafNodeEnumrator != null && nodeBelongLeafNodeEnumrator != null)
 
         public override Node<T> RemoveRangeInPlace(long first, long last, LeafNodeEnumrator<T> leafNodeEnumrator,BigListArgs<T> args)
         {
-#if MODIFY_NODE_BY_RECURSIVE
+#if MODIFY_NODE_BY_NORECURSIVE
             Debug.Assert(first < Count);
             Debug.Assert(last >= 0);
 
