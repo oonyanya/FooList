@@ -233,6 +233,35 @@ namespace FooEditEngine
             return patternIndex;
         }
 
+        internal void SaveFile(string path)
+        {
+            StreamWriter streamWriter;
+            if(!string.IsNullOrEmpty(path))
+                streamWriter  = new StreamWriter(path);
+            else
+                streamWriter = new StreamWriter(Stream.Null);
+
+            List<char> writeBuffer = new List<char>(4 * 1024 * 1024);
+            foreach (var item in buf)
+            {
+                if (writeBuffer.Count < writeBuffer.Capacity)
+                {
+                    writeBuffer.Add(item);
+                }
+                else
+                {
+                    streamWriter.WriteLine(writeBuffer.ToArray());
+                    writeBuffer.Clear();
+                }
+            }
+            if (writeBuffer.Count > 0)
+            {
+                streamWriter.WriteLine(writeBuffer.ToArray());
+                writeBuffer.Clear();
+            }
+            streamWriter.Close();
+        }
+
         /// <summary>
         /// 文字列を削除する
         /// </summary>

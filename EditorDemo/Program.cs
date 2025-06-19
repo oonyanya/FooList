@@ -1,8 +1,10 @@
 ﻿// See https://aka.ms/new-console-template for more information
 //ディスク上に保存するならコメントアウトする
 //#define DISKBASE_BUFFER
-//文字列の操作の結果を保存するならコメントアウトする
+//文字列の操作の最終結果を保存するならコメントアウトする
 //#define SAVE_FILE
+//文字列操作の結果を各段階ごとに保存するならコメントアウトする
+//#define SAVE_FILE_ALL_STAGE
 
 using FooEditEngine;
 using FooProject.Collection;
@@ -39,6 +41,9 @@ sw.Stop();
 Console.WriteLine(String.Format("add time:{0} ms", sw.ElapsedMilliseconds));
 Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}" + "bytes"); 
 Task.Delay(1000).Wait();
+#if SAVE_FILE_ALL_STAGE
+buf.SaveFile("test1.txt");
+#endif
 
 sw = Stopwatch.StartNew();
 buf.ReplaceAll("pen", "cat");
@@ -46,44 +51,34 @@ sw.Stop();
 Console.WriteLine(String.Format("replace 1 time:{0} ms",sw.ElapsedMilliseconds));
 Task.Delay(1000).Wait();
 Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}" + "bytes");
+#if SAVE_FILE_ALL_STAGE
+buf.SaveFile("test2.txt");
+#endif
 
 sw = Stopwatch.StartNew();
 buf.ReplaceAll("cat", "ratking");
 sw.Stop();
 Console.WriteLine(String.Format("replace 2 time:{0} ms", sw.ElapsedMilliseconds));
 Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}" + "bytes");
+#if SAVE_FILE_ALL_STAGE
+buf.SaveFile("test3.txt");
+#endif
 
 sw = Stopwatch.StartNew();
 buf.ReplaceAll("ratking", "cat");
 sw.Stop();
 Console.WriteLine(String.Format("replace 3 time:{0} ms", sw.ElapsedMilliseconds));
 Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}" + "bytes");
+#if SAVE_FILE_ALL_STAGE
+buf.SaveFile("test4.txt");
+#endif
 
 sw = Stopwatch.StartNew();
-#if SAVE_FILE
-StreamWriter streamWriter = new StreamWriter("test.txt");
+#if SAVE_FILE || SAVE_FILE_ALL_STAGE
+buf.SaveFile("test_last.txt");
 #else
-StreamWriter streamWriter = new StreamWriter(Stream.Null);
+buf.SaveFile(null);
 #endif
-List<char> writeBuffer = new List<char>(4 * 1024 * 1024);
-foreach(var item in buf)
-{
-    if(writeBuffer.Count < writeBuffer.Capacity)
-    {
-        writeBuffer.Add(item);
-    }
-    else
-    {
-        streamWriter.WriteLine(writeBuffer.ToArray());
-        writeBuffer.Clear();
-    }
-}
-if (writeBuffer.Count > 0)
-{
-    streamWriter.WriteLine(writeBuffer.ToArray());
-    writeBuffer.Clear();
-}
-streamWriter.Close();
 sw.Stop();
 Console.WriteLine(String.Format("enumratotion time:{0} ms", sw.ElapsedMilliseconds));
 Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}" + "bytes");
