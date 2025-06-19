@@ -49,7 +49,7 @@ namespace UnitTest
         {
             var serializer = new TestSerializer();
             var disk = new DiskPinableContentDataStore<int[]>(serializer, Path.GetTempPath(), 2);
-            var test_data = new int[] { 100, 200, 300, 400, 500 };
+            var test_data = Enumerable.Range(1, 5).Select((i) => { return i * 100; }).ToArray();
             List<PinableContainer<int[]>> containers = new List<PinableContainer<int[]>>();
             foreach (var item in test_data)
             {
@@ -74,7 +74,7 @@ namespace UnitTest
         public void SetTest()
         {
             var serializer = new TestSerializer();
-            var test_data = new int[] { 100, 200,300,400,500,600,700,800,900,1000,1100,1200,1300,1400,1500,1600,1700,1800,1900,2000 };
+            var test_data = Enumerable.Range(1, 20).Select((i) => { return i * 100; }).ToArray();
 
             //ページサイズが32KBなので、初めはページサイズに収まる奴でテストし、次はページサイズからあふれる奴でテストする
             //1回目：4096 Byte + ヘッダーサイズ、２回目：32768 Byte + ヘッダーサイズ
@@ -140,7 +140,7 @@ namespace UnitTest
         {
             var serializer = new TestSerializer();
             var disk = new DiskPinableContentDataStore<int[]>(serializer, 2);
-            var test_data = new int[] { 100, 200, 300, 400, 500, 600, 700, 800 };
+            var test_data = Enumerable.Range(1, 20).Select((i) => { return i * 100; }).ToArray();
             List<PinableContainer<int[]>> containers = new List<PinableContainer<int[]>>();
 
             foreach (var item in test_data)
@@ -169,7 +169,7 @@ namespace UnitTest
             {
                 disposedCount++;
             };
-            var test_data = new int[] { 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900, 2000 };
+            var test_data = Enumerable.Range(1, 20).Select((i) => { return i * 100; }).ToArray();
             List<PinableContainer<int[]>> containers = new List<PinableContainer<int[]>>();
             foreach (var item in test_data)
             {
@@ -201,7 +201,7 @@ namespace UnitTest
         {
             var serializer = new TestSerializer();
             var disk = new DiskPinableContentDataStore<int[]>(serializer, 2);
-            var test_data = new int[] { 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900, 2000 };
+            var test_data = Enumerable.Range(1, 20).Select((i) => { return i * 100; }).ToArray();
             List<PinableContainer<int[]>> containers = new List<PinableContainer<int[]>>();
             foreach (var item in test_data)
             {
