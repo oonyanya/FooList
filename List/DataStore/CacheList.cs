@@ -13,7 +13,6 @@ namespace FooProject.Collection.DataStore
     {
         Dictionary<K,LinkedListNode<K>> store = new Dictionary<K, LinkedListNode<K>>();
         LinkedList<K> list = new LinkedList<K>();
-        public K LastRemoved {get; private set;}
 
         public int Limit { get; set; }
 
@@ -27,23 +26,29 @@ namespace FooProject.Collection.DataStore
             return store.ContainsKey(key);
         }
 
-        public void Set(K key)
+        public bool Set(K key,out K outed_key)
         {
+            outed_key = default(K);
             if(store.ContainsKey(key))
             {
                 var node = store[key];
                 list.Remove(node);
                 list.AddFirst(node);
-                return;
+            }
+            else
+            {
+                var node = list.AddFirst(key);
+                store.Add(key, node);
             }
 
-            if(list.Count >= Limit)
+            if (list.Count >= Limit)
             {
-                var lastRemoveKey = list.Last.Value;
-                this.LastRemoved = lastRemoveKey;
-                this.store.Remove(lastRemoveKey);
+                outed_key = list.Last.Value;
+                this.store.Remove(outed_key);
                 list.RemoveLast();
+                return true;
             }
+            return false;
         }
 
         public void Clear()
@@ -184,24 +189,23 @@ namespace FooProject.Collection.DataStore
             if (this.store.ContainsKey(key))
             {
                 value = this.store[key];
+                K outed_key;
                 if (this.lru.Contains(key))
                 {
-                    this.lru.Set(key);
+                    var overflow = this.lru.Set(key, out outed_key);
+                    System.Diagnostics.Debug.Assert(overflow == false);
                 }
                 else if (this.outQueque.Contains(key))
                 {
-                    {
-                        this.lru.Set(key);
-                        this.outQueque.Remove(key);
+                    var overflow = this.lru.Set(key, out outed_key);
+                    this.outQueque.Remove(key);
 
-                        //LRUから溢れたら
-                        var lastRemoved = this.lru.LastRemoved;
-                        if (lastRemoved != null)
-                        {
-                            var removedValue = this.store[lastRemoved];
-                            this.OnCacheOuted(lastRemoved, removedValue, false);
-                            this.store.Remove(lastRemoved);
-                        }
+                    //LRUから溢れたら
+                    if (overflow)
+                    {
+                        var removedValue = this.store[outed_key];
+                        this.OnCacheOuted(outed_key, removedValue, false);
+                        this.store.Remove(outed_key);
                     }
                 }
                 return true;
