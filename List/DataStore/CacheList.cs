@@ -118,6 +118,19 @@ namespace FooProject.Collection.DataStore
         }
     }
 
+    internal class CacheOutedEventArgs<K,V> : EventArgs
+    {
+        public K Key { get; private set; }
+        public V Value { get; private set; }
+        public bool RequireWriteBack { get; private set; }
+        public CacheOutedEventArgs(K key, V value, bool requireWriteBack)
+        {
+            Key = key;
+            Value = value;
+            RequireWriteBack = requireWriteBack;
+        }
+    }
+
     internal class CacheList<K,V>
     {
         //inQuequeとoutQuequeの比率は0.5なので、LRUキャッシュも含めると128エントリー確保していることになる
@@ -137,12 +150,12 @@ namespace FooProject.Collection.DataStore
             this.lru.Limit = defaultLimit * 2;
         }
 
-        public Action<K,V> CacheOuted { get; set; }
+        public Action<CacheOutedEventArgs<K,V>> CacheOuted { get; set; }
 
-        public void OnCacheOuted(K key, V value)
+        public void OnCacheOuted(K key, V value, bool requireWriteBack)
         {
             if (CacheOuted != null)
-                CacheOuted(key, value);
+                CacheOuted(new CacheOutedEventArgs<K, V>(key,value,requireWriteBack));
         }
 
         public IEnumerable<V> ForEachValue()
@@ -172,7 +185,7 @@ namespace FooProject.Collection.DataStore
                         if (lastRemoved != null)
                         {
                             var removedValue = this.store[lastRemoved];
-                            this.OnCacheOuted(lastRemoved, removedValue);
+                            this.OnCacheOuted(lastRemoved, removedValue, false);
                             this.store.Remove(lastRemoved);
                         }
                     }
@@ -190,7 +203,7 @@ namespace FooProject.Collection.DataStore
                 {
                     var outed_item = this.store[outed_key];
                     this.store.Remove(outed_key);
-                    this.OnCacheOuted(outed_key, outed_item);
+                    this.OnCacheOuted(outed_key, outed_item, true);
                 }
             }
             this.inQueue.Clear();
@@ -201,7 +214,7 @@ namespace FooProject.Collection.DataStore
                 {
                     var outed_item = this.store[outed_key];
                     this.store.Remove(outed_key);
-                    this.OnCacheOuted(outed_key, outed_item);
+                    this.OnCacheOuted(outed_key, outed_item, true);
                 }
             }
             this.outQueque.Clear();
@@ -212,7 +225,7 @@ namespace FooProject.Collection.DataStore
                 {
                     var outed_item = this.store[outed_key];
                     this.store.Remove(outed_key);
-                    this.OnCacheOuted(outed_key, outed_item);
+                    this.OnCacheOuted(outed_key, outed_item, true);
                 }
             }
             this.lru.Clear();
@@ -265,7 +278,7 @@ namespace FooProject.Collection.DataStore
                 if (this.store.ContainsKey(lastKeyQutQ))
                 {
                     outed_item = this.store[lastKeyQutQ];
-                    this.OnCacheOuted(lastKeyQutQ, outed_item);
+                    this.OnCacheOuted(lastKeyQutQ, outed_item, true);
                     this.store.Remove(lastKeyQutQ);
                     this.outQueque.Remove(lastKeyQutQ);
                     hasOverflow = true;

@@ -75,33 +75,38 @@ namespace FooProject.Collection.DataStore
             this.reader = new BinaryReader(dataStream);
             this.serializer = serializer;
             this.writebackCacheList.Limit = cache_limit;
-            this.writebackCacheList.CacheOuted = new Action<long, PinableContainer<T>>( (key, outed_item)=>{
+            this.writebackCacheList.CacheOuted = new Action<CacheOutedEventArgs<long, PinableContainer<T>>>((ev)=>{
 
+                var key = ev.Key;
+                var outed_item = ev.Value;
                 this.OnDispoing(outed_item.Content);
 
                 if (outed_item.IsRemoved == true)
                     return;
 
-                var data = this.serializer.Serialize(outed_item.Content);
-
-                int dataLength = data.Length + 4;
-                int alignedDataLength = dataLength + PAGESIZE - (dataLength % PAGESIZE);
-
-                if (outed_item.Info != null && alignedDataLength > outed_item.Info.AlignedLength)
+                if (ev.RequireWriteBack)
                 {
-                    this.emptyList.SetEmptyList(outed_item.Info);
-                    outed_item.Info = null;
-                }
+                    var data = this.serializer.Serialize(outed_item.Content);
 
-                if (outed_item.Info == null)
-                {
-                    outed_item.Info = this.emptyList.GetEmptyList(alignedDataLength);
-                }
+                    int dataLength = data.Length + 4;
+                    int alignedDataLength = dataLength + PAGESIZE - (dataLength % PAGESIZE);
 
-                this.writer.BaseStream.Position = outed_item.Info.Index;
-                this.writer.Write(data.Length);
-                this.writer.Write(data);
-                outed_item.Content = default(T);
+                    if (outed_item.Info != null && alignedDataLength > outed_item.Info.AlignedLength)
+                    {
+                        this.emptyList.SetEmptyList(outed_item.Info);
+                        outed_item.Info = null;
+                    }
+
+                    if (outed_item.Info == null)
+                    {
+                        outed_item.Info = this.emptyList.GetEmptyList(alignedDataLength);
+                    }
+
+                    this.writer.BaseStream.Position = outed_item.Info.Index;
+                    this.writer.Write(data.Length);
+                    this.writer.Write(data);
+                    outed_item.Content = default(T);
+                }
                 this.emptyList.SetID(outed_item.CacheIndex);
                 outed_item.CacheIndex = PinableContainer<T>.NOTCACHED;
             });

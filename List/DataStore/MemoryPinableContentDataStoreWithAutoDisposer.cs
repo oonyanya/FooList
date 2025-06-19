@@ -16,8 +16,8 @@ namespace FooProject.Collection.DataStore
         {
             this.writebackCacheList = new CacheList<long, PinableContainer<T>>();
             this.writebackCacheList.Limit = cache_limit;
-            this.writebackCacheList.CacheOuted += (outed_index, outed_item) => {
-                this.OnDispoing(outed_item.Content);
+            this.writebackCacheList.CacheOuted += (e) => {
+                this.OnDispoing(e.Value.Content);
             };
         }
 
