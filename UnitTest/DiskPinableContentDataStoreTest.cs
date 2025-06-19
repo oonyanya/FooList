@@ -92,8 +92,6 @@ namespace UnitTest
 
                 foreach (var item in test_data)
                 {
-                    if(item == 600)
-                        System.Diagnostics.Debugger.Break();
                     var data = new PinableContainer<int[]>(Enumerable.Repeat(item, repeatLength).ToArray());
                     disk.Set(data);
 
