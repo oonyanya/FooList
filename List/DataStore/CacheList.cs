@@ -204,7 +204,7 @@ namespace FooProject.Collection.DataStore
                     if (overflow)
                     {
                         var removedValue = this.store[outed_key];
-                        this.OnCacheOuted(outed_key, removedValue, false);
+                        this.OnCacheOuted(outed_key, removedValue, true);
                         this.store.Remove(outed_key);
                     }
                 }
