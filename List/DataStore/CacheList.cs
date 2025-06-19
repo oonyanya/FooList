@@ -133,8 +133,8 @@ namespace FooProject.Collection.DataStore
 
     internal class CacheList<K,V>
     {
-        //inQuequeとoutQuequeの比率は0.5なので、LRUキャッシュも含めると128エントリー確保していることになる
-        //詳しいことはコンストラクタを読むこと
+        //inQuequeとoutQuequeの比率は0.5なので、LRUキャッシュも含めると128エントリー確保していることになる。
+        //詳しいことはLimitプロパティを参照すること。
         const int defaultLimit = 32;
 
         LRUCache<K> lru = new LRUCache<K>();
@@ -142,12 +142,23 @@ namespace FooProject.Collection.DataStore
         FIFOCache<K> outQueque = new FIFOCache<K>();
         Dictionary<K,V> store = new Dictionary<K,V>();
 
-        public int Limit { get; set; }
+        int _limit;
+        public int Limit
+        {
+            get
+            {
+                return _limit;
+            }
+            set
+            {
+                _limit = value;
+                this.lru.Limit = value * 2;
+            }
+        }
 
         public CacheList()
         {
             this.Limit = defaultLimit;
-            this.lru.Limit = defaultLimit * 2;
         }
 
         public Action<CacheOutedEventArgs<K,V>> CacheOuted { get; set; }
