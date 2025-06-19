@@ -100,11 +100,16 @@ namespace UnitTest
                     pinned.Content[0] = item + 1;
                     pinned.Dispose();
 
-                    pinned = disk.Get(data);
-                    Assert.AreEqual(item + 1, pinned.Content[0]);
-                    pinned.Dispose();
-
                     containers.Add(data);
+                }
+
+                int i = 0;
+                foreach (var data in containers)
+                {
+                    var pinned = disk.Get(data);
+                    Assert.AreEqual(test_data[i] + 1, pinned.Content[0]);
+                    pinned.Dispose();
+                    i++;
                 }
 
                 foreach (var data in containers)
@@ -121,11 +126,16 @@ namespace UnitTest
                     var data = new PinableContainer<int[]>(Enumerable.Repeat(item, repeatLength / 2).ToArray());
                     disk.Set(data);
 
-                    var pinned = disk.Get(data);
-                    Assert.AreEqual(item, pinned.Content[0]);
-                    pinned.Dispose();
-
                     containers.Add(data);
+                }
+
+                i = 0;
+                foreach (var data in containers)
+                {
+                    var pinned = disk.Get(data);
+                    Assert.AreEqual(test_data[i], pinned.Content[0]);
+                    pinned.Dispose();
+                    i++;
                 }
 
                 Assert.IsTrue(disposedCount > 0);
