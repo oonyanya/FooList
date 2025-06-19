@@ -192,6 +192,8 @@ namespace FooProject.Collection.DataStore
                     {
                         this.lru.Set(key);
                         this.outQueque.Remove(key);
+
+                        //LRUから溢れたら
                         var lastRemoved = this.lru.LastRemoved;
                         if (lastRemoved != null)
                         {
