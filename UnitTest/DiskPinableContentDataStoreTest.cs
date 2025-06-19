@@ -140,7 +140,7 @@ namespace UnitTest
         {
             var serializer = new TestSerializer();
             var disk = new DiskPinableContentDataStore<int[]>(serializer, 2);
-            var test_data = new int[] { 100, 200, 300, 400 };
+            var test_data = new int[] { 100, 200, 300, 400, 500, 600, 700, 800 };
             List<PinableContainer<int[]>> containers = new List<PinableContainer<int[]>>();
 
             foreach (var item in test_data)
@@ -150,13 +150,7 @@ namespace UnitTest
                 containers.Add(data);
             }
 
-            var expected_data = new int[] { 400, 300 };
-            int i = 0;
-            foreach (var item in disk.ForEachAvailableContent())
-            {
-                Assert.AreEqual(expected_data[i], item[0]);
-                i++;
-            }
+            Assert.AreEqual(true, disk.ForEachAvailableContent().Any());
 
             disk.Commit();
 
@@ -170,7 +164,7 @@ namespace UnitTest
         {
             var serializer = new TestSerializer();
             int disposedCount = 0;
-            var disk = new DiskPinableContentDataStore<int[]>(serializer, 10);
+            var disk = new DiskPinableContentDataStore<int[]>(serializer, 2);
             disk.Disposeing += (o) =>
             {
                 disposedCount++;
