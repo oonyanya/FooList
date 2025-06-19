@@ -44,11 +44,12 @@ namespace UnitTest
     [TestClass]
     public class DiskPinableContentDataStoreTest
     {
+        const int CACHE_SIZE = 4;
         [TestMethod]
         public void ConstructorTest()
         {
             var serializer = new TestSerializer();
-            var disk = new DiskPinableContentDataStore<int[]>(serializer, Path.GetTempPath(), 2);
+            var disk = new DiskPinableContentDataStore<int[]>(serializer, Path.GetTempPath(), CACHE_SIZE);
             var test_data = Enumerable.Range(1, 5).Select((i) => { return i * 100; }).ToArray();
             List<PinableContainer<int[]>> containers = new List<PinableContainer<int[]>>();
             foreach (var item in test_data)
@@ -84,7 +85,7 @@ namespace UnitTest
             {
                 List<PinableContainer<int[]>> containers = new List<PinableContainer<int[]>>();
                 int disposedCount = 0;
-                var disk = new DiskPinableContentDataStore<int[]>(serializer, 2);
+                var disk = new DiskPinableContentDataStore<int[]>(serializer, CACHE_SIZE);
                 disk.Disposeing += (o) =>
                 {
                     disposedCount++;
@@ -137,7 +138,7 @@ namespace UnitTest
         public void ForEachAvailableContentTest()
         {
             var serializer = new TestSerializer();
-            var disk = new DiskPinableContentDataStore<int[]>(serializer, 2);
+            var disk = new DiskPinableContentDataStore<int[]>(serializer, CACHE_SIZE);
             var test_data = Enumerable.Range(1, 20).Select((i) => { return i * 100; }).ToArray();
             List<PinableContainer<int[]>> containers = new List<PinableContainer<int[]>>();
 
@@ -162,7 +163,7 @@ namespace UnitTest
         {
             var serializer = new TestSerializer();
             int disposedCount = 0;
-            var disk = new DiskPinableContentDataStore<int[]>(serializer, 2);
+            var disk = new DiskPinableContentDataStore<int[]>(serializer, CACHE_SIZE);
             disk.Disposeing += (o) =>
             {
                 disposedCount++;
@@ -198,7 +199,7 @@ namespace UnitTest
         public void GetTest()
         {
             var serializer = new TestSerializer();
-            var disk = new DiskPinableContentDataStore<int[]>(serializer, 2);
+            var disk = new DiskPinableContentDataStore<int[]>(serializer, CACHE_SIZE);
             var test_data = Enumerable.Range(1, 20).Select((i) => { return i * 100; }).ToArray();
             List<PinableContainer<int[]>> containers = new List<PinableContainer<int[]>>();
             foreach (var item in test_data)

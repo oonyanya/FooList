@@ -28,6 +28,7 @@ namespace UnitTest
     [TestClass]
     public class MemoryPinableContentDataStoreWithAutoDisposerTest
     {
+        int CACHE_SIZE = 4;
         [TestMethod]
         public void SetTest()
         {
@@ -35,7 +36,7 @@ namespace UnitTest
 
             List<PinableContainer<TestContent>> containers = new List<PinableContainer<TestContent>>();
             int disposedCount = 0;
-            var disk = new MemoryPinableContentDataStoreWithAutoDisposer<TestContent>(2);
+            var disk = new MemoryPinableContentDataStoreWithAutoDisposer<TestContent>(CACHE_SIZE);
             disk.Disposeing += (o) =>
             {
                 disposedCount++;
@@ -56,7 +57,7 @@ namespace UnitTest
         [TestMethod]
         public void ForEachAvailableContentTest()
         {
-            var disk = new MemoryPinableContentDataStoreWithAutoDisposer<TestContent>(2);
+            var disk = new MemoryPinableContentDataStoreWithAutoDisposer<TestContent>(CACHE_SIZE);
             var test_data = new int[] { 100, 200, 300, 400 };
             List<PinableContainer<TestContent>> containers = new List<PinableContainer<TestContent>>();
 
@@ -80,7 +81,7 @@ namespace UnitTest
         public void CommitTest()
         {
             int disposedCount = 0;
-            var disk = new MemoryPinableContentDataStoreWithAutoDisposer<TestContent>(10);
+            var disk = new MemoryPinableContentDataStoreWithAutoDisposer<TestContent>(CACHE_SIZE);
             disk.Disposeing += (o) =>
             {
                 disposedCount++;
@@ -105,7 +106,7 @@ namespace UnitTest
         public void GetTest()
         {
             var serializer = new TestSerializer();
-            var disk = new MemoryPinableContentDataStoreWithAutoDisposer<TestContent>(2);
+            var disk = new MemoryPinableContentDataStoreWithAutoDisposer<TestContent>(CACHE_SIZE);
             var test_data = new int[] { 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900, 2000 };
             List<PinableContainer<TestContent>> containers = new List<PinableContainer<TestContent>>();
             foreach (var item in test_data)

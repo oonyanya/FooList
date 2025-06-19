@@ -133,9 +133,7 @@ namespace FooProject.Collection.DataStore
 
     internal class CacheList<K,V>
     {
-        //inQuequeとoutQuequeの比率は0.5なので、LRUキャッシュも含めると128エントリー確保していることになる。
-        //詳しいことはLimitプロパティを参照すること。
-        const int defaultLimit = 32;
+        const int defaultLimit = 128;
 
         LRUCache<K> lru = new LRUCache<K>();
         LinkedList<K> inQueue = new LinkedList<K>();
@@ -151,8 +149,11 @@ namespace FooProject.Collection.DataStore
             }
             set
             {
-                _limit = value;
-                this.lru.Limit = value * 2;
+                if (value < 4)
+                    throw new ArgumentOutOfRangeException("Limit must be more than 4");
+                var lru_limit = value / 2;
+                _limit = (value - lru_limit) / 2;
+                this.lru.Limit = lru_limit;
             }
         }
 
