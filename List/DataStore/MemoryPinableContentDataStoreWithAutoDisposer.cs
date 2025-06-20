@@ -59,7 +59,7 @@ namespace FooProject.Collection.DataStore
         {
             if (pinableContainer.IsRemoved)
             {
-                this.emptyList.SetID(pinableContainer.CacheIndex);
+                this.emptyList.ReleaseID(pinableContainer.CacheIndex);
                 pinableContainer.CacheIndex = PinableContainer<T>.NOTCACHED;
                 return;
             }

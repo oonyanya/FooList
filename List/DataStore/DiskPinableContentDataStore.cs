@@ -59,13 +59,9 @@ namespace FooProject.Collection.DataStore
         /// </summary>
         /// <param name="serializer">ISerializeDataを継承したクラスのインスタンス</param>
         /// <param name="workfolderpath">ワークファイルを格納するフォルダーへのフルパス。nullの場合は%TEMP%を参照します。</param>
-        /// <param name="cache_limit">キャッシュしておく量。少なくとも２以上は指定する必要があります</param>
+        /// <param name="cache_limit">キャッシュしておく量。少なくとも４以上は指定する必要があります</param>
         public DiskPinableContentDataStore(ISerializeData<T> serializer,string workfolderpath,int cache_limit = 128)
         {
-            //LeafNodeクラスで行う操作の関係で２以上にしないと落ちることがある
-            if (cache_limit < 2)
-                throw new ArgumentOutOfRangeException("cache_limit must be grater than 1");
-
             if (workfolderpath == null)
                 tempFilePath = Path.GetTempFileName();
             else
@@ -107,7 +103,7 @@ namespace FooProject.Collection.DataStore
                     this.writer.Write(data);
                     outed_item.Content = default(T);
                 }
-                this.emptyList.SetID(outed_item.CacheIndex);
+                this.emptyList.ReleaseID(outed_item.CacheIndex);
                 outed_item.CacheIndex = PinableContainer<T>.NOTCACHED;
             });
         }
@@ -178,7 +174,7 @@ namespace FooProject.Collection.DataStore
             {
                 if(pinableContainer.Info != null)
                     this.emptyList.SetEmptyList(pinableContainer.Info);
-                this.emptyList.SetID(pinableContainer.CacheIndex);
+                this.emptyList.ReleaseID(pinableContainer.CacheIndex);
                 pinableContainer.Info = null;
                 pinableContainer.Content = default(T);
                 pinableContainer.CacheIndex = PinableContainer<T>.NOTCACHED;

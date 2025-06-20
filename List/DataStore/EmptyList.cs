@@ -43,7 +43,7 @@ namespace FooProject.Collection.DataStore
             this.emptylist = new Stack<DiskAllocationInfo>[maxmsb];
         }
 
-        public void SetID(long id)
+        public void ReleaseID(long id)
         {
             this.emptyIDList.Push(id);
         }
