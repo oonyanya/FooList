@@ -1,5 +1,14 @@
-﻿// https://github.com/Zetonem/2Q-Cache-Algorithm
-// からコピペ
+﻿/*
+ * 2q a low overhead high performance buffer management replacement algorithm
+ * 
+ * 論文：
+ * https://arpitbhayani.me/blogs/2q-cache/
+ * https://www.vldb.org/conf/1994/P439.PDF
+ * 
+ * 実装は
+ * https://github.com/Zetonem/2Q-Cache-Algorithm
+ * からコピペ
+*/
 using System;
 using System.Collections;
 using System.Collections.Generic;
