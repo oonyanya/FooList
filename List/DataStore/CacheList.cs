@@ -155,6 +155,7 @@ namespace FooProject.Collection.DataStore
         Dictionary<K,V> store = new Dictionary<K,V>();
 
         int _limit;
+        int _inQLimit,_outQLimit;
         public int Limit
         {
             get
@@ -165,9 +166,15 @@ namespace FooProject.Collection.DataStore
             {
                 if (value < 4)
                     throw new ArgumentOutOfRangeException("Limit must be more than 4");
-                var lru_limit = value / 2;
-                _limit = (value - lru_limit) / 2;
+                //論文によるこのくらいが一番いいらしい
+                var inQLimit = Math.Max((int)(value * 0.2), 1);
+                var outQLimit = Math.Max((int)(value * 0.6), 1);
+                var lru_limit = Math.Max(value - inQLimit - outQLimit, 1);
+
+                this._inQLimit = inQLimit;
+                this._outQLimit = outQLimit;
                 this.lru.Limit = lru_limit;
+                this._limit = value;
             }
         }
 
@@ -275,7 +282,7 @@ namespace FooProject.Collection.DataStore
 
             bool hasFreeslot = false;
 
-            if(this.inQueue.Count < this.Limit)
+            if(this.inQueue.Count < this._inQLimit)
             {
                 this.inQueue.AddFirst(key);
                 hasFreeslot = true;
@@ -299,7 +306,7 @@ namespace FooProject.Collection.DataStore
             this.outQueque.Add(lastKeyInQ);
 
             bool hasOverflow = false;
-            if(this.outQueque.Count > this.Limit)
+            if(this.outQueque.Count > this._outQLimit)
             {
                 K lastKeyQutQ = this.outQueque.Last;
                 if (this.store.ContainsKey(lastKeyQutQ))
