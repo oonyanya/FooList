@@ -1,10 +1,12 @@
 ﻿// See https://aka.ms/new-console-template for more information
 //ディスク上に保存するならコメントアウトする
-//#define DISKBASE_BUFFER
+#define DISKBASE_BUFFER
 //文字列の操作の最終結果を保存するならコメントアウトする
 //#define SAVE_FILE
 //文字列操作の結果を各段階ごとに保存するならコメントアウトする
 //#define SAVE_FILE_ALL_STAGE
+//キャッシュサイズを固定するならコメントアウトする
+#define FIXED_CACHE_SIZE
 
 using FooEditEngine;
 using FooProject.Collection;
@@ -15,15 +17,19 @@ using System.Globalization;
 using System.Runtime;
 using EditorDemo;
 
-const int BENCHMARK_SIZE = 1000000;
+const int BENCHMARK_SIZE = 120000000;
 
 const string insertStr = "this is a pen.this is a pen.this is a pen.this is a pen.this is a pen.this is a pen.this is a pen.\n";
 
 Console.WriteLine("benchmark start");
 Console.WriteLine("size:" + BENCHMARK_SIZE);
 #if DISKBASE_BUFFER
+#if FIXED_CACHE_SIZE
+    var cacheSize = 128;
+#else
     var twolog = (int)(Math.Log2((long) BENCHMARK_SIZE * (long)insertStr.Length  / StringBuffer.BLOCKSIZE  * 0.01) + 0.5);
     var cacheSize = (int)Math.Max(Math.Pow(2, twolog), 128);
+#endif
     var buf = new StringBuffer(true, cacheSize);
 
     Console.WriteLine("cache size:" + cacheSize);
