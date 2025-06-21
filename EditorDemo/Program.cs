@@ -29,65 +29,68 @@ Console.WriteLine("benchmark start");
 Console.WriteLine("size:" + BENCHMARK_SIZE);
 Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}" + "bytes");
 
-Stopwatch sw;
-
-sw = Stopwatch.StartNew();
-for(int i = 0; i< BENCHMARK_SIZE; i++)
+long ElapsedMilliseconds;
+ElapsedMilliseconds = BenchmarkRunner.Run(() =>
 {
-    var insertStr = "this is a pen.this is a pen.this is a pen.this is a pen.this is a pen.this is a pen.this is a pen.\n";
-    buf.Replace(buf.Length, 0,insertStr,insertStr.Length);
-}
-sw.Stop();
-Console.WriteLine(String.Format("add time:{0} ms", sw.ElapsedMilliseconds));
+    for (int i = 0; i < BENCHMARK_SIZE; i++)
+    {
+        var insertStr = "this is a pen.this is a pen.this is a pen.this is a pen.this is a pen.this is a pen.this is a pen.\n";
+        buf.Replace(buf.Length, 0, insertStr, insertStr.Length);
+    }
+});
+Console.WriteLine(String.Format("add time:{0} ms", ElapsedMilliseconds));
 Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}" + "bytes"); 
 Task.Delay(1000).Wait();
 #if SAVE_FILE_ALL_STAGE
 buf.SaveFile("test1.txt");
 #endif
 
-sw = Stopwatch.StartNew();
-buf.ReplaceAll("pen", "cat");
-sw.Stop();
-Console.WriteLine(String.Format("replace 1 time:{0} ms",sw.ElapsedMilliseconds));
+ElapsedMilliseconds = BenchmarkRunner.Run(() =>
+{
+    buf.ReplaceAll("pen", "cat");
+});
+Console.WriteLine(String.Format("replace 1 time:{0} ms",ElapsedMilliseconds));
 Task.Delay(1000).Wait();
 Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}" + "bytes");
 #if SAVE_FILE_ALL_STAGE
-buf.SaveFile("test2.txt");
+    buf.SaveFile("test2.txt");
 #endif
 
-sw = Stopwatch.StartNew();
-buf.ReplaceAll("cat", "ratking");
-sw.Stop();
-Console.WriteLine(String.Format("replace 2 time:{0} ms", sw.ElapsedMilliseconds));
+ElapsedMilliseconds = BenchmarkRunner.Run(() =>
+{
+    buf.ReplaceAll("cat", "ratking");
+});
+Console.WriteLine(String.Format("replace 2 time:{0} ms", ElapsedMilliseconds));
 Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}" + "bytes");
 #if SAVE_FILE_ALL_STAGE
-buf.SaveFile("test3.txt");
+    buf.SaveFile("test3.txt");
 #endif
 
-sw = Stopwatch.StartNew();
-buf.ReplaceAll("ratking", "cat");
-sw.Stop();
-Console.WriteLine(String.Format("replace 3 time:{0} ms", sw.ElapsedMilliseconds));
+ElapsedMilliseconds = BenchmarkRunner.Run(() =>
+{
+    buf.ReplaceAll("ratking", "cat");
+});
+Console.WriteLine(String.Format("replace 3 time:{0} ms", ElapsedMilliseconds));
 Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}" + "bytes");
 #if SAVE_FILE_ALL_STAGE
-buf.SaveFile("test4.txt");
+    buf.SaveFile("test4.txt");
 #endif
 
-sw = Stopwatch.StartNew();
+ElapsedMilliseconds = BenchmarkRunner.Run(() =>
+{
 #if SAVE_FILE || SAVE_FILE_ALL_STAGE
-buf.SaveFile("test_last.txt");
+    buf.SaveFile("test_last.txt");
 #else
-buf.SaveFile(null);
+    buf.SaveFile(null);
 #endif
-sw.Stop();
-Console.WriteLine(String.Format("enumratotion time:{0} ms", sw.ElapsedMilliseconds));
+});
+Console.WriteLine(String.Format("enumratotion time:{0} ms", ElapsedMilliseconds));
 Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}" + "bytes");
 
 buf.Clear();
 Console.WriteLine("clear buffer");
 Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}" + "bytes");
 
-sw = Stopwatch.StartNew();
 var rangelist = new BigRangeList<LineToIndex>();
 #if DISKBASE_BUFFER
     var serializer = new LineToIndexTableSerializer();
@@ -96,44 +99,50 @@ var rangelist = new BigRangeList<LineToIndex>();
     var dataStore = new MemoryPinableContentDataStore<FixedList<LineToIndex>>();
 #endif
 rangelist.CustomBuilder.DataStore = dataStore;
-for (int i = 0; i < BENCHMARK_SIZE; i++)
-{
-    rangelist.Add(new LineToIndex(i + 10, 10));
-}
-sw.Stop();
-Console.WriteLine(String.Format("add line time:{0} ms", sw.ElapsedMilliseconds));
-Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}" + "bytes");
 
-sw = Stopwatch.StartNew();
-for (int i = 0; i < BENCHMARK_SIZE; i++)
+ElapsedMilliseconds = BenchmarkRunner.Run(() =>
 {
-    if(i % 100 == 0)
+    for (int i = 0; i < BENCHMARK_SIZE; i++)
     {
-        var data = (LineToIndex)rangelist[i].DeepCopy();
-        data.length += 10;
-        rangelist[i]= data;
+        rangelist.Add(new LineToIndex(i + 10, 10));
     }
-}
-sw.Stop();
-Console.WriteLine(String.Format("update line time(per 100 lines):{0} ms", sw.ElapsedMilliseconds));
+});
+Console.WriteLine(String.Format("add line time:{0} ms", ElapsedMilliseconds));
 Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}" + "bytes");
 
-sw = Stopwatch.StartNew();
-for (int i = 0; i < BENCHMARK_SIZE; i++)
+ElapsedMilliseconds = BenchmarkRunner.Run(() =>
 {
-    var row = rangelist.GetIndexFromAbsoluteIndexIntoRange(i * 10 + 1);
-}
-sw.Stop();
-Console.WriteLine(String.Format("convert index to line time:{0} ms", sw.ElapsedMilliseconds));
+    for (int i = 0; i < BENCHMARK_SIZE; i++)
+    {
+        if (i % 100 == 0)
+        {
+            var data = (LineToIndex)rangelist[i].DeepCopy();
+            data.length += 10;
+            rangelist[i] = data;
+        }
+    }
+});
+Console.WriteLine(String.Format("update line time(per 100 lines):{0} ms", ElapsedMilliseconds));
 Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}" + "bytes");
 
-sw = Stopwatch.StartNew();
-for (int i = 0; i < BENCHMARK_SIZE; i++)
+ElapsedMilliseconds = BenchmarkRunner.Run(() =>
 {
-    var index = rangelist.GetWithConvertAbsolteIndex(i);
-}
-sw.Stop();
-Console.WriteLine(String.Format("convert line to index time:{0} ms", sw.ElapsedMilliseconds));
+    for (int i = 0; i < BENCHMARK_SIZE; i++)
+    {
+        var row = rangelist.GetIndexFromAbsoluteIndexIntoRange(i * 10 + 1);
+    }
+});
+Console.WriteLine(String.Format("convert index to line time:{0} ms", ElapsedMilliseconds));
+Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}" + "bytes");
+
+ElapsedMilliseconds = BenchmarkRunner.Run(() =>
+{
+    for (int i = 0; i < BENCHMARK_SIZE; i++)
+    {
+        var index = rangelist.GetWithConvertAbsolteIndex(i);
+    }
+});
+Console.WriteLine(String.Format("convert line to index time:{0} ms", ElapsedMilliseconds));
 Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}" + "bytes");
 
 rangelist.Clear();
