@@ -23,12 +23,12 @@ Console.WriteLine("benchmark start");
 Console.WriteLine("size:" + BENCHMARK_SIZE);
 #if DISKBASE_BUFFER
     var twolog = (int)(Math.Log2((long) BENCHMARK_SIZE * (long)insertStr.Length  / StringBuffer.BLOCKSIZE  * 0.01) + 0.5);
-    var cacheSize = (int)Math.Pow(2, twolog);
+    var cacheSize = (int)Math.Max(Math.Pow(2, twolog), 128);
     var buf = new StringBuffer(true, cacheSize);
 
     Console.WriteLine("cache size:" + cacheSize);
 #else
-    var buf = new StringBuffer();
+var buf = new StringBuffer();
 #endif
 
 GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
