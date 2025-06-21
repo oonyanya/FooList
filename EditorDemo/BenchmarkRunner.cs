@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -10,13 +11,39 @@ namespace EditorDemo
 {
     public class BenchmarkRunner
     {
+        const int SLEEPTIME = 2000;
+        private static CancellationTokenSource _tokenSource = null;
+        private static BlockingCollection<bool> _queque = new BlockingCollection<bool>();
         public static long Run(Action action)
         {
             if(action == null)
                 throw new ArgumentNullException("action");
+
+            _tokenSource = new CancellationTokenSource();
+            // Windows11以降、定期的に呼ばないとスリープできないらしいので、マネする
+            // https://github.com/microsoft/PowerToys/blob/main/src/modules/awake/Awake/Core/Manager.cs
+            Thread monitorThread = new Thread(() => {
+                System.Diagnostics.Debug.WriteLine("begin prevent sleep");
+                while (true)
+                {
+                    var state = _queque.Take();
+                    if (state)
+                    {
+                        NativeMethods.PreventSleep();
+                    }
+                    else
+                    {
+                        NativeMethods.AllowSleep();
+                        break;
+                    }
+                }
+            });
+            monitorThread.Start();
+
+            _queque.Add(true);
+
             try
             {
-                NativeMethods.PreventSleep();
                 var sw = Stopwatch.StartNew();
                 action();
                 sw.Stop();
@@ -24,7 +51,10 @@ namespace EditorDemo
             }
             finally
             {
-                NativeMethods.AllowSleep();
+                //スレッドを止めて、スリープできるようにする
+                _queque.Add(false);
+                Task.Delay(SLEEPTIME).Wait();
+                System.Diagnostics.Debug.WriteLine("end prevent sleep");
             }
         }
     }

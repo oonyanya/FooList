@@ -50,7 +50,6 @@ ElapsedMilliseconds = BenchmarkRunner.Run(() =>
 });
 Console.WriteLine(String.Format("add time:{0} ms", ElapsedMilliseconds));
 Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}" + "bytes"); 
-Task.Delay(1000).Wait();
 #if SAVE_FILE_ALL_STAGE
 buf.SaveFile("test1.txt");
 #endif
@@ -60,7 +59,6 @@ ElapsedMilliseconds = BenchmarkRunner.Run(() =>
     buf.ReplaceAll("pen", "cat");
 });
 Console.WriteLine(String.Format("replace 1 time:{0} ms",ElapsedMilliseconds));
-Task.Delay(1000).Wait();
 Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}" + "bytes");
 #if SAVE_FILE_ALL_STAGE
     buf.SaveFile("test2.txt");
