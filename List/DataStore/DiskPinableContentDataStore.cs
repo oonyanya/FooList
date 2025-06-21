@@ -1,4 +1,5 @@
 ﻿//#define KEEP_TEMPORARY_FILE
+//#define USE_TWO_QUEUE_CACHE
 using Slusser.Collections.Generic;
 using System;
 using System.Collections.Generic;
@@ -41,7 +42,11 @@ namespace FooProject.Collection.DataStore
         ISerializeData<T> serializer;
         EmptyList emptyList = new EmptyList();
         bool disposedValue = false;
-        CacheList<long, PinableContainer<T>> writebackCacheList = new CacheList<long, PinableContainer<T>>();
+#if USE_TWO_QUEUE_CACHE
+        ICacheList<long, PinableContainer<T>> writebackCacheList = new TwoQueueCacheList<long, PinableContainer<T>>();
+#else
+        ICacheList<long, PinableContainer<T>> writebackCacheList = new FIFOCacheList<long, PinableContainer<T>>();
+#endif
         BinaryWriter writer;
         BinaryReader reader;
 

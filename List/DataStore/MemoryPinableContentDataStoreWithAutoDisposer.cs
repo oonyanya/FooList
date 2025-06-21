@@ -10,11 +10,11 @@ namespace FooProject.Collection.DataStore
     {
         EmptyList emptyList = new EmptyList();
         bool disposedValue = false;
-        CacheList<long, PinableContainer<T>> writebackCacheList = null;
+        TwoQueueCacheList<long, PinableContainer<T>> writebackCacheList = null;
 
         public MemoryPinableContentDataStoreWithAutoDisposer(int cache_limit = 128)
         {
-            this.writebackCacheList = new CacheList<long, PinableContainer<T>>();
+            this.writebackCacheList = new TwoQueueCacheList<long, PinableContainer<T>>();
             this.writebackCacheList.Limit = cache_limit;
             this.writebackCacheList.CacheOuted += (e) => {
                 this.OnDispoing(e.Value.Content);

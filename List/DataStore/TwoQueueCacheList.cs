@@ -134,30 +134,17 @@ namespace FooProject.Collection.DataStore
         }
     }
 
-    internal class CacheOutedEventArgs<K,V> : EventArgs
-    {
-        public K Key { get; private set; }
-        public V Value { get; private set; }
-        public bool RequireWriteBack { get; private set; }
-        public CacheOutedEventArgs(K key, V value, bool requireWriteBack)
-        {
-            Key = key;
-            Value = value;
-            RequireWriteBack = requireWriteBack;
-        }
-    }
-
-    internal class CacheList<K,V>
+    internal class TwoQueueCacheList<K, V> : ICacheList<K, V>
     {
         const int defaultLimit = 128;
 
         LRUCache<K> lru = new LRUCache<K>();
         LinkedList<K> inQueue = new LinkedList<K>();
         FIFOCache<K> outQueque = new FIFOCache<K>();
-        Dictionary<K,V> store = new Dictionary<K,V>();
+        Dictionary<K, V> store = new Dictionary<K, V>();
 
         int _limit;
-        int _inQLimit,_outQLimit;
+        int _inQLimit, _outQLimit;
         public int Limit
         {
             get
@@ -180,28 +167,28 @@ namespace FooProject.Collection.DataStore
             }
         }
 
-        public CacheList()
+        public TwoQueueCacheList()
         {
             this.Limit = defaultLimit;
         }
 
-        public Action<CacheOutedEventArgs<K,V>> CacheOuted { get; set; }
+        public Action<CacheOutedEventArgs<K, V>> CacheOuted { get; set; }
 
         void OnCacheOuted(K key, V value, bool requireWriteBack)
         {
             if (CacheOuted != null)
-                CacheOuted(new CacheOutedEventArgs<K, V>(key,value,requireWriteBack));
+                CacheOuted(new CacheOutedEventArgs<K, V>(key, value, requireWriteBack));
         }
 
         public IEnumerable<V> ForEachValue()
         {
-            foreach(V value in store.Values)
+            foreach (V value in store.Values)
             {
                 yield return value;
             }
         }
 
-        public bool TryGet(K key,out V value)
+        public bool TryGet(K key, out V value)
         {
             value = default(V);
             if (this.store.ContainsKey(key))
@@ -237,7 +224,7 @@ namespace FooProject.Collection.DataStore
 
         public void Flush()
         {
-            foreach(var outed_key in this.inQueue)
+            foreach (var outed_key in this.inQueue)
             {
                 if (this.store.ContainsKey(outed_key))
                 {
@@ -277,7 +264,7 @@ namespace FooProject.Collection.DataStore
             return this.Set(key, value, out _);
         }
 
-        public bool Set(K key,V value, out V outed_item)
+        public bool Set(K key, V value, out V outed_item)
         {
             outed_item = default(V);
             if (this.store.ContainsKey(key))
@@ -288,7 +275,7 @@ namespace FooProject.Collection.DataStore
 
             bool hasFreeslot = false;
 
-            if(this.inQueue.Count < this._inQLimit)
+            if (this.inQueue.Count < this._inQLimit)
             {
                 this.inQueue.AddFirst(key);
                 hasFreeslot = true;
@@ -312,7 +299,7 @@ namespace FooProject.Collection.DataStore
             this.outQueque.Add(lastKeyInQ);
 
             bool hasOverflow = false;
-            if(this.outQueque.Count > this._outQLimit)
+            if (this.outQueque.Count > this._outQLimit)
             {
                 K lastKeyQutQ = this.outQueque.Last;
                 if (this.store.ContainsKey(lastKeyQutQ))
