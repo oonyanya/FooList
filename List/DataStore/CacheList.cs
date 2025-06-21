@@ -9,6 +9,8 @@
  * https://github.com/Zetonem/2Q-Cache-Algorithm
  * からコピペ
 */
+//キャッシュから取得時にあふれたやつも書き出すかどうか
+//#define WRITE_BACK_WHEN_CACHEOUT_IN_TRYGET
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -220,7 +222,11 @@ namespace FooProject.Collection.DataStore
                     if (overflow)
                     {
                         var removedValue = this.store[outed_key];
+#if WRITE_BACK_WHEN_CACHEOUT_IN_TRYGET
                         this.OnCacheOuted(outed_key, removedValue, true);
+#else
+                        this.OnCacheOuted(outed_key, removedValue, false);
+#endif
                         this.store.Remove(outed_key);
                     }
                 }
