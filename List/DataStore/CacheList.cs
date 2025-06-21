@@ -187,7 +187,7 @@ namespace FooProject.Collection.DataStore
 
         public Action<CacheOutedEventArgs<K,V>> CacheOuted { get; set; }
 
-        public void OnCacheOuted(K key, V value, bool requireWriteBack)
+        void OnCacheOuted(K key, V value, bool requireWriteBack)
         {
             if (CacheOuted != null)
                 CacheOuted(new CacheOutedEventArgs<K, V>(key,value,requireWriteBack));
