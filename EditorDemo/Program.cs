@@ -1,6 +1,6 @@
 ﻿// See https://aka.ms/new-console-template for more information
 //ディスク上に保存するならコメントアウトする
-//#define DISKBASE_BUFFER
+#define DISKBASE_BUFFER
 //文字列の操作の最終結果を保存するならコメントアウトする
 //#define SAVE_FILE
 //文字列操作の結果を各段階ごとに保存するならコメントアウトする
@@ -17,16 +17,21 @@ using EditorDemo;
 
 const int BENCHMARK_SIZE = 1000000;
 
-#if DISKBASE_BUFFER
-var buf = new StringBuffer(true);
-#else
-var buf = new StringBuffer();
-#endif
-
-GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
+const string insertStr = "this is a pen.this is a pen.this is a pen.this is a pen.this is a pen.this is a pen.this is a pen.\n";
 
 Console.WriteLine("benchmark start");
 Console.WriteLine("size:" + BENCHMARK_SIZE);
+#if DISKBASE_BUFFER
+    var twolog = (int)(Math.Log2((long) BENCHMARK_SIZE * (long)insertStr.Length  / StringBuffer.BLOCKSIZE  * 0.01) + 0.5);
+    var cacheSize = (int)Math.Pow(2, twolog);
+    var buf = new StringBuffer(true, cacheSize);
+
+    Console.WriteLine("cache size:" + cacheSize);
+#else
+    var buf = new StringBuffer();
+#endif
+
+GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
 Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}" + "bytes");
 
 long ElapsedMilliseconds;
@@ -34,7 +39,6 @@ ElapsedMilliseconds = BenchmarkRunner.Run(() =>
 {
     for (int i = 0; i < BENCHMARK_SIZE; i++)
     {
-        var insertStr = "this is a pen.this is a pen.this is a pen.this is a pen.this is a pen.this is a pen.this is a pen.\n";
         buf.Replace(buf.Length, 0, insertStr, insertStr.Length);
     }
 });

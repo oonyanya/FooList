@@ -146,20 +146,22 @@ namespace FooEditEngine
 
         internal DocumentUpdateEventHandler Update;
 
-        public StringBuffer(bool isDiskBase = false)
+        public const int BLOCKSIZE = 32768;
+
+        public StringBuffer(bool isDiskBase = false,int cache_limit = 128)
         {
             if (isDiskBase)
             {
                 var serializer = new StringBufferSerializer();
-                dataStore = new DiskPinableContentDataStore<FixedList<char>>(serializer);
+                dataStore = new DiskPinableContentDataStore<FixedList<char>>(serializer,cache_limit);
             }
             else
             {
                 dataStore = new MemoryPinableContentDataStore<FixedList<char>>();
             }
             buf.CustomBuilder.DataStore = dataStore;
-            buf.BlockSize = 32768;
-            buf.MaxCapacity = (long)1836311903 * (long)32768;
+            buf.BlockSize = BLOCKSIZE;
+            buf.MaxCapacity = (long)1836311903 * (long)BLOCKSIZE;
             this.Update = (s, e) => { };
         }
 
