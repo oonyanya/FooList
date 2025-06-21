@@ -32,7 +32,7 @@ namespace EditorDemo
     {
         public static void PreventSleep()
         {
-            SetThreadExecutionState(ExecutionState.EsContinuous | ExecutionState.EsSystemRequired);
+            SetThreadExecutionState(ExecutionState.EsContinuous | ExecutionState.EsSystemRequired | ExecutionState.EsAwaymodeRequired);
         }
 
         public static void AllowSleep()
