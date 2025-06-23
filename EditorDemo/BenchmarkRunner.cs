@@ -6,44 +6,21 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Win32.SafeHandles;
 
 namespace EditorDemo
 {
     public class BenchmarkRunner
     {
         const int SLEEPTIME = 2000;
-        private static CancellationTokenSource _tokenSource = null;
-        private static BlockingCollection<bool> _queque = new BlockingCollection<bool>();
         public static long Run(Action action)
         {
             if(action == null)
                 throw new ArgumentNullException("action");
 
-            _tokenSource = new CancellationTokenSource();
-            // Windows11以降、定期的に呼ばないとスリープできないらしいので、マネする
-            // https://github.com/microsoft/PowerToys/blob/main/src/modules/awake/Awake/Core/Manager.cs
-            Thread monitorThread = new Thread(() => {
-                System.Diagnostics.Debug.WriteLine("begin prevent sleep");
-                while (true)
-                {
-                    var state = _queque.Take();
-                    if (state)
-                    {
-                        NativeMethods.PreventSleep();
-                    }
-                    else
-                    {
-                        NativeMethods.AllowSleep();
-                        break;
-                    }
-                }
-            });
-            monitorThread.Start();
-
-            _queque.Add(true);
-
             try
             {
+                NativeMethods.EnableConstantPower(true);
                 var sw = Stopwatch.StartNew();
                 action();
                 sw.Stop();
@@ -51,35 +28,125 @@ namespace EditorDemo
             }
             finally
             {
-                //スレッドを止めて、スリープできるようにする
-                _queque.Add(false);
-                Task.Delay(SLEEPTIME).Wait();
+                NativeMethods.EnableConstantPower(false);
                 System.Diagnostics.Debug.WriteLine("end prevent sleep");
             }
         }
     }
+
     internal static class NativeMethods
     {
-        public static void PreventSleep()
+        internal class PowerRequestSafeHandle : SafeHandleZeroOrMinusOneIsInvalid
         {
-            SetThreadExecutionState(ExecutionState.EsContinuous | ExecutionState.EsSystemRequired | ExecutionState.EsAwaymodeRequired);
+            private PowerRequestSafeHandle()
+                : base(true)
+            {
+            }
+
+            protected override bool ReleaseHandle()
+            {
+                return NativeMethods.CloseHandle(handle);
+            }
         }
 
-        public static void AllowSleep()
+        #region prevent screensaver, display dimming and automatically sleeping
+        static PowerRequestSafeHandle _PowerRequest; //HANDLE
+
+        // Availability Request Functions
+        [DllImport("kernel32.dll", SetLastError = true)]
+        static extern PowerRequestSafeHandle PowerCreateRequest(ref POWER_REQUEST_CONTEXT Context);
+
+        [DllImport("kernel32.dll")]
+        static extern bool PowerSetRequest(PowerRequestSafeHandle PowerRequestHandle, PowerRequestType RequestType);
+
+        [DllImport("kernel32.dll")]
+        static extern bool PowerClearRequest(PowerRequestSafeHandle PowerRequestHandle, PowerRequestType RequestType);
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true, ExactSpelling = true)]
+        internal static extern bool CloseHandle(IntPtr hObject);
+
+        // Availablity Request Enumerations and Constants
+        enum PowerRequestType
         {
-            SetThreadExecutionState(ExecutionState.EsContinuous);
+            PowerRequestDisplayRequired = 0,
+            PowerRequestSystemRequired,
+            PowerRequestAwayModeRequired,
+            PowerRequestMaximum
         }
 
-        [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        private static extern ExecutionState SetThreadExecutionState(ExecutionState esFlags);
+        const int POWER_REQUEST_CONTEXT_VERSION = 0;
+        const int POWER_REQUEST_CONTEXT_SIMPLE_STRING = 0x1;
+        const int POWER_REQUEST_CONTEXT_DETAILED_STRING = 0x2;
 
-        [FlagsAttribute]
-        private enum ExecutionState : uint
+        // Availablity Request Structures
+        // Note:  Windows defines the POWER_REQUEST_CONTEXT structure with an
+        // internal union of SimpleReasonString and Detailed information.
+        // To avoid runtime interop issues, this version of 
+        // POWER_REQUEST_CONTEXT only supports SimpleReasonString.  
+        // To use the detailed information,
+        // define the PowerCreateRequest function with the first 
+        // parameter of type POWER_REQUEST_CONTEXT_DETAILED.
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+        public struct POWER_REQUEST_CONTEXT
         {
-            EsAwaymodeRequired = 0x00000040,
-            EsContinuous = 0x80000000,
-            EsDisplayRequired = 0x00000002,
-            EsSystemRequired = 0x00000001
+            public UInt32 Version;
+            public UInt32 Flags;
+            [MarshalAs(UnmanagedType.LPWStr)]
+            public string
+                SimpleReasonString;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct PowerRequestContextDetailedInformation
+        {
+            public IntPtr LocalizedReasonModule;
+            public UInt32 LocalizedReasonId;
+            public UInt32 ReasonStringCount;
+            [MarshalAs(UnmanagedType.LPWStr)]
+            public string[] ReasonStrings;
+        }
+
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+        public struct POWER_REQUEST_CONTEXT_DETAILED
+        {
+            public UInt32 Version;
+            public UInt32 Flags;
+            public PowerRequestContextDetailedInformation DetailedInformation;
+        }
+        #endregion
+
+
+
+        /// <summary>
+        /// Prevent screensaver, display dimming and power saving. This function wraps PInvokes on Win32 API. 
+        /// </summary>
+        /// <param name="enableConstantDisplayAndPower">True to get a constant display and power - False to clear the settings</param>
+        public static void EnableConstantPower(bool enableConstantDisplayAndPower)
+        {
+            if (enableConstantDisplayAndPower)
+            {
+                POWER_REQUEST_CONTEXT _PowerRequestContext;
+                // Set up the diagnostic string
+                _PowerRequestContext.Version = POWER_REQUEST_CONTEXT_VERSION;
+                _PowerRequestContext.Flags = POWER_REQUEST_CONTEXT_SIMPLE_STRING;
+                _PowerRequestContext.SimpleReasonString = "Running benchmark"; // your reason for changing the power settings;
+
+                // Create the request, get a handle
+                _PowerRequest = PowerCreateRequest(ref _PowerRequestContext);
+
+                // Set the request
+                PowerSetRequest(_PowerRequest, PowerRequestType.PowerRequestSystemRequired);
+                PowerSetRequest(_PowerRequest, PowerRequestType.PowerRequestAwayModeRequired);
+            }
+            else
+            {
+                // Clear the request
+                PowerClearRequest(_PowerRequest, PowerRequestType.PowerRequestSystemRequired);
+                PowerClearRequest(_PowerRequest, PowerRequestType.PowerRequestAwayModeRequired);
+
+                if (_PowerRequest != null && !_PowerRequest.IsInvalid)
+                    _PowerRequest.Dispose();
+            }
         }
     }
 }
