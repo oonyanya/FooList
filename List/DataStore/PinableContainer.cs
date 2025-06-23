@@ -16,7 +16,7 @@ namespace FooProject.Collection.DataStore
 
         public T Content { get; internal set; }
 
-        public bool IsRemoved { get; set; }
+        internal bool IsRemoved { get; set; }
 
 
         public PinableContainer(T content)
