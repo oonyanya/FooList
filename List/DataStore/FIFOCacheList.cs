@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace FooProject.Collection.DataStore
 {
-    internal class FIFOCacheList<K, V> : ICacheList<K, V>
+    public class FIFOCacheList<K, V> : ICacheList<K, V>
     {
         Queue<K> queue = new Queue<K>();
         Dictionary<K, V> store = new Dictionary<K, V>();
@@ -18,7 +18,7 @@ namespace FooProject.Collection.DataStore
             this.Limit = 128;
         }
 
-        public Action<CacheOutedEventArgs<K, V>> CacheOuted { get; set; }
+        public event Action<CacheOutedEventArgs<K, V>> CacheOuted;
 
         void OnCacheOuted(K key, V value, bool requireWriteBack)
         {

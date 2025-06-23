@@ -134,7 +134,7 @@ namespace FooProject.Collection.DataStore
         }
     }
 
-    internal class TwoQueueCacheList<K, V> : ICacheList<K, V>
+    public class TwoQueueCacheList<K, V> : ICacheList<K, V>
     {
         const int defaultLimit = 128;
 
@@ -172,7 +172,7 @@ namespace FooProject.Collection.DataStore
             this.Limit = defaultLimit;
         }
 
-        public Action<CacheOutedEventArgs<K, V>> CacheOuted { get; set; }
+        public event Action<CacheOutedEventArgs<K, V>> CacheOuted;
 
         void OnCacheOuted(K key, V value, bool requireWriteBack)
         {

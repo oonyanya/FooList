@@ -76,7 +76,7 @@ namespace FooProject.Collection.DataStore
             this.reader = new BinaryReader(dataStream);
             this.serializer = serializer;
             this.writebackCacheList.Limit = cache_limit;
-            this.writebackCacheList.CacheOuted = new Action<CacheOutedEventArgs<long, PinableContainer<T>>>((ev)=>{
+            this.writebackCacheList.CacheOuted += (ev)=>{
 
                 var key = ev.Key;
                 var outed_item = ev.Value;
@@ -110,7 +110,7 @@ namespace FooProject.Collection.DataStore
                 }
                 this.emptyList.ReleaseID(outed_item.CacheIndex);
                 outed_item.CacheIndex = PinableContainer<T>.NOTCACHED;
-            });
+            };
         }
 
         public event Action<T> Disposeing;
