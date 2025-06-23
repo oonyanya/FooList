@@ -280,8 +280,7 @@ namespace FooProject.Collection.DataStore
                 this.inQueue.AddFirst(key);
                 hasFreeslot = true;
             }
-
-            if (this.outQueque.Count < this.Limit)
+            else if (this.outQueque.Count < this.Limit)
             {
                 this.outQueque.Add(key);
                 hasFreeslot = true;
