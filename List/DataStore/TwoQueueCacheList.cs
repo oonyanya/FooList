@@ -38,15 +38,16 @@ namespace FooProject.Collection.DataStore
         public bool Set(K key,out K outed_key)
         {
             outed_key = default(K);
-            if(store.ContainsKey(key))
+            LinkedListNode<K> node;
+            bool has_key = store.TryGetValue(key, out node);
+            if(has_key)
             {
-                var node = store[key];
                 list.Remove(node);
                 list.AddFirst(node);
             }
             else
             {
-                var node = list.AddFirst(key);
+                node = list.AddFirst(key);
                 store.Add(key, node);
             }
 
@@ -103,9 +104,10 @@ namespace FooProject.Collection.DataStore
 
         public void Remove(K key)
         {
-            if (store.ContainsKey(key))
+            LinkedListNode<K> node;
+            bool has_key = store.TryGetValue(key, out node);
+            if (has_key)
             {
-                var node = store[key];
                 this.list.Remove(node);
                 this.store.Remove(key);
             }
