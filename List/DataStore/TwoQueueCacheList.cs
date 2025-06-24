@@ -9,6 +9,8 @@
  * https://github.com/Zetonem/2Q-Cache-Algorithm
  * からコピペ
 */
+//キャッシュから取得時にあふれたやつも書き出すかどうか
+//#define WRITE_BACK_WHEN_CACHEOUT_IN_TRYGET
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -194,6 +196,29 @@ namespace FooProject.Collection.DataStore
             if (this.store.ContainsKey(key))
             {
                 value = this.store[key];
+                K outed_key;
+                if (this.lru.Contains(key))
+                {
+                    var overflow = this.lru.Set(key, out outed_key);
+                    System.Diagnostics.Debug.Assert(overflow == false);
+                }
+                else if (this.outQueque.Contains(key))
+                {
+                    var overflow = this.lru.Set(key, out outed_key);
+                    this.outQueque.Remove(key);
+
+                    //LRUから溢れたら
+                    if (overflow)
+                    {
+                        var removedValue = this.store[outed_key];
+#if WRITE_BACK_WHEN_CACHEOUT_IN_TRYGET
+                        this.OnCacheOuted(outed_key, removedValue, true);
+#else
+                        this.OnCacheOuted(outed_key, removedValue, false);
+#endif
+                        this.store.Remove(outed_key);
+                    }
+                }
                 return true;
             }
             return false;
@@ -247,26 +272,6 @@ namespace FooProject.Collection.DataStore
             if (this.store.ContainsKey(key))
             {
                 this.store[key] = value;
-
-                K outed_key;
-                if (this.lru.Contains(key))
-                {
-                    var overflow = this.lru.Set(key, out outed_key);
-                    System.Diagnostics.Debug.Assert(overflow == false);
-                }
-                else if (this.outQueque.Contains(key))
-                {
-                    var overflow = this.lru.Set(key, out outed_key);
-                    this.outQueque.Remove(key);
-
-                    //LRUから溢れたら
-                    if (overflow)
-                    {
-                        var removedValue = this.store[outed_key];
-                        this.OnCacheOuted(outed_key, removedValue, true);
-                        this.store.Remove(outed_key);
-                    }
-                }
                 return false;
             }
 
