@@ -29,8 +29,9 @@ namespace FooProject.Collection
     /// <summary>
     /// 変換用のインターフェイス
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    public interface ICustomConverter<T>
+    /// <typeparam name="T">変換元</typeparam>
+    /// <typeparam name="J">変換先</typeparam>
+    public interface ICustomTypeConverter<T,J>
     {
         /// <summary>
         /// 一番最後に取得したノードの情報を表す
@@ -48,14 +49,14 @@ namespace FooProject.Collection
         /// <param name="item">変換前の値</param>
         /// <returns>変換後の値</returns>
 
-        T Convert(T item);
+        J Convert(T item);
 
         /// <summary>
         /// 逆変換する
         /// </summary>
         /// <param name="item">変換前の値</param>
         /// <returns>変換後の値</returns>
-        T ConvertBack(T item);
+        T ConvertBack(J item);
 
         /// <summary>
         /// Set State
@@ -63,6 +64,14 @@ namespace FooProject.Collection
         /// <param name="current">Node. If current is node, it have to create empty state.</param>
         /// <param name="totalLeftCountInList">Total sum of count in left node's item.</param>
         void SetState(Node<T> current, long totalLeftCountInList);
+    }
+
+    /// <summary>
+    /// 変換用のインターフェイス
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    public interface ICustomConverter<T> :  ICustomTypeConverter<T,T>
+    {
     }
 
     /// <summary>

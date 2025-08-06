@@ -32,14 +32,14 @@ namespace FooProject.Collection
 
     public class BigListArgs<T>
     {
-        public ICustomConverter<T> CustomConverter { get; set; }
+        public ICustomTypeConverter<T, T> CustomConverter { get; set; }
         public ICustomBuilder<T> CustomBuilder { get; set; }
 
         public int BlockSize { get; set; }
 
         public UpdateType Type { get; set; }
 
-        public BigListArgs(ICustomBuilder<T> builder, ICustomConverter<T> conv, int blockSize, UpdateType type) 
+        public BigListArgs(ICustomBuilder<T> builder, ICustomTypeConverter<T, T> conv, int blockSize, UpdateType type) 
         {
             CustomConverter = conv;
             CustomBuilder = builder;
@@ -110,7 +110,7 @@ namespace FooProject.Collection
             get; set;
         }
 
-        public ICustomConverter<T> CustomConverter { get; set; }
+        public ICustomTypeConverter<T, T> CustomConverter { get; set; }
 
         public ICustomBuilder<T> CustomBuilder { get; set; }
 
