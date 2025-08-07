@@ -43,7 +43,7 @@ namespace FooProject.Collection
         {
             var custom = new RangeConverter<T>();
             custom.DataStore = new MemoryPinableContentDataStore<FixedList<T>>();
-            this.CustomConverter = custom;
+            this.LeastFetchStore = custom;
             this.CustomBuilder = custom;
         }
 
@@ -65,7 +65,7 @@ namespace FooProject.Collection
         /// <param name="value">設定したいT</param>
         public override void Set(long index, T value)
         {
-            var args = new BigListArgs<T>(CustomBuilder, CustomConverter, this.BlockSize, UpdateType.Overwrite);
+            var args = new BigListArgs<T>(CustomBuilder, LeastFetchStore, this.BlockSize, UpdateType.Overwrite);
             Root.SetAtInPlace(index, value, args);
         }
 
@@ -81,6 +81,7 @@ namespace FooProject.Collection
         /// <returns>Tを返すが、IRangeインターフェイスのstartの値が絶対的な位置に変換される</returns>
         public T GetWithConvertAbsolteIndex(long index)
         {
+            var CustomConverter = (ICustomConverter<T>)LeastFetchStore;
             return CustomConverter.ConvertBack(GetRawData(index));
         }
 
@@ -91,15 +92,15 @@ namespace FooProject.Collection
         /// <returns>Tを返す。IRangeインターフェイスのstartの値は変換されない</returns>
         public T GetRawData(long index)
         {
-            RangeConverter<T> myCustomConverter = (RangeConverter<T>)CustomConverter;
+            RangeConverter<T> myCustomConverter = (RangeConverter<T>)LeastFetchStore;
             long relativeIndex;
             LeafNode<T> leafNode;
-            if (CustomConverter.LeastFetch != null)
+            if (LeastFetchStore.LeastFetch != null)
             {
-                relativeIndex = index - CustomConverter.LeastFetch.TotalLeftCount;
-                if (relativeIndex >= 0 && relativeIndex < CustomConverter.LeastFetch.Node.Count)
+                relativeIndex = index - LeastFetchStore.LeastFetch.TotalLeftCount;
+                if (relativeIndex >= 0 && relativeIndex < LeastFetchStore.LeastFetch.Node.Count)
                 {
-                    leafNode = (LeafNode<T>)CustomConverter.LeastFetch.Node;
+                    leafNode = (LeafNode<T>)LeastFetchStore.LeastFetch.Node;
                     using (var pinnedContent = CustomBuilder.DataStore.Get(leafNode.container))
                     {
                         var leafNodeItems = pinnedContent.Content;
@@ -125,7 +126,7 @@ namespace FooProject.Collection
                     return NodeWalkDirection.Right;
                 }
             });
-            leafNode = (LeafNode<T>)CustomConverter.LeastFetch.Node;
+            leafNode = (LeafNode<T>)LeastFetchStore.LeastFetch.Node;
             using (var pinnedContent = CustomBuilder.DataStore.Get(leafNode.container))
             {
                 var leafNodeItems = pinnedContent.Content;
@@ -149,7 +150,7 @@ namespace FooProject.Collection
         /// <returns>0から始まる要素の番号。見つからない場合は-1を返す</returns>
         public long GetIndexFromAbsoluteIndexIntoRange(long indexIntoRange)
         {
-            RangeConverter<T> myCustomConverter = (RangeConverter<T>)CustomConverter;
+            RangeConverter<T> myCustomConverter = (RangeConverter<T>)LeastFetchStore;
             long relativeIndexIntoRange = indexIntoRange;
 
             var node = WalkNode((current, leftCount) => {

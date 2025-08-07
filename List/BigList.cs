@@ -32,16 +32,16 @@ namespace FooProject.Collection
 
     public class BigListArgs<T>
     {
-        public ICustomTypeConverter<T, T> CustomConverter { get; set; }
+        public ILeastFetchStore<T> LeastFetchStore { get; set; }
         public ICustomBuilder<T> CustomBuilder { get; set; }
 
         public int BlockSize { get; set; }
 
         public UpdateType Type { get; set; }
 
-        public BigListArgs(ICustomBuilder<T> builder, ICustomTypeConverter<T, T> conv, int blockSize, UpdateType type) 
+        public BigListArgs(ICustomBuilder<T> builder, ILeastFetchStore<T> conv, int blockSize, UpdateType type) 
         {
-            CustomConverter = conv;
+            LeastFetchStore = conv;
             CustomBuilder = builder;
             BlockSize = blockSize;
         }
@@ -80,7 +80,7 @@ namespace FooProject.Collection
             _root = null;
             var custom = new DefaultCustomConverter<T>();
             custom.DataStore = new MemoryPinableContentDataStore<FixedList<T>>();
-            CustomConverter = custom;
+            LeastFetchStore = custom;
             CustomBuilder = custom;
             MaxCapacity = MAXITEMS;
             BlockSize = MAXLEAF;
@@ -110,7 +110,7 @@ namespace FooProject.Collection
             get; set;
         }
 
-        public ICustomTypeConverter<T, T> CustomConverter { get; set; }
+        public ILeastFetchStore<T> LeastFetchStore { get; set; }
 
         public ICustomBuilder<T> CustomBuilder { get; set; }
 
@@ -164,20 +164,20 @@ namespace FooProject.Collection
                     items[(int)relativeIndex] = value;
                 }
             }
-            var args = new BigListArgs<T>(CustomBuilder, CustomConverter, this.BlockSize, UpdateType.Overwrite);
+            var args = new BigListArgs<T>(CustomBuilder, LeastFetchStore, this.BlockSize, UpdateType.Overwrite);
             curLeaf.NotifyUpdate(relativeIndex, 1, args);
         }
 
         private Node<T> IndexOfNode(long index,out long resultRelativeIndex)
         {
             long relativeIndex;
-            if (CustomConverter.LeastFetch != null)
+            if (LeastFetchStore.LeastFetch != null)
             {
-                relativeIndex = index - CustomConverter.LeastFetch.TotalLeftCount;
-                if (relativeIndex >= 0 && relativeIndex < CustomConverter.LeastFetch.Node.Count)
+                relativeIndex = index - LeastFetchStore.LeastFetch.TotalLeftCount;
+                if (relativeIndex >= 0 && relativeIndex < LeastFetchStore.LeastFetch.Node.Count)
                 {
                     resultRelativeIndex = relativeIndex;
-                    return CustomConverter.LeastFetch.Node;
+                    return LeastFetchStore.LeastFetch.Node;
                 }
             }
 
@@ -202,8 +202,8 @@ namespace FooProject.Collection
         protected Node<T> WalkNode(Func<Node<T>,long,NodeWalkDirection> fn)
         {
             Node<T> current = _root;
-            CustomConverter.ResetState();
-            CustomConverter.SetState(null, 0);
+            LeastFetchStore.ResetState();
+            LeastFetchStore.SetState(null, 0);
             long totalLeftCount = 0;
 
             while (current != null)
@@ -231,14 +231,14 @@ namespace FooProject.Collection
                     break;
                 }
             }
-            CustomConverter.SetState(current, totalLeftCount);
+            LeastFetchStore.SetState(current, totalLeftCount);
             return current;
         }
 
         private void ResetFetchCache()
         {
             //このメソッドが呼び出された時点で何かしらの操作がされているのでキャッシュはいったんリセットする
-            CustomConverter.ResetState();
+            LeastFetchStore.ResetState();
         }
 
         public override int Count
@@ -311,7 +311,7 @@ namespace FooProject.Collection
 
             // Concatinate all the node in the rebalance array.
             Node<T> result = null;
-            var args = new BigListArgs<T>(CustomBuilder, CustomConverter, this.BlockSize, UpdateType.Rebalance);
+            var args = new BigListArgs<T>(CustomBuilder, LeastFetchStore, this.BlockSize, UpdateType.Rebalance);
             for (int slot = 0; slot < slots; ++slot)
             {
                 Node<T> n = rebalanceArray[slot];
@@ -360,7 +360,7 @@ namespace FooProject.Collection
 #else
             if (node.IsBalanced())
             {
-                var args = new BigListArgs<T>(CustomBuilder, CustomConverter, this.BlockSize, UpdateType.Rebalance);
+                var args = new BigListArgs<T>(CustomBuilder, LeastFetchStore, this.BlockSize, UpdateType.Rebalance);
                 AddBalancedNodeToRebalanceArray(rebalanceArray, node, args);
             }
             else
@@ -485,7 +485,7 @@ namespace FooProject.Collection
             }
             else
             {
-                var args = new BigListArgs<T>(CustomBuilder, CustomConverter, this.BlockSize, UpdateType.Add);
+                var args = new BigListArgs<T>(CustomBuilder, LeastFetchStore, this.BlockSize, UpdateType.Add);
                 Node<T> newRoot = _root.PrependInPlace(item, leafNodeEnumrator, args);
                 if (newRoot != _root)
                 {
@@ -509,7 +509,7 @@ namespace FooProject.Collection
             }
             else
             {
-                var args = new BigListArgs<T>(CustomBuilder, CustomConverter, this.BlockSize, UpdateType.Add);
+                var args = new BigListArgs<T>(CustomBuilder, LeastFetchStore, this.BlockSize, UpdateType.Add);
                 Node<T> newRoot = _root.AppendInPlace(item, leafNodeEnumrator, args);
                 if (newRoot != _root)
                 {
@@ -604,7 +604,7 @@ namespace FooProject.Collection
                 throw new ArgumentNullException("collection");
 
             var tempLeafNodeEnumrator = new LeafNodeEnumrator<T>();
-            var args = new BigListArgs<T>(CustomBuilder, CustomConverter, this.BlockSize, UpdateType.Add);
+            var args = new BigListArgs<T>(CustomBuilder, LeastFetchStore, this.BlockSize, UpdateType.Add);
             Node<T> node = NodeFromEnumerable(collection, tempLeafNodeEnumrator, args);
             if (node == null)
                 return;
@@ -642,7 +642,7 @@ namespace FooProject.Collection
                 throw new ArgumentNullException("collection");
 
             var tempLeafNodeEnumrator = new LeafNodeEnumrator<T>();
-            var args = new BigListArgs<T>(CustomBuilder, CustomConverter, this.BlockSize, UpdateType.Add);
+            var args = new BigListArgs<T>(CustomBuilder, LeastFetchStore, this.BlockSize, UpdateType.Add);
             Node<T> node = NodeFromEnumerable(collection, tempLeafNodeEnumrator, args);
             if (node == null)
                 return;
@@ -792,7 +792,7 @@ namespace FooProject.Collection
                 }
                 else
                 {
-                    var args = new BigListArgs<T>(CustomBuilder, CustomConverter, this.BlockSize, UpdateType.Insert);
+                    var args = new BigListArgs<T>(CustomBuilder, LeastFetchStore, this.BlockSize, UpdateType.Insert);
                     Node<T> newRoot = _root.InsertInPlace(index, item, leafNodeEnumrator, args);
                     if (newRoot != _root)
                     {
@@ -821,7 +821,7 @@ namespace FooProject.Collection
             else
             {
                 var tempLeafNodeEnumrator = new LeafNodeEnumrator<T>();
-                var args = new BigListArgs<T>(CustomBuilder, CustomConverter, this.BlockSize, UpdateType.Insert);
+                var args = new BigListArgs<T>(CustomBuilder, LeastFetchStore, this.BlockSize, UpdateType.Insert);
                 Node<T> node = NodeFromEnumerable(collection, tempLeafNodeEnumrator, args);
                 if (node == null)
                     return;
@@ -876,7 +876,7 @@ namespace FooProject.Collection
             if (count < 0 || count > LongCount - index)
                 throw new ArgumentOutOfRangeException("count");
 
-            var args = new BigListArgs<T>(CustomBuilder, CustomConverter, this.BlockSize, UpdateType.Remove);
+            var args = new BigListArgs<T>(CustomBuilder, LeastFetchStore, this.BlockSize, UpdateType.Remove);
             Node<T> newRoot = _root.RemoveRangeInPlace(index, index + count - 1, leafNodeEnumrator, args);
             if (newRoot != _root)
             {

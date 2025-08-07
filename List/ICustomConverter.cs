@@ -26,12 +26,12 @@ namespace FooProject.Collection
         GoBack,
         None
     }
+
     /// <summary>
-    /// 変換用のインターフェイス
+    /// ILeastFetchを格納できることを表すインターフェイス
     /// </summary>
-    /// <typeparam name="T">変換元</typeparam>
-    /// <typeparam name="J">変換先</typeparam>
-    public interface ICustomTypeConverter<T,J>
+    /// <typeparam name="T"></typeparam>
+    public interface ILeastFetchStore<T>
     {
         /// <summary>
         /// 一番最後に取得したノードの情報を表す
@@ -42,21 +42,6 @@ namespace FooProject.Collection
         /// 一番最後に取得したノードの情報を破棄する
         /// </summary>
         void ResetState();
-
-        /// <summary>
-        /// 変換する
-        /// </summary>
-        /// <param name="item">変換前の値</param>
-        /// <returns>変換後の値</returns>
-
-        J Convert(T item);
-
-        /// <summary>
-        /// 逆変換する
-        /// </summary>
-        /// <param name="item">変換前の値</param>
-        /// <returns>変換後の値</returns>
-        T ConvertBack(J item);
 
         /// <summary>
         /// Set State
@@ -70,8 +55,22 @@ namespace FooProject.Collection
     /// 変換用のインターフェイス
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public interface ICustomConverter<T> :  ICustomTypeConverter<T,T>
+    public interface ICustomConverter<T> : ILeastFetchStore<T>
     {
+        /// <summary>
+        /// 変換する
+        /// </summary>
+        /// <param name="item">変換前の値</param>
+        /// <returns>変換後の値</returns>
+
+        T Convert(T item);
+
+        /// <summary>
+        /// 逆変換する
+        /// </summary>
+        /// <param name="item">変換前の値</param>
+        /// <returns>変換後の値</returns>
+        T ConvertBack(T item);
     }
 
     /// <summary>
