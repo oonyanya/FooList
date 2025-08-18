@@ -32,14 +32,14 @@ namespace FooProject.Collection
 
     public class BigListArgs<T>
     {
-        public ILeastFetchStore<T> LeastFetchStore { get; set; }
+        public IStateStore<T> LeastFetchStore { get; set; }
         public ICustomBuilder<T> CustomBuilder { get; set; }
 
         public int BlockSize { get; set; }
 
         public UpdateType Type { get; set; }
 
-        public BigListArgs(ICustomBuilder<T> builder, ILeastFetchStore<T> conv, int blockSize, UpdateType type) 
+        public BigListArgs(ICustomBuilder<T> builder, IStateStore<T> conv, int blockSize, UpdateType type) 
         {
             LeastFetchStore = conv;
             CustomBuilder = builder;
@@ -110,7 +110,7 @@ namespace FooProject.Collection
             get; set;
         }
 
-        public ILeastFetchStore<T> LeastFetchStore { get; set; }
+        public IStateStore<T> LeastFetchStore { get; set; }
 
         public ICustomBuilder<T> CustomBuilder { get; set; }
 

@@ -28,10 +28,10 @@ namespace FooProject.Collection
     }
 
     /// <summary>
-    /// ILeastFetchを格納できることを表すインターフェイス
+    /// 取得したノードなどの状態を格納するインターフェイス
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public interface ILeastFetchStore<T>
+    public interface IStateStore<T>
     {
         /// <summary>
         /// 一番最後に取得したノードの情報を表す
@@ -55,7 +55,7 @@ namespace FooProject.Collection
     /// 変換用のインターフェイス
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public interface ICustomConverter<T> : ILeastFetchStore<T>
+    public interface ICustomConverter<T> : IStateStore<T>
     {
         /// <summary>
         /// 変換する
