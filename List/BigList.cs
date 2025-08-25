@@ -520,7 +520,7 @@ namespace FooProject.Collection
             ResetFetchCache();
         }
 
-        private static LeafNode<T> LeafFromEnumerator(IEnumerator<T> enumerator,int collection_count,BigListArgs<T> args)
+        private static FixedList<T> ListFromEnumerator(IEnumerator<T> enumerator,int collection_count,BigListArgs<T> args)
         {
             int i = 0;
             FixedList<T> items = null;
@@ -544,10 +544,7 @@ namespace FooProject.Collection
 
             if (items != null)
             {
-                var leafNode = args.CustomBuilder.CreateLeafNode(i, items);
-                leafNode.NotifyUpdate(0, items.Count, args);
-                return leafNode;
-
+                return items;
             }
             else
             {
@@ -558,6 +555,7 @@ namespace FooProject.Collection
         private Node<T> NodeFromEnumerable(IEnumerable<T> collection, LeafNodeEnumrator<T> leafNodeEnumrator,BigListArgs<T> args)
         {
             Node<T> node = null;
+            FixedList<T> items;
             LeafNode<T> leaf;
             IEnumerator<T> enumerator = collection.GetEnumerator();
 
@@ -571,8 +569,10 @@ namespace FooProject.Collection
                 collection_count = collection.Count();
 #endif
 
-            while ((leaf = LeafFromEnumerator(enumerator, collection_count, args)) != null)
+            while ((items = ListFromEnumerator(enumerator, collection_count, args)) != null)
             {
+                leaf = args.CustomBuilder.CreateLeafNode(items.Count, items);
+                leaf.NotifyUpdate(0, items.Count, args);
                 leafNodeEnumrator.AddLast(leaf);
                 if (node == null)
                 {
