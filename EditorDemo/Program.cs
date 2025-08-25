@@ -1,6 +1,6 @@
 ﻿// See https://aka.ms/new-console-template for more information
 //ディスク上に保存するならコメントアウトする
-#define DISKBASE_BUFFER
+//#define DISKBASE_BUFFER
 //文字列の操作の最終結果を保存するならコメントアウトする
 //#define SAVE_FILE
 //文字列操作の結果を各段階ごとに保存するならコメントアウトする
@@ -17,7 +17,7 @@ using System.Globalization;
 using System.Runtime;
 using EditorDemo;
 
-const int BENCHMARK_SIZE = 120000000;
+const int BENCHMARK_SIZE = 1200000;
 
 const string insertStr = "this is a pen.this is a pen.this is a pen.this is a pen.this is a pen.this is a pen.this is a pen.\n";
 
