@@ -226,9 +226,16 @@ namespace FooProject.Collection
                 return customConverter.CreateConcatNode(this, otherConcat.Right);
             }
              */
-if (leafNodeEnumrator != null && nodeBelongLeafNodeEnumrator != null)
+            if(leafNodeEnumrator != null)
             {
-                leafNodeEnumrator.AddNext(BigList<T>.GetMostRightNode(this), nodeBelongLeafNodeEnumrator);
+                if (nodeBelongLeafNodeEnumrator != null)
+                {
+                    leafNodeEnumrator.AddNext(BigList<T>.GetMostRightNode(this), nodeBelongLeafNodeEnumrator);
+                }
+                else
+                {
+                    leafNodeEnumrator.AddNext(BigList<T>.GetMostRightNode(this), (LeafNode<T>)node);
+                }
             }
             return args.CustomBuilder.CreateConcatNode(this, node);
         }
@@ -369,8 +376,7 @@ if (leafNodeEnumrator != null && nodeBelongLeafNodeEnumrator != null)
 
                 leftNode = leftNode.AppendInPlace(node, leafNodeEnumrator, nodeBelongLeafNodeEnumrator, args);
 
-                leafNodeEnumrator.AddNext(BigList<T>.GetMostRightNode(leftNode), rightLeafNode);
-                leftNode = leftNode.AppendInPlace(rightNode, null, null, args);
+                leftNode = leftNode.AppendInPlace(rightNode, leafNodeEnumrator, null, args);
                 return leftNode;
             }
         }
