@@ -252,13 +252,13 @@ namespace FooEditEngine
                 }
                 else
                 {
-                    streamWriter.WriteLine(writeBuffer.ToArray());
+                    streamWriter.Write(writeBuffer.ToArray());
                     writeBuffer.Clear();
                 }
             }
             if (writeBuffer.Count > 0)
             {
-                streamWriter.WriteLine(writeBuffer.ToArray());
+                streamWriter.Write(writeBuffer.ToArray());
                 writeBuffer.Clear();
             }
             streamWriter.Close();
