@@ -112,9 +112,9 @@ namespace FooEditEngine
         T this[int index] { get; }
     }
 
-    class StringBufferSerializer : ISerializeData<FixedList<char>>
+    class StringBufferSerializer : ISerializeData<IComposableList<char>>
     {
-        public FixedList<char> DeSerialize(byte[] inputData)
+        public IComposableList<char> DeSerialize(byte[] inputData)
         {
             var memStream = new MemoryStream(inputData);
             var reader = new BinaryReader(memStream, Encoding.Unicode);
@@ -125,14 +125,15 @@ namespace FooEditEngine
             return array;
         }
 
-        public byte[] Serialize(FixedList<char> data)
+        public byte[] Serialize(IComposableList<char> data)
         {
+            FixedList<char> list = (FixedList<char>)data;
             var output = new byte[data.Count * 2 + 4 + 4]; //int32のサイズは4byte、charのサイズ2byte
             var memStream = new MemoryStream(output);
             var writer = new BinaryWriter(memStream,Encoding.Unicode);
-            writer.Write(data.Count);
-            writer.Write(data.MaxCapacity);
-            writer.Write(data.ToArray());
+            writer.Write(list.Count);
+            writer.Write(list.MaxCapacity);
+            writer.Write(list.ToArray());
             writer.Close();
             memStream.Dispose();
             return output;
@@ -142,7 +143,7 @@ namespace FooEditEngine
     sealed class StringBuffer : IEnumerable<char>, IRandomEnumrator<char>
     {
         Foo.BigList<char> buf = new Foo.BigList<char>();
-        IPinableContainerStore<FixedList<char>> dataStore;
+        IPinableContainerStore<IComposableList<char>> dataStore;
 
         internal DocumentUpdateEventHandler Update;
 
@@ -153,11 +154,11 @@ namespace FooEditEngine
             if (isDiskBase)
             {
                 var serializer = new StringBufferSerializer();
-                dataStore = new DiskPinableContentDataStore<FixedList<char>>(serializer,cache_limit);
+                dataStore = new DiskPinableContentDataStore<IComposableList<char>>(serializer,cache_limit);
             }
             else
             {
-                dataStore = new MemoryPinableContentDataStore<FixedList<char>>();
+                dataStore = new MemoryPinableContentDataStore<IComposableList<char>>();
             }
             buf.CustomBuilder.DataStore = dataStore;
             buf.BlockSize = BLOCKSIZE;

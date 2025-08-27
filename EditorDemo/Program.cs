@@ -1,10 +1,10 @@
 ﻿// See https://aka.ms/new-console-template for more information
 //ディスク上に保存するならコメントアウトする
-//#define DISKBASE_BUFFER
+#define DISKBASE_BUFFER
 //文字列の操作の最終結果を保存するならコメントアウトする
 //#define SAVE_FILE
 //文字列操作の結果を各段階ごとに保存するならコメントアウトする
-//#define SAVE_FILE_ALL_STAGE
+#define SAVE_FILE_ALL_STAGE
 //キャッシュサイズを固定するならコメントアウトする
 #define FIXED_CACHE_SIZE
 
@@ -102,9 +102,9 @@ Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}
 var rangelist = new BigRangeList<LineToIndex>();
 #if DISKBASE_BUFFER
     var serializer = new LineToIndexTableSerializer();
-    var dataStore = new DiskPinableContentDataStore<FixedList<LineToIndex>>(serializer);
+    var dataStore = new DiskPinableContentDataStore<IComposableList<LineToIndex>>(serializer);
 #else
-    var dataStore = new MemoryPinableContentDataStore<FixedList<LineToIndex>>();
+var dataStore = new MemoryPinableContentDataStore<IComposableList<LineToIndex>>();
 #endif
 rangelist.CustomBuilder.DataStore = dataStore;
 

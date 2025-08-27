@@ -15,7 +15,7 @@ namespace FooProject.Collection
         /// <summary>
         /// データーストア
         /// </summary>
-        IPinableContainerStore<FixedList<T>> DataStore { get; set; }
+        IPinableContainerStore<IComposableList<T>> DataStore { get; set; }
 
         /// <summary>
         /// リストを作成する
@@ -24,7 +24,7 @@ namespace FooProject.Collection
         /// <param name="maxcapacity">最大の容量</param>
         /// <param name="collection">取り込むコレクション。nullを指定した場合は空のコレクションが作成される</param>
         /// <returns></returns>
-        FixedList<T> CreateList(long init_capacity, long maxcapacity, IEnumerable<T> collection = null);
+        IComposableList<T> CreateList(long init_capacity, long maxcapacity, IEnumerable<T> collection = null);
 
         /// <summary>
         /// 空のリーフノードを作成する
@@ -46,7 +46,7 @@ namespace FooProject.Collection
         /// <param name="count">アイテム数</param>
         /// <param name="items">アイテム</param>
         /// <returns></returns>
-        LeafNode<T> CreateLeafNode(long count, FixedList<T> items);
+        LeafNode<T> CreateLeafNode(long count, IComposableList<T> items);
 
         /// <summary>
         /// 幹を表すノードを作成する

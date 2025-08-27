@@ -27,9 +27,9 @@ namespace EditorDemo
             return new LineToIndex(start, length);
         }
     }
-    class LineToIndexTableSerializer : ISerializeData<FixedList<LineToIndex>>
+    class LineToIndexTableSerializer : ISerializeData<IComposableList<LineToIndex>>
     {
-        public FixedList<LineToIndex> DeSerialize(byte[] inputData)
+        public IComposableList<LineToIndex> DeSerialize(byte[] inputData)
         {
             var memStream = new MemoryStream(inputData);
             var reader = new BinaryReader(memStream, Encoding.Unicode);
@@ -45,13 +45,14 @@ namespace EditorDemo
             return array;
         }
 
-        public byte[] Serialize(FixedList<LineToIndex> data)
+        public byte[] Serialize(IComposableList<LineToIndex> data)
         {
+            FixedRangeList<LineToIndex> list = (FixedRangeList<LineToIndex>)data;
             var output = new byte[data.Count * 16 + 4 + 4]; //int32のサイズは4byte、charのサイズ2byte
             var memStream = new MemoryStream(output);
             var writer = new BinaryWriter(memStream, Encoding.Unicode);
-            writer.Write(data.Count);
-            writer.Write(data.MaxCapacity);
+            writer.Write(list.Count);
+            writer.Write(list.MaxCapacity);
             foreach(var item in data)
             {
                 writer.Write(item.start);

@@ -42,7 +42,7 @@ namespace FooProject.Collection
         public BigRangeList() :base()
         {
             var custom = new RangeConverter<T>();
-            custom.DataStore = new MemoryPinableContentDataStore<FixedList<T>>();
+            custom.DataStore = new MemoryPinableContentDataStore<IComposableList<T>>();
             this.LeastFetchStore = custom;
             this.CustomBuilder = custom;
         }
@@ -285,7 +285,7 @@ namespace FooProject.Collection
             TotalRangeCount = 0;
         }
 
-        public RangeLeafNode(long count, PinableContainer<FixedList<T>> container) : base(count, container)
+        public RangeLeafNode(long count, PinableContainer<IComposableList<T>> container) : base(count, container)
         {
         }
 
@@ -317,7 +317,7 @@ namespace FooProject.Collection
 
     internal class RangeConverter<T> : ICustomConverter<T>,ICustomBuilder<T> where T : IRange
     {
-        public IPinableContainerStore<FixedList<T>> DataStore { get; set; }
+        public IPinableContainerStore<IComposableList<T>> DataStore { get; set; }
 
         public ILeastFetch<T> LeastFetch { get { return customLeastFetch; } }
 
@@ -338,7 +338,7 @@ namespace FooProject.Collection
             return result;
         }
 
-        public FixedList<T> CreateList(long init, long max, IEnumerable<T> collection = null)
+        public IComposableList<T> CreateList(long init, long max, IEnumerable<T> collection = null)
         {
             var list = new FixedRangeList<T>((int)init, (int)max);
             if (collection != null)
@@ -361,7 +361,7 @@ namespace FooProject.Collection
         public LeafNode<T> CreateLeafNode(int blocksize)
         {
             var newLeafNode = new RangeLeafNode<T>();
-            var container = new PinableContainer<FixedList<T>>(this.CreateList(4, blocksize));
+            var container = new PinableContainer<IComposableList<T>>(this.CreateList(4, blocksize));
             newLeafNode.container = container;
             this.DataStore.Set(container);
             return newLeafNode;
@@ -371,14 +371,14 @@ namespace FooProject.Collection
         {
             var list = this.CreateList(4, blocksize);
             list.Add(item);
-            var container = new PinableContainer<FixedList<T>>(list);
+            var container = new PinableContainer<IComposableList<T>>(list);
             this.DataStore.Set(container);
             return new RangeLeafNode<T>(list.Count, container);
         }
 
-        public LeafNode<T> CreateLeafNode(long count, FixedList<T> items)
+        public LeafNode<T> CreateLeafNode(long count, IComposableList<T> items)
         {
-            var container = new PinableContainer<FixedList<T>>(items);
+            var container = new PinableContainer<IComposableList<T>>(items);
             this.DataStore.Set(container);
             return new RangeLeafNode<T>(count, container);
         }

@@ -12,7 +12,7 @@ namespace UnitTest
     [TestClass]
     public class BigList_LeafEnumrator
     {
-        private FixedList<int> GetItems(LeafNode<int> leafNode)
+        private IComposableList<int> GetItems(LeafNode<int> leafNode)
         {
             return leafNode.container.Content;
         }
@@ -20,7 +20,7 @@ namespace UnitTest
         {
             var items = new FixedList<int>(4);
             items.Add(item);
-            var pinabile = new PinableContainer<FixedList<int>>(items);
+            var pinabile = new PinableContainer<IComposableList<int>>(items);
             return new LeafNode<int>(1, pinabile);
         }
 

@@ -79,7 +79,7 @@ namespace FooProject.Collection
         {
             _root = null;
             var custom = new DefaultCustomConverter<T>();
-            custom.DataStore = new MemoryPinableContentDataStore<FixedList<T>>();
+            custom.DataStore = new MemoryPinableContentDataStore<IComposableList<T>>();
             LeastFetchStore = custom;
             CustomBuilder = custom;
             MaxCapacity = MAXITEMS;
@@ -520,10 +520,10 @@ namespace FooProject.Collection
             ResetFetchCache();
         }
 
-        private static FixedList<T> ListFromEnumerator(IEnumerator<T> enumerator,int collection_count,BigListArgs<T> args)
+        private static IComposableList<T> ListFromEnumerator(IEnumerator<T> enumerator,int collection_count,BigListArgs<T> args)
         {
             int i = 0;
-            FixedList<T> items = null;
+            IComposableList<T> items = null;
 
             while (i < args.BlockSize && enumerator.MoveNext())
             {
@@ -555,7 +555,7 @@ namespace FooProject.Collection
         private Node<T> NodeFromEnumerable(IEnumerable<T> collection, LeafNodeEnumrator<T> leafNodeEnumrator,BigListArgs<T> args)
         {
             Node<T> node = null;
-            FixedList<T> items;
+            IComposableList<T> items;
             LeafNode<T> leaf;
             IEnumerator<T> enumerator = collection.GetEnumerator();
 

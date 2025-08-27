@@ -72,7 +72,7 @@ namespace FooProject.Collection
     }
     public class LeafNode<T> : Node<T>
     {
-        public PinableContainer<FixedList<T>> container;
+        public PinableContainer<IComposableList<T>> container;
 
         public LeafNode<T> Next { get; set; }
 
@@ -85,7 +85,7 @@ namespace FooProject.Collection
             this.NodeCount = 1;
         }
 
-        public LeafNode(long count, PinableContainer<FixedList<T>> pinableContent) : this()
+        public LeafNode(long count, PinableContainer<IComposableList<T>> pinableContent) : this()
         {
             this.container = pinableContent;
             Count = count;
@@ -281,20 +281,20 @@ namespace FooProject.Collection
                         leftItemCount = (int)index + 1;
                         splitLength = (int)index;
                     }
-                    FixedList<T> items;
+                    IComposableList<T> items;
                     using (var pinnedContent = args.CustomBuilder.DataStore.Get(this.container))
                     {
                         items = pinnedContent.Content;
                         pinnedContent.RemoveContent();
                     }
-                    FixedList<T> leftItems = args.CustomBuilder.CreateList(leftItemCount, args.BlockSize, items.GetRange(0, splitLength));
+                    IComposableList<T> leftItems = args.CustomBuilder.CreateList(leftItemCount, args.BlockSize, items.GetRange(0, splitLength));
                     leftItems.Add(item);
                     LeafNode<T> leftNode = args.CustomBuilder.CreateLeafNode(index + 1, leftItems);
                     leftNode.NotifyUpdate(0, leftItems.Count, args);
                     leafNodeEnumrator.Replace(this, leftNode);
 
                     int rightItemCount = items.Count - (int)index;
-                    FixedList<T> rightItems = args.CustomBuilder.CreateList(rightItemCount, args.BlockSize, items.GetRange(splitLength, rightItemCount));
+                    IComposableList<T> rightItems = args.CustomBuilder.CreateList(rightItemCount, args.BlockSize, items.GetRange(splitLength, rightItemCount));
                     LeafNode<T> rightNode = args.CustomBuilder.CreateLeafNode(Count - index, rightItems);
                     rightNode.NotifyUpdate(0, rightItems.Count, args);
                     leafNodeEnumrator.AddNext(leftNode, rightNode);
@@ -347,14 +347,14 @@ namespace FooProject.Collection
                     splitLength = (int)index;
                 }
 
-                FixedList<T> items;
+                IComposableList<T> items;
                 using (var pinnedContent = args.CustomBuilder.DataStore.Get(this.container))
                 {
                     items = pinnedContent.Content;
                     pinnedContent.RemoveContent();
                 }
 
-                FixedList<T> leftItems = args.CustomBuilder.CreateList(leftItemCount, args.BlockSize, items.GetRange(0, splitLength));
+                IComposableList<T> leftItems = args.CustomBuilder.CreateList(leftItemCount, args.BlockSize, items.GetRange(0, splitLength));
                 var leftLeafNode = args.CustomBuilder.CreateLeafNode(index, leftItems);
                 leftLeafNode.NotifyUpdate(0, leftItems.Count, args);
                 Node<T> leftNode = leftLeafNode;
@@ -365,7 +365,7 @@ namespace FooProject.Collection
                 {
                     rightItemCount = items.Count - (int)index;
                 }
-                FixedList<T> rightItems = args.CustomBuilder.CreateList(rightItemCount, args.BlockSize, items.GetRange(splitLength, rightItemCount));
+                IComposableList<T> rightItems = args.CustomBuilder.CreateList(rightItemCount, args.BlockSize, items.GetRange(splitLength, rightItemCount));
                 var rightLeafNode = args.CustomBuilder.CreateLeafNode(Count - index, rightItems);
                 rightLeafNode.NotifyUpdate(0, rightItems.Count, args);
                 Node<T> rightNode = rightLeafNode;

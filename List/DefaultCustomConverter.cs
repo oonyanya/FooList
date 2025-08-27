@@ -13,7 +13,7 @@ namespace FooProject.Collection
     /// <typeparam name="T"></typeparam>
     public class DefaultCustomConverter<T> : ICustomConverter<T>, ICustomBuilder<T>
     {
-        public IPinableContainerStore<FixedList<T>> DataStore { get; set; }
+        public IPinableContainerStore<IComposableList<T>> DataStore { get; set; }
 
         public ILeastFetch<T> LeastFetch { get; private set; }
 
@@ -27,7 +27,7 @@ namespace FooProject.Collection
             return item;
         }
 
-        public FixedList<T> CreateList(long init_capacity, long maxcapacity, IEnumerable<T> collection = null)
+        public IComposableList<T> CreateList(long init_capacity, long maxcapacity, IEnumerable<T> collection = null)
         {
             var list = new FixedList<T>((int)init_capacity, (int)maxcapacity);
             if (collection != null)
@@ -50,7 +50,7 @@ namespace FooProject.Collection
         public LeafNode<T> CreateLeafNode(int blocksize)
         {
             var newLeafNode = new LeafNode<T>();
-            var container = new PinableContainer<FixedList<T>>(this.CreateList(4, blocksize));
+            var container = new PinableContainer<IComposableList<T>>(this.CreateList(4, blocksize));
             newLeafNode.container = container;
             this.DataStore.Set(container);
             return newLeafNode;
@@ -60,14 +60,14 @@ namespace FooProject.Collection
         {
             var list = this.CreateList(4, blocksize);
             list.Add(item);
-            var container = new PinableContainer<FixedList<T>>(list);
+            var container = new PinableContainer<IComposableList<T>>(list);
             this.DataStore.Set(container);
             return new LeafNode<T>(list.Count, container);
         }
 
-        public LeafNode<T> CreateLeafNode(long count, FixedList<T> items)
+        public LeafNode<T> CreateLeafNode(long count, IComposableList<T> items)
         {
-            var container = new PinableContainer<FixedList<T>>(items);
+            var container = new PinableContainer<IComposableList<T>>(items);
             this.DataStore.Set(container);
             return new LeafNode<T>(count, container);
         }
