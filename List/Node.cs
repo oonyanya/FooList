@@ -287,16 +287,14 @@ namespace FooProject.Collection
                         items = pinnedContent.Content;
                         pinnedContent.RemoveContent();
                     }
-                    FixedList<T> leftItems = args.CustomBuilder.CreateList(leftItemCount, args.BlockSize);
-                    leftItems.AddRange(items.GetRange(0, splitLength), splitLength);
+                    FixedList<T> leftItems = args.CustomBuilder.CreateList(leftItemCount, args.BlockSize, items.GetRange(0, splitLength));
                     leftItems.Add(item);
                     LeafNode<T> leftNode = args.CustomBuilder.CreateLeafNode(index + 1, leftItems);
                     leftNode.NotifyUpdate(0, leftItems.Count, args);
                     leafNodeEnumrator.Replace(this, leftNode);
 
                     int rightItemCount = items.Count - (int)index;
-                    FixedList<T> rightItems = args.CustomBuilder.CreateList(rightItemCount, args.BlockSize);
-                    rightItems.AddRange(items.GetRange(splitLength, rightItemCount), rightItemCount);
+                    FixedList<T> rightItems = args.CustomBuilder.CreateList(rightItemCount, args.BlockSize, items.GetRange(splitLength, rightItemCount));
                     LeafNode<T> rightNode = args.CustomBuilder.CreateLeafNode(Count - index, rightItems);
                     rightNode.NotifyUpdate(0, rightItems.Count, args);
                     leafNodeEnumrator.AddNext(leftNode, rightNode);
@@ -356,8 +354,7 @@ namespace FooProject.Collection
                     pinnedContent.RemoveContent();
                 }
 
-                FixedList<T> leftItems = args.CustomBuilder.CreateList(leftItemCount, args.BlockSize);
-                leftItems.AddRange(items.GetRange(0, splitLength), splitLength);
+                FixedList<T> leftItems = args.CustomBuilder.CreateList(leftItemCount, args.BlockSize, items.GetRange(0, splitLength));
                 var leftLeafNode = args.CustomBuilder.CreateLeafNode(index, leftItems);
                 leftLeafNode.NotifyUpdate(0, leftItems.Count, args);
                 Node<T> leftNode = leftLeafNode;
@@ -368,8 +365,7 @@ namespace FooProject.Collection
                 {
                     rightItemCount = items.Count - (int)index;
                 }
-                FixedList<T> rightItems = args.CustomBuilder.CreateList(rightItemCount, args.BlockSize);
-                rightItems.AddRange(items.GetRange(splitLength, rightItemCount), rightItemCount);
+                FixedList<T> rightItems = args.CustomBuilder.CreateList(rightItemCount, args.BlockSize, items.GetRange(splitLength, rightItemCount));
                 var rightLeafNode = args.CustomBuilder.CreateLeafNode(Count - index, rightItems);
                 rightLeafNode.NotifyUpdate(0, rightItems.Count, args);
                 Node<T> rightNode = rightLeafNode;

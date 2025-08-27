@@ -338,9 +338,14 @@ namespace FooProject.Collection
             return result;
         }
 
-        public FixedList<T> CreateList(long init, long max)
+        public FixedList<T> CreateList(long init, long max, IEnumerable<T> collection = null)
         {
-            return new FixedRangeList<T>((int)init, (int)max);
+            var list = new FixedRangeList<T>((int)init, (int)max);
+            if (collection != null)
+            {
+                list.AddRange(collection);
+            }
+            return list;
         }
 
         public ConcatNode<T> CreateConcatNode(ConcatNode<T> node)

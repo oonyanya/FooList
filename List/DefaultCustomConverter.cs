@@ -27,9 +27,13 @@ namespace FooProject.Collection
             return item;
         }
 
-        public FixedList<T> CreateList(long init_capacity, long maxcapacity)
+        public FixedList<T> CreateList(long init_capacity, long maxcapacity, IEnumerable<T> collection = null)
         {
             var list = new FixedList<T>((int)init_capacity, (int)maxcapacity);
+            if (collection != null)
+            {
+                list.AddRange(collection);
+            }
             return list;
         }
 

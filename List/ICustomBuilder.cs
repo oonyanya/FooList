@@ -22,8 +22,9 @@ namespace FooProject.Collection
         /// </summary>
         /// <param name="init_capacity">最小の容量</param>
         /// <param name="maxcapacity">最大の容量</param>
+        /// <param name="collection">取り込むコレクション。nullを指定した場合は空のコレクションが作成される</param>
         /// <returns></returns>
-        FixedList<T> CreateList(long init_capacity, long maxcapacity);
+        FixedList<T> CreateList(long init_capacity, long maxcapacity, IEnumerable<T> collection = null);
 
         /// <summary>
         /// 空のリーフノードを作成する
