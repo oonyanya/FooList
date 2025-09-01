@@ -27,7 +27,7 @@ namespace FooProject.Collection
             return item;
         }
 
-        public IComposableList<T> CreateList(long init_capacity, long maxcapacity, IEnumerable<T> collection = null)
+        public virtual IComposableList<T> CreateList(long init_capacity, long maxcapacity, IEnumerable<T> collection = null)
         {
             var list = new FixedList<T>((int)init_capacity, (int)maxcapacity);
             if (collection != null)

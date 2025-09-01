@@ -327,18 +327,45 @@ namespace FooProject.Collection
                         pinnedContent.RemoveContent();
                     }
                     IComposableList<T> leftItems = args.CustomBuilder.CreateList(leftItemCount, args.BlockSize, items.GetRange(0, splitLength));
-                    leftItems.Add(item);
-                    LeafNode<T> leftNode = args.CustomBuilder.CreateLeafNode(index + 1, leftItems);
-                    leftNode.NotifyUpdate(0, leftItems.Count, args);
-                    leafNodeEnumrator.Replace(this, leftNode);
+                    if(leftItems.QueryAddRange(null, 1))
+                    {
+                        leftItems.Add(item);
+                        LeafNode<T> leftNode = args.CustomBuilder.CreateLeafNode(index + 1, leftItems);
+                        leftNode.NotifyUpdate(0, leftItems.Count, args);
+                        leafNodeEnumrator.Replace(this, leftNode);
 
-                    int rightItemCount = items.Count - (int)index;
-                    IComposableList<T> rightItems = args.CustomBuilder.CreateList(rightItemCount, args.BlockSize, items.GetRange(splitLength, rightItemCount));
-                    LeafNode<T> rightNode = args.CustomBuilder.CreateLeafNode(Count - index, rightItems);
-                    rightNode.NotifyUpdate(0, rightItems.Count, args);
-                    leafNodeEnumrator.AddNext(leftNode, rightNode);
+                        int rightItemCount = items.Count - (int)index;
+                        IComposableList<T> rightItems = args.CustomBuilder.CreateList(rightItemCount, args.BlockSize, items.GetRange(splitLength, rightItemCount));
+                        LeafNode<T> rightNode = args.CustomBuilder.CreateLeafNode(Count - index, rightItems);
+                        rightNode.NotifyUpdate(0, rightItems.Count, args);
+                        leafNodeEnumrator.AddNext(leftNode, rightNode);
 
-                    return args.CustomBuilder.CreateConcatNode(leftNode, rightNode);
+                        return args.CustomBuilder.CreateConcatNode(leftNode, rightNode);
+                    }
+                    else
+                    {
+                        throw new NotSupportedException("QueryAddRange()が偽を返した時の動作はサポートしていません");
+                        //以下は試しに書いてみたコード。まだテストしてない。
+                        /*
+                        LeafNode<T> leftLeafNode = args.CustomBuilder.CreateLeafNode(index + 1, leftItems);
+                        leftLeafNode.NotifyUpdate(0, leftItems.Count, args);
+                        Node<T> leftNode;
+                        leafNodeEnumrator.Replace(this, leftLeafNode);
+
+                        int rightItemCount = items.Count - (int)index;
+                        IComposableList<T> rightItems = args.CustomBuilder.CreateList(rightItemCount, args.BlockSize, items.GetRange(splitLength, rightItemCount));
+                        LeafNode<T> rightNode = args.CustomBuilder.CreateLeafNode(Count - index, rightItems);
+                        rightNode.NotifyUpdate(0, rightItems.Count, args);
+                        leafNodeEnumrator.AddNext(leftLeafNode, rightNode);
+
+                        var newNode = args.CustomBuilder.CreateLeafNode(item, args.BlockSize);
+                        leftNode = leftLeafNode.AppendInPlace(newNode, leafNodeEnumrator, null, args);
+
+                        leftNode = leftLeafNode.AppendInPlace(rightNode, leafNodeEnumrator, null, args);
+
+                        return leftNode;
+                        */
+                    }
                 }
             }
         }
@@ -485,17 +512,62 @@ namespace FooProject.Collection
                 last = Count - 1;
             long newCount = first + (Count - last - 1);      // number of items remaining.
             long removeLength = last - first + 1;
-            checked
+            bool result = false;
+
+            using (var pinnedContent = args.CustomBuilder.DataStore.Get(this.container))
             {
+                result = pinnedContent.Content.QueryRemoveRange((int)first, (int)removeLength);
+            }
+
+            if (result)
+            {
+                checked
+                {
+                    using (var pinnedContent = args.CustomBuilder.DataStore.Get(this.container))
+                    {
+                        var items = pinnedContent.Content;
+                        items.RemoveRange((int)first, (int)removeLength);
+                    }
+                }
+                NotifyUpdate(first, -removeLength, args);
+                Count = newCount;
+                return this;
+            }
+            else
+            {
+                int leftItemCount;
+                checked
+                {
+                    leftItemCount = (int)first;
+                }
+
+                IComposableList<T> items;
                 using (var pinnedContent = args.CustomBuilder.DataStore.Get(this.container))
                 {
-                    var items = pinnedContent.Content;
-                    items.RemoveRange((int)first, (int)removeLength);
+                    items = pinnedContent.Content;
+                    pinnedContent.RemoveContent();
                 }
+
+                IComposableList<T> leftItems = args.CustomBuilder.CreateList(leftItemCount, args.BlockSize, items.GetRange(0, leftItemCount));
+                var leftLeafNode = args.CustomBuilder.CreateLeafNode(leftItemCount, leftItems);
+                leftLeafNode.NotifyUpdate(0, leftItems.Count, args);
+                Node<T> leftNode = leftLeafNode;
+                leafNodeEnumrator.Replace(this, leftLeafNode);
+
+                int rightItemCount;
+                checked
+                {
+                    rightItemCount = (int)(this.Count - last - 1);
+                }
+                IComposableList<T> rightItems = args.CustomBuilder.CreateList(rightItemCount, args.BlockSize, items.GetRange((int)last + 1, rightItemCount));
+                var rightLeafNode = args.CustomBuilder.CreateLeafNode(rightItemCount, rightItems);
+                rightLeafNode.NotifyUpdate(0, rightItems.Count, args);
+                Node<T> rightNode = rightLeafNode;
+
+                leftNode = leftNode.AppendInPlace(rightNode, leafNodeEnumrator, null, args);
+
+                return leftNode;
             }
-            NotifyUpdate(first, -removeLength, args);
-            Count = newCount;
-            return this;
         }
 
     }

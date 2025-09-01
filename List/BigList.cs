@@ -91,6 +91,17 @@ namespace FooProject.Collection
             AddRange(items);
         }
 
+        public BigList(IEnumerable<T> items, ICustomBuilder<T> custom, IStateStore<T> stateStore)
+        {
+            _root = null;
+            LeastFetchStore = stateStore;
+            CustomBuilder = custom;
+            MaxCapacity = MAXITEMS;
+            BlockSize = MAXLEAF;
+
+            AddRange(items);
+        }
+
         /// <summary>
         /// get or set block size
         /// </summary>

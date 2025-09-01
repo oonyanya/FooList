@@ -4,12 +4,175 @@
  *  Fooproject modify
  */
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using FooProject.Collection;
+using FooProject.Collection.DataStore;
 using Microsoft.VisualStudio.TestPlatform.Utilities;
 
 namespace UnitTest
 {
+    [TestClass]
+    public sealed class ImmutableListTest
+    {
+
+        class ReadOnlyList<T> : IComposableList<T>
+        {
+            IList<T> items;
+            public T this[int index] { get => items[index]; set => throw new NotImplementedException(); }
+
+            public int Count => items.Count;
+
+            public bool IsReadOnly => true;
+
+            public ReadOnlyList(IEnumerable<T> collection)
+            {
+                if(collection != null)
+                {
+                    if(collection is IList<T>)
+                        items = (IList<T>)collection;
+                    else
+                        items = new List<T>(collection);
+                }
+                else
+                {
+                    items = new List<T>();
+                }
+            }
+
+            public void Add(T item)
+            {
+                //TODO:これだけは実装しないと動かないが、変な感じがするので、いつか治す
+                items.Add(item);
+            }
+
+            public void AddRange(IEnumerable<T> collection, int collection_length = -1)
+            {
+                throw new NotImplementedException();
+            }
+
+            public void Clear()
+            {
+                throw new NotImplementedException();
+            }
+
+            public bool Contains(T item)
+            {
+                throw new NotImplementedException();
+            }
+
+            public void CopyTo(T[] array, int arrayIndex)
+            {
+                throw new NotImplementedException();
+            }
+
+            public IEnumerator<T> GetEnumerator()
+            {
+                foreach (var item in this.GetRange(0, items.Count))
+                    yield return item;
+            }
+
+            public IEnumerable<T> GetRange(int index, int count)
+            {
+                int end = index + count - 1;
+                for (int i = index; i <= end; i++)
+                {
+                    yield return items[i];
+                }
+            }
+
+            public int IndexOf(T item)
+            {
+                throw new NotImplementedException();
+            }
+
+            public void Insert(int index, T item)
+            {
+                throw new NotImplementedException();
+            }
+
+            public void InsertRange(int index, IEnumerable<T> collection, int collection_length = -1)
+            {
+                throw new NotImplementedException();
+            }
+
+            public bool QueryAddRange(IEnumerable<T> collection, int collection_length = -1)
+            {
+                return false;
+            }
+
+            public bool QueryInsertRange(int index, IEnumerable<T> collection, int collection_length = -1)
+            {
+                return false;
+            }
+
+            public bool QueryRemoveRange(int index, int count)
+            {
+                return false;
+            }
+
+            public bool Remove(T item)
+            {
+                throw new NotImplementedException();
+            }
+
+            public void RemoveAt(int index)
+            {
+                throw new NotImplementedException();
+            }
+
+            public void RemoveRange(int index, int count)
+            {
+                throw new NotImplementedException();
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return GetEnumerator();
+            }
+        }
+        class MixedCustomConverter<T> : DefaultCustomConverter<T>
+        {
+            public override IComposableList<T> CreateList(long init_capacity, long maxcapacity, IEnumerable<T> collection = null)
+            {
+                var list = new ReadOnlyList<T>(collection);
+                return list;
+            }
+        }
+
+        [TestMethod]
+        public void RemoveRangeTest()
+        {
+            var customBuilder = new MixedCustomConverter<char>();
+            customBuilder.DataStore = new MemoryPinableContentDataStore<IComposableList<char>>();
+            var buf = new FooProject.Collection.BigList<char>("this is a pen",customBuilder,customBuilder);
+            buf.RemoveRange(5, 2);
+            Assert.AreEqual("this  a pen", new string(buf.ToArray()));
+        }
+
+        [TestMethod]
+        public void InsertRangeTest()
+        {
+            var customBuilder = new MixedCustomConverter<char>();
+            customBuilder.DataStore = new MemoryPinableContentDataStore<IComposableList<char>>();
+            var buf = new FooProject.Collection.BigList<char>("this  a pen", customBuilder, customBuilder);
+            buf.CustomBuilder = customBuilder;
+            buf.InsertRange(5, "is");
+            Assert.AreEqual("this is a pen", new string(buf.ToArray()));
+        }
+
+        [TestMethod]
+        public void AddRangeTest()
+        {
+            var customBuilder = new MixedCustomConverter<char>();
+            customBuilder.DataStore = new MemoryPinableContentDataStore<IComposableList<char>>();
+            var buf = new FooProject.Collection.BigList<char>("this is a", customBuilder, customBuilder);
+            buf.CustomBuilder = customBuilder;
+            buf.AddRange(" pen");
+            Assert.AreEqual("this is a pen", new string(buf.ToArray()));
+        }
+    }
+
     [TestClass]
     public sealed class ListTest
     {
