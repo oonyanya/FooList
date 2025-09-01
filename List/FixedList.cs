@@ -39,6 +39,12 @@ namespace FooProject.Collection
 
         public bool IsReadOnly => false;
 
+        public bool QueryAddRange(IEnumerable<T> collection, int collection_length = -1) { return this.Count + collection_length <= this.MaxCapacity; }
+
+        public bool QueryInsertRange(int index, IEnumerable<T> collection, int collection_length = -1) { return this.Count + collection_length <= this.MaxCapacity; }
+
+        public bool QueryRemoveRange(int index, int count) { return true; }
+
         public virtual void Add(T item)
         {
             collection.Add(item);

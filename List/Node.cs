@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -104,7 +105,13 @@ namespace FooProject.Collection
 
         public override Node<T> AppendInPlace(T item, LeafNodeEnumrator<T> leafNodeEnumrator,BigListArgs<T> args)
         {
-            if (Count < args.BlockSize)
+            bool result = false;
+            using (var pinnedContent = args.CustomBuilder.DataStore.Get(this.container))
+            {
+                result = pinnedContent.Content.QueryAddRange(null,1);
+            }
+
+            if (result)
             {
                 using (var pinnedContent = args.CustomBuilder.DataStore.Get(this.container))
                 {
@@ -130,22 +137,35 @@ namespace FooProject.Collection
         {
             LeafNode<T> otherLeaf = (other as LeafNode<T>);
             long newCount;
-            if (otherLeaf != null && (newCount = otherLeaf.Count + this.Count) <= args.BlockSize)
+            if (otherLeaf != null)
             {
-                using(var pinnedContent = args.CustomBuilder.DataStore.Get(this.container))
-                using(var otherLeafPinnedCotent = args.CustomBuilder.DataStore.Get(otherLeaf.container))
+                bool result;
+                using (var pinnedContent = args.CustomBuilder.DataStore.Get(this.container))
+                using (var otherLeafPinnedCotent = args.CustomBuilder.DataStore.Get(otherLeaf.container))
                 {
                     var items = pinnedContent.Content;
                     var otherLeafItems = otherLeafPinnedCotent.Content;
-                    checked
-                    {
-                        items.InsertRange(0, otherLeafItems, (int)otherLeaf.Count);
-                    }
-                    otherLeafPinnedCotent.RemoveContent();
+                    newCount = otherLeaf.Count + this.Count;
+                    result = items.QueryInsertRange(0, null,  otherLeafItems.Count);
                 }
-                NotifyUpdate(0, otherLeaf.Count, args);
-                Count = newCount;
-                return true;
+
+                if (result)
+                {
+                    using (var pinnedContent = args.CustomBuilder.DataStore.Get(this.container))
+                    using (var otherLeafPinnedCotent = args.CustomBuilder.DataStore.Get(otherLeaf.container))
+                    {
+                        var items = pinnedContent.Content;
+                        var otherLeafItems = otherLeafPinnedCotent.Content;
+                        checked
+                        {
+                            items.InsertRange(0, otherLeafItems, (int)otherLeaf.Count);
+                        }
+                        otherLeafPinnedCotent.RemoveContent();
+                    }
+                    NotifyUpdate(0, otherLeaf.Count, args);
+                    Count = newCount;
+                    return true;
+                }
             }
             return false;
         }
@@ -153,24 +173,36 @@ namespace FooProject.Collection
         {
             LeafNode<T> otherLeaf = (other as LeafNode<T>);
             long newCount;
-            if (otherLeaf != null && (newCount = otherLeaf.Count + this.Count) <= args.BlockSize)
+            if (otherLeaf != null)
             {
-                long itemsCount;
+                bool result;
                 using (var pinnedContent = args.CustomBuilder.DataStore.Get(this.container))
                 using (var otherLeafPinnedCotent = args.CustomBuilder.DataStore.Get(otherLeaf.container))
                 {
                     var items = pinnedContent.Content;
-                    itemsCount = items.Count;
                     var otherLeafItems = otherLeafPinnedCotent.Content;
-                    checked
-                    {
-                        items.AddRange(otherLeafItems, (int)otherLeaf.Count);
-                    }
-                    otherLeafPinnedCotent.RemoveContent();
+                    newCount = otherLeaf.Count + this.Count;
+                    result = items.QueryAddRange(null, otherLeafItems.Count);
                 }
-                NotifyUpdate(itemsCount, otherLeaf.Count, args);
-                Count = newCount;
-                return true;
+                if (result)
+                {
+                    long itemsCount;
+                    using (var pinnedContent = args.CustomBuilder.DataStore.Get(this.container))
+                    using (var otherLeafPinnedCotent = args.CustomBuilder.DataStore.Get(otherLeaf.container))
+                    {
+                        var items = pinnedContent.Content;
+                        itemsCount = items.Count;
+                        var otherLeafItems = otherLeafPinnedCotent.Content;
+                        checked
+                        {
+                            items.AddRange(otherLeafItems, (int)otherLeaf.Count);
+                        }
+                        otherLeafPinnedCotent.RemoveContent();
+                    }
+                    NotifyUpdate(itemsCount, otherLeaf.Count, args);
+                    Count = newCount;
+                    return true;
+                }
             }
             return false;
         }
@@ -242,7 +274,14 @@ namespace FooProject.Collection
 
         public override Node<T> InsertInPlace(long index, T item, LeafNodeEnumrator<T> leafNodeEnumrator,BigListArgs<T> args)
         {
-            if (Count < args.BlockSize)
+            bool result = false;
+            using (var pinnedContent = args.CustomBuilder.DataStore.Get(this.container))
+            {
+                var items = pinnedContent.Content;
+                result = items.QueryInsertRange((int)index, null, 1);
+            }
+
+            if (result)
             {
                 using (var pinnedContent = args.CustomBuilder.DataStore.Get(this.container))
                 {
@@ -307,8 +346,20 @@ namespace FooProject.Collection
         public override Node<T> InsertInPlace(long index, Node<T> node, LeafNodeEnumrator<T> leafNodeEnumrator, LeafNodeEnumrator<T> nodeBelongLeafNodeEnumrator,BigListArgs<T> args)
         {
             LeafNode<T> otherLeaf = (node as LeafNode<T>);
-            long newCount;
-            if (otherLeaf != null && (newCount = otherLeaf.Count + this.Count) <= args.BlockSize)
+            long newCount = this.Count;　//マージされる側のノードは少なくとも何かが存在するはず
+            bool result = false;
+            if (otherLeaf != null)
+            {
+                using (var pinnedContent = args.CustomBuilder.DataStore.Get(this.container))
+                using (var otherLeafPinnedCotent = args.CustomBuilder.DataStore.Get(otherLeaf.container))
+                {
+                    var items = pinnedContent.Content;
+                    var otherLeafItems = otherLeafPinnedCotent.Content;
+                    newCount = otherLeaf.Count + this.Count;
+                    result = items.QueryInsertRange((int)index, null, otherLeafItems.Count);
+                }
+            }
+            if (result)
             {
                 using (var pinnedContent = args.CustomBuilder.DataStore.Get(this.container))
                 using (var otherLeafPinnedCotent = args.CustomBuilder.DataStore.Get(otherLeaf.container))
@@ -379,8 +430,14 @@ namespace FooProject.Collection
 
         public override Node<T> PrependInPlace(T item, LeafNodeEnumrator<T> leafNodeEnumrator,BigListArgs<T> args)
         {
+            bool result = false;
+            using (var pinnedContent = args.CustomBuilder.DataStore.Get(this.container))
+            {
+                var items = pinnedContent.Content;
+                result = items.QueryInsertRange(0, null, 1);
+            }
             // Add into the current leaf, if possible.
-            if (Count < args.BlockSize)
+            if (result)
             {
                 using (var pinnedContent = args.CustomBuilder.DataStore.Get(this.container))
                 {
@@ -584,8 +641,18 @@ namespace FooProject.Collection
 
         public override Node<T> PrependInPlace(Node<T> node, LeafNodeEnumrator<T> leafNodeEnumrator, LeafNodeEnumrator<T> nodeBelongLeafNodeEnumrator,BigListArgs<T> args)
         {
-            if (Left.Count + node.Count <= args.BlockSize && Left is LeafNode<T> && node is LeafNode<T>)
-                return NewNodeInPlace(Left.PrependInPlace(node, leafNodeEnumrator, nodeBelongLeafNodeEnumrator, args), Right);
+            var LeftLeafNode = Left as LeafNode<T>;
+            var newLeafNode = node as LeafNode<T>;
+            if (LeftLeafNode != null && newLeafNode != null)
+            {
+                bool result = false;
+                using(var LeftPinnedContent = args.CustomBuilder.DataStore.Get(LeftLeafNode.container))
+                {
+                    result = LeftPinnedContent.Content.QueryInsertRange(0, null, (int)newLeafNode.Count);
+                }
+                if(result)
+                    return NewNodeInPlace(Left.PrependInPlace(node, leafNodeEnumrator, nodeBelongLeafNodeEnumrator, args), Right);
+            }
             if (leafNodeEnumrator != null)
             {
                 var rightLeafNode = node as LeafNode<T>;
@@ -599,8 +666,18 @@ namespace FooProject.Collection
 
         public override Node<T> AppendInPlace(Node<T> node, LeafNodeEnumrator<T> leafNodeEnumrator, LeafNodeEnumrator<T> nodeBelongLeafNodeEnumrator,BigListArgs<T> args)
         {
-            if (Right.Count + node.Count <= args.BlockSize && Right is LeafNode<T> && node is LeafNode<T>)
-                return NewNodeInPlace(Left, Right.AppendInPlace(node, leafNodeEnumrator, nodeBelongLeafNodeEnumrator, args));
+            var RightLeafNode = Right as LeafNode<T>;
+            var newLeafNode = node as LeafNode<T>;
+            if (RightLeafNode != null && newLeafNode != null)
+            {
+                bool result = false;
+                using (var RightPinnedContent = args.CustomBuilder.DataStore.Get(RightLeafNode.container))
+                {
+                    result = RightPinnedContent.Content.QueryAddRange(null, (int)newLeafNode.Count);
+                }
+                if (result)
+                    return NewNodeInPlace(Left, Right.AppendInPlace(node, leafNodeEnumrator, nodeBelongLeafNodeEnumrator, args));
+            }
             if (leafNodeEnumrator != null)
             {
                 var rightLeafNode = node as LeafNode<T>;
@@ -614,8 +691,18 @@ namespace FooProject.Collection
 
         public override Node<T> AppendInPlace(T item, LeafNodeEnumrator<T> leafNodeEnumrator,BigListArgs<T> args)
         {
-            LeafNode<T> rightLeaf;
-            if (Right.Count < args.BlockSize && (rightLeaf = Right as LeafNode<T>) != null)
+            LeafNode<T> rightLeaf = Right as LeafNode<T>;
+            bool result = false;
+            if (rightLeaf != null)
+            {
+                using (var pinnedContent = args.CustomBuilder.DataStore.Get(rightLeaf.container))
+                {
+                    var rightLeafItems = pinnedContent.Content;
+                    result = rightLeafItems.QueryAddRange(null, 1);
+                }
+            }
+
+            if (rightLeaf != null && result)
             {
                 using (var pinnedContent = args.CustomBuilder.DataStore.Get(rightLeaf.container))
                 {
@@ -762,8 +849,18 @@ namespace FooProject.Collection
 
         public override Node<T> PrependInPlace(T item, LeafNodeEnumrator<T> leafNodeEnumrator,BigListArgs<T> args)
         {
-            LeafNode<T> leftLeaf;
-            if (Left.Count < args.BlockSize && (leftLeaf = Left as LeafNode<T>) != null)
+            LeafNode<T> leftLeaf = Left as LeafNode<T>;
+            bool result = false;
+            if (leftLeaf != null)
+            {
+                using (var pinnedContent = args.CustomBuilder.DataStore.Get(leftLeaf.container))
+                {
+                    var leftLeafItems = pinnedContent.Content;
+                    result = leftLeafItems.QueryAddRange(null, 1);
+                }
+            }
+
+            if (result && leftLeaf != null)
             {
                 using (var pinnedContent = args.CustomBuilder.DataStore.Get(leftLeaf.container))
                 {
