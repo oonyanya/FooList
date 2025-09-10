@@ -3,12 +3,13 @@
  *  https://github.com/timdetering/Wintellect.PowerCollections
  *  Fooproject modify
  */
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using FooProject.Collection;
 using FooProject.Collection.DataStore;
 using Microsoft.VisualStudio.TestPlatform.Utilities;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Reflection;
 
 namespace UnitTest
 {
@@ -18,10 +19,13 @@ namespace UnitTest
 
         class ReadOnlyList<T> : IComposableList<T>
         {
-            IList<T> items;
+            int start, length;
+
+            List<T> items;
+
             public T this[int index] { get => items[index]; set => throw new NotImplementedException(); }
 
-            public int Count => items.Count;
+            public int Count => this.length;
 
             public bool IsReadOnly => true;
 
@@ -29,10 +33,17 @@ namespace UnitTest
             {
                 if(collection != null)
                 {
-                    if(collection is IList<T>)
-                        items = (IList<T>)collection;
+                    var readonlyList = collection as ReadOnlyList<T>;
+                    if(readonlyList != null)
+                    {
+                        this.items = readonlyList.items;
+                        this.start = readonlyList.start;
+                        this.length = readonlyList.length;
+                    }
                     else
+                    {
                         items = new List<T>(collection);
+                    }
                 }
                 else
                 {
@@ -40,10 +51,18 @@ namespace UnitTest
                 }
             }
 
+            internal ReadOnlyList(ReadOnlyList<T> collection, int start = 0, int length = int.MaxValue)
+            {
+                this.items = collection.items;
+                this.start = start;
+                this.length = length == int.MaxValue ? collection.Count : length;
+            }
+
             public void Add(T item)
             {
                 //TODO:これだけは実装しないと動かないが、変な感じがするので、いつか治す
                 items.Add(item);
+                length = items.Count;
             }
 
             public void AddRange(IEnumerable<T> collection, int collection_length = -1)
@@ -63,22 +82,22 @@ namespace UnitTest
 
             public void CopyTo(T[] array, int arrayIndex)
             {
-                throw new NotImplementedException();
+                this.items.CopyTo(this.start, array, arrayIndex, this.length);
             }
 
             public IEnumerator<T> GetEnumerator()
             {
-                foreach (var item in this.GetRange(0, items.Count))
-                    yield return item;
+                int start = this.start;
+                int end = this.start + this.length - 1;
+                for (int i = start; i <= end; i++)
+                {
+                    yield return items[i];
+                }
             }
 
             public IEnumerable<T> GetRange(int index, int count)
             {
-                int end = index + count - 1;
-                for (int i = index; i <= end; i++)
-                {
-                    yield return items[i];
-                }
+                return new ReadOnlyList<T>(this, index, count);
             }
 
             public int IndexOf(T item)
