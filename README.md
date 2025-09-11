@@ -32,7 +32,7 @@ buf.Add('1');
 行からバイトに変換するテーブルを作りたい場合はEditorDemo/Program.csを見てください。
 BigRangeList()を初期化しているところ以降を読めばにテーブルの作り方や操作の仕方が書いてあります。
 
-Immutableにしたい場合、ImmutableListTestクラスを参照してください。
+Ropeっぽいことをしたい場合、ImmutableListTestクラスを参照してください。
 
 ## 特徴
 
