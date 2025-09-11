@@ -616,13 +616,14 @@ namespace FooProject.Collection
         }
 
         /// <summary>
-        /// AddRangeやInsertRange、AddRangeToFront呼び出し時や初期化の時ににコレクションをブロックサイズごとに分割するかどうか
+        /// AddRangeやInsertRange、AddRangeToFront呼び出し時や初期化の時に追加対象のコレクションをブロックサイズごとに分割するかどうか
         /// </summary>
         /// <param name="collection">チェック対象のコレクション</param>
         /// <returns>分割する場合は真を返し、そうでない場合は偽を返す</returns>
         /// <remarks>
         /// IComposableListを継承した奴を突っ込んだ時にのみ反映される。
-        /// なお、状況によって内容をコピーすることがあるので、コピーしたくない場合はDefaultCustomConverterを継承して適切なコレクションを返す必要がある。
+        /// なお、このメソッドで分割を抑制しても、状況によっては分割するためにコレクションをコピーすることがある。
+        /// コピーしたくない場合は、IComposableListを継承したクラスを作成した上でDefaultCustomConverterを継承して適切なコレクションを返す必要がある。
         /// 詳しいやり方はImmutableListTestを参照すること。
         /// </remarks>
         protected virtual bool IsRequireSplitBlock(IComposableList<T> collection)
