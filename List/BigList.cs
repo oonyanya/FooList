@@ -620,6 +620,11 @@ namespace FooProject.Collection
         /// </summary>
         /// <param name="collection">チェック対象のコレクション</param>
         /// <returns>分割する場合は真を返し、そうでない場合は偽を返す</returns>
+        /// <remarks>
+        /// IComposableListを継承した奴を突っ込んだ時にのみ反映される。
+        /// なお、状況によって内容をコピーすることがあるので、コピーしたくない場合はDefaultCustomConverterを継承して適切なコレクションを返す必要がある。
+        /// 詳しいやり方はImmutableListTestを参照すること。
+        /// </remarks>
         protected virtual bool IsRequireSplitBlock(IComposableList<T> collection)
         {
             return false;
