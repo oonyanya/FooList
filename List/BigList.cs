@@ -51,7 +51,10 @@ namespace FooProject.Collection
     /// List for huge items.
     /// </summary>
     /// <remarks>
-    /// BigList is for only single thread.
+    /// BigList is for only single thread.　How do it works.　Please google rope or see below document.
+    /// "Ropes: an Alternative to Strings", by 
+    /// Boehm, Atkinson, and Plass, in SOFTWARE--PRACTICE AND EXPERIENCE, VOL. 25(12), 1315–1330 (DECEMBER 1995).
+    /// https://www.cs.tufts.edu/comp/150FP/archive/hans-boehm/ropes.pdf
     /// </remarks>
     /// <typeparam name="T">The item type of the collection.</typeparam>
     public class BigList<T> : ReadOnlyList<T>, IList<T>
@@ -75,6 +78,9 @@ namespace FooProject.Collection
 
         private protected Node<T> Root {  get { return _root; } }
 
+        /// <summary>
+        /// 初期化する
+        /// </summary>
         public BigList()
         {
             _root = null;
@@ -86,11 +92,23 @@ namespace FooProject.Collection
             BlockSize = MAXLEAF;
         }
 
+        /// <summary>
+        /// コレクションを含んだ状態で初期化する
+        /// </summary>
+        /// <param name="items">コレクション</param>
+        /// <remarks>IComposableListで初期化した場合、BlockSizeごとに分割されない</remarks>
         public BigList(IEnumerable<T> items) : this()
         {
             AddRange(items);
         }
 
+        /// <summary>
+        /// コレクションを含んだ状態で初期化する
+        /// </summary>
+        /// <param name="items">コレクション</param>
+        /// <param name="custom">カスタムビルダー</param>
+        /// <param name="stateStore">ステートストア</param>
+        /// <remarks>IComposableListで初期化した場合、BlockSizeごとに分割されない</remarks>
         public BigList(IEnumerable<T> items, ICustomBuilder<T> custom, IStateStore<T> stateStore)
         {
             _root = null;
@@ -121,10 +139,21 @@ namespace FooProject.Collection
             get; set;
         }
 
+        /// <summary>
+        /// ステートストア
+        /// </summary>
         public IStateStore<T> LeastFetchStore { get; set; }
 
+        /// <summary>
+        /// カスタムビルダー
+        /// </summary>
         public ICustomBuilder<T> CustomBuilder { get; set; }
 
+        /// <summary>
+        /// インデクサー
+        /// </summary>
+        /// <param name="index">取得したい要素</param>
+        /// <returns>Tを返す</returns>
         public new T this[int index]
         {
             get
@@ -137,6 +166,12 @@ namespace FooProject.Collection
             }
         }
 
+        /// <summary>
+        /// 取得する
+        /// </summary>
+        /// <param name="index">取得したい要素のインデックス</param>
+        /// <returns>Tを返す</returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
         public virtual T Get(long index)
         {
             // This could just be a simple call to GetAt on the root.
@@ -157,6 +192,12 @@ namespace FooProject.Collection
             }
         }
 
+        /// <summary>
+        /// 設定する
+        /// </summary>
+        /// <param name="index">設定したい要素</param>
+        /// <param name="value">設定する値</param>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
         public virtual void Set(long index, T value)
         {
             // This could just be a simple call to SetAtInPlace on the root.
@@ -252,6 +293,9 @@ namespace FooProject.Collection
             LeastFetchStore.ResetState();
         }
 
+        /// <summary>
+        /// 要素数
+        /// </summary>
         public override int Count
         {
             get
@@ -264,6 +308,9 @@ namespace FooProject.Collection
             }
         }
 
+        /// <summary>
+        /// 要素数
+        /// </summary>
         public long LongCount
         {
             get
@@ -276,6 +323,9 @@ namespace FooProject.Collection
             }
         }
 
+        /// <summary>
+        /// リードオンリーかどうか
+        /// </summary>
         //ReadOnlyCollectionにキャストしたときはtrueにしたいのでこうする
         public new bool IsReadOnly { get { return false; } }
 
@@ -482,6 +532,11 @@ namespace FooProject.Collection
             }
         }
 
+        /// <summary>
+        /// 一番前に追加する
+        /// </summary>
+        /// <param name="item"></param>
+        /// <exception cref="InvalidOperationException"></exception>
         public void AddToFront(T item)
         {
             if (LongCount + 1 > MaxCapacity)
@@ -507,6 +562,11 @@ namespace FooProject.Collection
             ResetFetchCache();
         }
 
+        /// <summary>
+        /// 末尾に追加する
+        /// </summary>
+        /// <param name="item"></param>
+        /// <exception cref="InvalidOperationException"></exception>
         public new void Add(T item)
         {
             if (LongCount + 1 > MaxCapacity)
@@ -557,12 +617,21 @@ namespace FooProject.Collection
             }
         }
 
+        /// <summary>
+        /// コレクション追加時に分割しないかどうか
+        /// </summary>
+        /// <param name="collection">チェック対象のコレクション</param>
+        /// <returns>分割しない場合は真を返し、そうでない場合は偽を返す</returns>
+        protected virtual bool IsRequireKeepList(IComposableList<T> collection)
+        {
+            return true;
+        }
+
         private Node<T> NodeFromEnumerable(IEnumerable<T> collection, LeafNodeEnumrator<T> leafNodeEnumrator,BigListArgs<T> args)
         {
             Node<T> node = null;
-            IComposableList<T> items;
+            IComposableList<T> items = collection as IComposableList<T>;
             LeafNode<T> leaf;
-            IEnumerator<T> enumerator = collection.GetEnumerator();
 
             int collection_count;
 #if NET6_0_OR_GREATER
@@ -574,10 +643,10 @@ namespace FooProject.Collection
                 collection_count = collection.Count();
 #endif
 
-            while ((items = ListFromEnumerator(enumerator, collection_count, args)) != null)
+            if(items != null && this.IsRequireKeepList(items))
             {
-                leaf = args.CustomBuilder.CreateLeafNode(items.Count, items);
-                leaf.NotifyUpdate(0, items.Count, args);
+                leaf = args.CustomBuilder.CreateLeafNode((long)collection_count, items);
+                leaf.NotifyUpdate(0, collection_count, args);
                 leafNodeEnumrator.AddLast(leaf);
                 if (node == null)
                 {
@@ -592,17 +661,39 @@ namespace FooProject.Collection
                     node = node.AppendInPlace(leaf, null, null, args);
                 }
             }
+            else
+            {
+                IEnumerator<T> enumerator = collection.GetEnumerator();
+                while ((items = ListFromEnumerator(enumerator, collection_count, args)) != null)
+                {
+                    leaf = args.CustomBuilder.CreateLeafNode(items.Count, items);
+                    leaf.NotifyUpdate(0, items.Count, args);
+                    leafNodeEnumrator.AddLast(leaf);
+                    if (node == null)
+                    {
+                        node = leaf;
+                    }
+                    else
+                    {
+                        if (node.Count + leaf.Count > MaxCapacity)
+                            throw new InvalidOperationException("too large");
+
+                        //このメソッドでもリンクドリストに追加されるがこのメソッドで追加すると後の処理が面倒になる
+                        node = node.AppendInPlace(leaf, null, null, args);
+                    }
+                }
+            }
 
             return node;
         }
 
         /// <summary>
-        /// Add collections.
+        /// 末尾に追加する
         /// </summary>
         /// <param name="collection"></param>
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="InvalidOperationException"></exception>
-        /// <remarks>The collection's count must be within int.Maxvalue - 1</remarks>
+        /// <remarks>IComposableListで初期化した場合、BlockSizeごとに分割されない</remarks>
         public void AddRange(IEnumerable<T> collection)
         {
             if (collection == null)
@@ -635,12 +726,12 @@ namespace FooProject.Collection
         }
 
         /// <summary>
-        /// Add collections before first element.
+        /// 先頭に挿入する
         /// </summary>
         /// <param name="collection"></param>
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="InvalidOperationException"></exception>
-        /// <remarks>The collection's count must be within int.Maxvalue - 1</remarks>
+        /// <remarks>IComposableListで初期化した場合、BlockSizeごとに分割されない</remarks>
         public void AddRangeToFront(IEnumerable<T> collection)
         {
             if (collection == null)
@@ -672,6 +763,9 @@ namespace FooProject.Collection
             ResetFetchCache();
         }
 
+        /// <summary>
+        /// すべて削除する
+        /// </summary>
         public new void Clear()
         {
             this._root = null;
@@ -679,6 +773,13 @@ namespace FooProject.Collection
             ResetFetchCache();
         }
 
+        /// <summary>
+        /// 特定範囲の物を列挙する
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="count"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
         public IEnumerable<T> GetRangeEnumerable(long index, long count)
         {
             if (count == 0)
@@ -733,6 +834,12 @@ namespace FooProject.Collection
             }
         }
 
+        /// <summary>
+        /// 特定範囲のものを列挙し、作成する
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="count"></param>
+        /// <returns></returns>
         public BigList<T> GetRange(long index, long count)
         {
             if (count == 0)
@@ -744,11 +851,20 @@ namespace FooProject.Collection
             return newList;
         }
 
+        /// <summary>
+        /// リードオンリーリストを返す
+        /// </summary>
+        /// <returns></returns>
         public ReadOnlyList<T> AsReadOnly()
         {
             return (ReadOnlyList<T>)this;
         }
 
+        /// <summary>
+        /// 列挙子を返す
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
         public override IEnumerator<T> GetEnumerator()
         {
             if (LongCount + 1 > MaxCapacity)
@@ -768,11 +884,24 @@ namespace FooProject.Collection
             }
         }
 
+        /// <summary>
+        /// 挿入する
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="item"></param>
         public new void Insert(int index, T item)
         {
             //　こうしないとスタックオーバーフローになる
             this.Insert((long)index, item);
         }
+
+        /// <summary>
+        /// 挿入する
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="item"></param>
+        /// <exception cref="InvalidOperationException"></exception>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
         public virtual void Insert(long index, T item)
         {
             if (LongCount + 1 > MaxCapacity)
@@ -809,6 +938,15 @@ namespace FooProject.Collection
             ResetFetchCache();
         }
 
+        /// <summary>
+        /// 挿入する
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="collection"></param>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        /// <exception cref="InvalidOperationException"></exception>
+        /// <remarks>. IComposableListで初期化した場合、BlockSizeごとに分割されない</remarks>
         public void InsertRange(long index, IEnumerable<T> collection)
         {
             if (collection == null)
@@ -848,6 +986,11 @@ namespace FooProject.Collection
             ResetFetchCache();
         }
 
+        /// <summary>
+        /// 削除する
+        /// </summary>
+        /// <param name="item"></param>
+        /// <returns></returns>
         public new bool Remove(T item)
         {
             int index = IndexOf(item);
@@ -862,16 +1005,30 @@ namespace FooProject.Collection
             }
         }
 
+        /// <summary>
+        /// 削除する
+        /// </summary>
+        /// <param name="index"></param>
         public new void RemoveAt(int index)
         {
             RemoveRange(index, 1);
         }
 
+        /// <summary>
+        /// 削除する
+        /// </summary>
+        /// <param name="index"></param>
         public void RemoveAt(long index)
         {
             RemoveRange(index, 1);
         }
 
+        /// <summary>
+        /// 指定範囲を削除する
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="count"></param>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
         public void RemoveRange(long index, long count)
         {
             if (count == 0)

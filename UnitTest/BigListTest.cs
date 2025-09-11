@@ -155,8 +155,15 @@ namespace UnitTest
         {
             public override IComposableList<T> CreateList(long init_capacity, long maxcapacity, IEnumerable<T> collection = null)
             {
-                var list = new ReadOnlyList<T>(collection);
-                return list;
+                if(collection is ReadOnlyList<T>)
+                {
+                    var list = new ReadOnlyList<T>(collection);
+                    return list;
+                }
+                else
+                {
+                    return base.CreateList(init_capacity, maxcapacity, collection);
+                }
             }
         }
 
@@ -165,7 +172,8 @@ namespace UnitTest
         {
             var customBuilder = new MixedCustomConverter<char>();
             customBuilder.DataStore = new MemoryPinableContentDataStore<IComposableList<char>>();
-            var buf = new FooProject.Collection.BigList<char>("this is a pen", customBuilder, customBuilder);
+            var init_collection = new ReadOnlyList<char>("this is a pen");
+            var buf = new FooProject.Collection.BigList<char>(init_collection, customBuilder, customBuilder);
             buf.RemoveAt(5);
             Assert.AreEqual("this s a pen", new string(buf.ToArray()));
         }
@@ -175,7 +183,8 @@ namespace UnitTest
         {
             var customBuilder = new MixedCustomConverter<char>();
             customBuilder.DataStore = new MemoryPinableContentDataStore<IComposableList<char>>();
-            var buf = new FooProject.Collection.BigList<char>("this is a pen",customBuilder,customBuilder);
+            var init_collection = new ReadOnlyList<char>("this is a pen");
+            var buf = new FooProject.Collection.BigList<char>(init_collection, customBuilder, customBuilder);
             buf.RemoveRange(5, 2);
             Assert.AreEqual("this  a pen", new string(buf.ToArray()));
         }
@@ -185,7 +194,8 @@ namespace UnitTest
         {
             var customBuilder = new MixedCustomConverter<char>();
             customBuilder.DataStore = new MemoryPinableContentDataStore<IComposableList<char>>();
-            var buf = new FooProject.Collection.BigList<char>("this  a pen", customBuilder, customBuilder);
+            var init_collection = new ReadOnlyList<char>("this  a pen");
+            var buf = new FooProject.Collection.BigList<char>(init_collection, customBuilder, customBuilder);
             buf.CustomBuilder = customBuilder;
             buf.Insert(5, 'i');
             Assert.AreEqual("this i a pen", new string(buf.ToArray()));
@@ -196,7 +206,8 @@ namespace UnitTest
         {
             var customBuilder = new MixedCustomConverter<char>();
             customBuilder.DataStore = new MemoryPinableContentDataStore<IComposableList<char>>();
-            var buf = new FooProject.Collection.BigList<char>("this  a pen", customBuilder, customBuilder);
+            var init_collection = new ReadOnlyList<char>("this  a pen");
+            var buf = new FooProject.Collection.BigList<char>(init_collection, customBuilder, customBuilder);
             buf.CustomBuilder = customBuilder;
             buf.InsertRange(5, "is");
             Assert.AreEqual("this is a pen", new string(buf.ToArray()));
@@ -218,7 +229,8 @@ namespace UnitTest
         {
             var customBuilder = new MixedCustomConverter<char>();
             customBuilder.DataStore = new MemoryPinableContentDataStore<IComposableList<char>>();
-            var buf = new FooProject.Collection.BigList<char>("this is a", customBuilder, customBuilder);
+            var init_collection = new ReadOnlyList<char>("this is a");
+            var buf = new FooProject.Collection.BigList<char>(init_collection, customBuilder, customBuilder);
             buf.CustomBuilder = customBuilder;
             buf.AddRange(" pen");
             Assert.AreEqual("this is a pen", new string(buf.ToArray()));
@@ -229,7 +241,8 @@ namespace UnitTest
         {
             var customBuilder = new MixedCustomConverter<char>();
             customBuilder.DataStore = new MemoryPinableContentDataStore<IComposableList<char>>();
-            var buf = new FooProject.Collection.BigList<char>("this is a", customBuilder, customBuilder);
+            var init_collection = new ReadOnlyList<char>("this is a");
+            var buf = new FooProject.Collection.BigList<char>(init_collection, customBuilder, customBuilder);
             buf.CustomBuilder = customBuilder;
             buf.AddToFront(' ');
             Assert.AreEqual(" this is a", new string(buf.ToArray()));

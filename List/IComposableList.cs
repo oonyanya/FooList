@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 namespace FooProject.Collection
 {
     /// <summary>
-    /// 合成可能リストを表す
+    /// BigList内部で使用するコレクションを表す。
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    /// <remarks>リードオンリーの場合、CopyTo、GetEnumerator、GetRangeだけは実装する必要があります</remarks>
+    /// <remarks>今のバージョンだとLeafNodeに格納するために使用している。リードオンリーの場合、CopyTo、GetEnumerator、GetRangeだけは実装する必要があります</remarks>
     public interface IComposableList<T> : IEnumerable<T>, IList<T>
     {
         /// <summary>

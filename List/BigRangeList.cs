@@ -47,6 +47,12 @@ namespace FooProject.Collection
             this.CustomBuilder = custom;
         }
 
+        protected override bool IsRequireKeepList(IComposableList<T> collection)
+        {
+            //そのままノードに突っ込まれると困る
+            return false;
+        }
+
         /// <summary>
         /// 要素を取得する
         /// </summary>
