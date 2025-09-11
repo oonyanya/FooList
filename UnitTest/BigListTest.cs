@@ -43,6 +43,8 @@ namespace UnitTest
                     else
                     {
                         items = new List<T>(collection);
+                        this.start = 0;
+                        this.length = items.Count;
                     }
                 }
                 else
@@ -60,9 +62,7 @@ namespace UnitTest
 
             public void Add(T item)
             {
-                //TODO:これだけは実装しないと動かないが、変な感じがするので、いつか治す
-                items.Add(item);
-                length = items.Count;
+                throw new NotImplementedException();
             }
 
             public void AddRange(IEnumerable<T> collection, int collection_length = -1)
@@ -82,6 +82,7 @@ namespace UnitTest
 
             public void CopyTo(T[] array, int arrayIndex)
             {
+                //VisualStudioでのデバック用に最低限実装しないといけない
                 this.items.CopyTo(this.start, array, arrayIndex, this.length);
             }
 

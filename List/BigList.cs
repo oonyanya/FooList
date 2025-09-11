@@ -534,28 +534,22 @@ namespace FooProject.Collection
         private static IComposableList<T> ListFromEnumerator(IEnumerator<T> enumerator,int collection_count,BigListArgs<T> args)
         {
             int i = 0;
-            IComposableList<T> items = null;
+            T[] items;
+            if (collection_count < args.BlockSize)
+                items = new T[collection_count];
+            else
+                items = new T[args.BlockSize];
+
 
             while (i < args.BlockSize && enumerator.MoveNext())
             {
-                if (i == 0)
-                {
-                    if(collection_count < args.BlockSize)
-                        items = args.CustomBuilder.CreateList(collection_count, args.BlockSize);
-                    else
-                        items = args.CustomBuilder.CreateList(args.BlockSize, args.BlockSize);
-                }
-
-                if (items != null)
-                {
-                    items.Add(enumerator.Current);
-                    i++;
-                }
+                items[i] = enumerator.Current;
+                i++;
             }
 
-            if (items != null)
+            if (i > 0)
             {
-                return items;
+                return args.CustomBuilder.CreateList(i, args.BlockSize, items.Take(i));
             }
             else
             {
