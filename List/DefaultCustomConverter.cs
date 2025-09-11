@@ -58,8 +58,7 @@ namespace FooProject.Collection
 
         public LeafNode<T> CreateLeafNode(T item, int blocksize)
         {
-            var list = this.CreateList(4, blocksize);
-            list.Add(item);
+            var list = this.CreateList(4, blocksize, new T[] {item});
             var container = new PinableContainer<IComposableList<T>>(list);
             this.DataStore.Set(container);
             return new LeafNode<T>(list.Count, container);

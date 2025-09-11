@@ -161,6 +161,16 @@ namespace UnitTest
         }
 
         [TestMethod]
+        public void RemoveAtTest()
+        {
+            var customBuilder = new MixedCustomConverter<char>();
+            customBuilder.DataStore = new MemoryPinableContentDataStore<IComposableList<char>>();
+            var buf = new FooProject.Collection.BigList<char>("this is a pen", customBuilder, customBuilder);
+            buf.RemoveAt(5);
+            Assert.AreEqual("this s a pen", new string(buf.ToArray()));
+        }
+
+        [TestMethod]
         public void RemoveRangeTest()
         {
             var customBuilder = new MixedCustomConverter<char>();
@@ -168,6 +178,17 @@ namespace UnitTest
             var buf = new FooProject.Collection.BigList<char>("this is a pen",customBuilder,customBuilder);
             buf.RemoveRange(5, 2);
             Assert.AreEqual("this  a pen", new string(buf.ToArray()));
+        }
+
+        [TestMethod]
+        public void InsertTest()
+        {
+            var customBuilder = new MixedCustomConverter<char>();
+            customBuilder.DataStore = new MemoryPinableContentDataStore<IComposableList<char>>();
+            var buf = new FooProject.Collection.BigList<char>("this  a pen", customBuilder, customBuilder);
+            buf.CustomBuilder = customBuilder;
+            buf.Insert(5, 'i');
+            Assert.AreEqual("this i a pen", new string(buf.ToArray()));
         }
 
         [TestMethod]
@@ -182,6 +203,17 @@ namespace UnitTest
         }
 
         [TestMethod]
+        public void AddTest()
+        {
+            var customBuilder = new MixedCustomConverter<char>();
+            customBuilder.DataStore = new MemoryPinableContentDataStore<IComposableList<char>>();
+            var buf = new FooProject.Collection.BigList<char>("this is a", customBuilder, customBuilder);
+            buf.CustomBuilder = customBuilder;
+            buf.Add(' ');
+            Assert.AreEqual("this is a ", new string(buf.ToArray()));
+        }
+
+        [TestMethod]
         public void AddRangeTest()
         {
             var customBuilder = new MixedCustomConverter<char>();
@@ -190,6 +222,17 @@ namespace UnitTest
             buf.CustomBuilder = customBuilder;
             buf.AddRange(" pen");
             Assert.AreEqual("this is a pen", new string(buf.ToArray()));
+        }
+
+        [TestMethod]
+        public void AddFrontTest()
+        {
+            var customBuilder = new MixedCustomConverter<char>();
+            customBuilder.DataStore = new MemoryPinableContentDataStore<IComposableList<char>>();
+            var buf = new FooProject.Collection.BigList<char>("this is a", customBuilder, customBuilder);
+            buf.CustomBuilder = customBuilder;
+            buf.AddToFront(' ');
+            Assert.AreEqual(" this is a", new string(buf.ToArray()));
         }
     }
 

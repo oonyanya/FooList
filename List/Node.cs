@@ -344,27 +344,23 @@ namespace FooProject.Collection
                     }
                     else
                     {
-                        throw new NotSupportedException("QueryAddRange()が偽を返した時の動作はサポートしていません");
-                        //以下は試しに書いてみたコード。まだテストしてない。
-                        /*
-                        LeafNode<T> leftLeafNode = args.CustomBuilder.CreateLeafNode(index + 1, leftItems);
+                        LeafNode<T> leftLeafNode = args.CustomBuilder.CreateLeafNode(leftItems.Count, leftItems);
                         leftLeafNode.NotifyUpdate(0, leftItems.Count, args);
-                        Node<T> leftNode;
+                        Node<T> leftNode = leftLeafNode;
                         leafNodeEnumrator.Replace(this, leftLeafNode);
 
                         int rightItemCount = items.Count - (int)index;
                         IComposableList<T> rightItems = args.CustomBuilder.CreateList(rightItemCount, args.BlockSize, items.GetRange(splitLength, rightItemCount));
                         LeafNode<T> rightNode = args.CustomBuilder.CreateLeafNode(Count - index, rightItems);
                         rightNode.NotifyUpdate(0, rightItems.Count, args);
-                        leafNodeEnumrator.AddNext(leftLeafNode, rightNode);
 
                         var newNode = args.CustomBuilder.CreateLeafNode(item, args.BlockSize);
-                        leftNode = leftLeafNode.AppendInPlace(newNode, leafNodeEnumrator, null, args);
+                        newNode.NotifyUpdate(0,1,args);
+                        leftNode = leftNode.AppendInPlace(newNode, leafNodeEnumrator, null, args);
 
-                        leftNode = leftLeafNode.AppendInPlace(rightNode, leafNodeEnumrator, null, args);
+                        leftNode = leftNode.AppendInPlace(rightNode, leafNodeEnumrator, null, args);
 
                         return leftNode;
-                        */
                     }
                 }
             }
