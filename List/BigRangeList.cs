@@ -47,10 +47,10 @@ namespace FooProject.Collection
             this.CustomBuilder = custom;
         }
 
-        protected override bool IsRequireKeepList(IComposableList<T> collection)
+        protected override bool IsRequireSplitBlock(IComposableList<T> collection)
         {
             //そのままノードに突っ込まれると困る
-            return false;
+            return true;
         }
 
         /// <summary>

@@ -96,7 +96,6 @@ namespace FooProject.Collection
         /// コレクションを含んだ状態で初期化する
         /// </summary>
         /// <param name="items">コレクション</param>
-        /// <remarks>IComposableListで初期化した場合、BlockSizeごとに分割されない</remarks>
         public BigList(IEnumerable<T> items) : this()
         {
             AddRange(items);
@@ -108,7 +107,6 @@ namespace FooProject.Collection
         /// <param name="items">コレクション</param>
         /// <param name="custom">カスタムビルダー</param>
         /// <param name="stateStore">ステートストア</param>
-        /// <remarks>IComposableListで初期化した場合、BlockSizeごとに分割されない</remarks>
         public BigList(IEnumerable<T> items, ICustomBuilder<T> custom, IStateStore<T> stateStore)
         {
             _root = null;
@@ -618,13 +616,13 @@ namespace FooProject.Collection
         }
 
         /// <summary>
-        /// コレクション追加時に分割しないかどうか
+        /// AddRangeやInsertRange、AddRangeToFront呼び出し時や初期化の時ににコレクションをブロックサイズごとに分割するかどうか
         /// </summary>
         /// <param name="collection">チェック対象のコレクション</param>
-        /// <returns>分割しない場合は真を返し、そうでない場合は偽を返す</returns>
-        protected virtual bool IsRequireKeepList(IComposableList<T> collection)
+        /// <returns>分割する場合は真を返し、そうでない場合は偽を返す</returns>
+        protected virtual bool IsRequireSplitBlock(IComposableList<T> collection)
         {
-            return true;
+            return false;
         }
 
         private Node<T> NodeFromEnumerable(IEnumerable<T> collection, LeafNodeEnumrator<T> leafNodeEnumrator,BigListArgs<T> args)
@@ -643,7 +641,7 @@ namespace FooProject.Collection
                 collection_count = collection.Count();
 #endif
 
-            if(items != null && this.IsRequireKeepList(items))
+            if(items != null && this.IsRequireSplitBlock(items) == false)
             {
                 leaf = args.CustomBuilder.CreateLeafNode((long)collection_count, items);
                 leaf.NotifyUpdate(0, collection_count, args);
@@ -693,7 +691,6 @@ namespace FooProject.Collection
         /// <param name="collection"></param>
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="InvalidOperationException"></exception>
-        /// <remarks>IComposableListで初期化した場合、BlockSizeごとに分割されない</remarks>
         public void AddRange(IEnumerable<T> collection)
         {
             if (collection == null)
@@ -731,7 +728,6 @@ namespace FooProject.Collection
         /// <param name="collection"></param>
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="InvalidOperationException"></exception>
-        /// <remarks>IComposableListで初期化した場合、BlockSizeごとに分割されない</remarks>
         public void AddRangeToFront(IEnumerable<T> collection)
         {
             if (collection == null)
@@ -946,7 +942,6 @@ namespace FooProject.Collection
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         /// <exception cref="InvalidOperationException"></exception>
-        /// <remarks>. IComposableListで初期化した場合、BlockSizeごとに分割されない</remarks>
         public void InsertRange(long index, IEnumerable<T> collection)
         {
             if (collection == null)
