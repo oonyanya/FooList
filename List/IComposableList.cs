@@ -6,6 +6,11 @@ using System.Threading.Tasks;
 
 namespace FooProject.Collection
 {
+    /// <summary>
+    /// 合成可能リストを表す
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <remarks>リードオンリーの場合、CopyTo、GetEnumerator、GetRangeだけは実装する必要があります</remarks>
     public interface IComposableList<T> : IEnumerable<T>, IList<T>
     {
         /// <summary>
@@ -31,26 +36,26 @@ namespace FooProject.Collection
         /// <returns>削除できるなら真を返す</returns>
         bool QueryRemoveRange(int index, int count);
         /// <summary>
-        /// 
+        /// まとめて追加する
         /// </summary>
         /// <param name="collection"></param>
         /// <param name="collection_length"></param>
         void AddRange(IEnumerable<T> collection, int collection_length = -1);
         /// <summary>
-        /// 
+        /// まとめて挿入する
         /// </summary>
         /// <param name="index"></param>
         /// <param name="collection"></param>
         /// <param name="collection_length"></param>
         void InsertRange(int index, IEnumerable<T> collection, int collection_length = -1);
         /// <summary>
-        /// 
+        /// まとめて削除する
         /// </summary>
         /// <param name="index"></param>
         /// <param name="count"></param>
         void RemoveRange(int index, int count);
         /// <summary>
-        /// 
+        /// 特定の範囲の要素を列挙する
         /// </summary>
         /// <param name="index"></param>
         /// <param name="count"></param>
