@@ -27,7 +27,7 @@ namespace FooProject.Collection.DataStore
 
         IPinableContainerStore<T> DataStore;
 
-        internal PinnedContent(IPinableContainer<T> c, IPinableContainerStore<T> dataStore)
+        public PinnedContent(IPinableContainer<T> c, IPinableContainerStore<T> dataStore)
         {
             container = c;
             DataStore = dataStore;

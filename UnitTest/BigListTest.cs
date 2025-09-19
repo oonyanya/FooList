@@ -6,6 +6,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Drawing;
 using System.Reflection;
 using FooProject.Collection;
@@ -253,6 +254,45 @@ namespace UnitTest
     [TestClass]
     public sealed class ListTest
     {
+        class TestDataStore<T> : IPinableContainerStore<T>
+        {
+            public Action<IPinableContainer<T>> AssertType;
+
+            public void OnAssertType(IPinableContainer<T> pinableContainer)
+            {
+                if (AssertType != null)
+                    AssertType(pinableContainer);
+                else
+                    throw new NotImplementedException("AssertTypeが実装されてません");
+            }
+
+            public IPinnedContent<T> Get(IPinableContainer<T> pinableContainer)
+            {
+                IPinnedContent<T> result;
+                if (TryGet(pinableContainer, out result))
+                    return result;
+                else
+                    throw new ArgumentException();
+            }
+
+            public bool TryGet(IPinableContainer<T> pinableContainer, out IPinnedContent<T> result)
+            {
+                OnAssertType(pinableContainer);
+                result = new PinnedContent<T>(pinableContainer, this);
+                return true;
+            }
+
+            public void Set(IPinableContainer<T> pinableContainer)
+            {
+                OnAssertType(pinableContainer);
+                return;
+            }
+
+            public void Commit()
+            {
+            }
+        }
+
         [TestMethod]
         public void BlockSizeTest()
         {
@@ -854,10 +894,22 @@ namespace UnitTest
 
         }
 
+        [TestMethod]
         public void AddPinableContainerTest()
         {
             const int SIZE = 8000;
+
+            var testStore = new TestDataStore<IComposableList<int>>();
+            testStore.AssertType = (pin) => {
+                Assert.IsTrue(pin is PinableContainer<IComposableList<int>>);
+                Assert.IsTrue(pin.Content is FixedList<int>);
+            };
+            var customConverter = new DefaultCustomConverter<int>();
+            customConverter.DataStore = testStore;
             BigList<int> biglist1 = new BigList<int>();
+            biglist1.CustomBuilder = customConverter;
+            biglist1.LeastFetchStore = customConverter;
+
             int i;
             for (i = 1; i <= SIZE; ++i)
             {
@@ -903,7 +955,16 @@ namespace UnitTest
         public void AddFrontPinableContainerTest()
         {
             const int SIZE = 8000;
+            var testStore = new TestDataStore<IComposableList<int>>();
+            testStore.AssertType = (pin) => {
+                Assert.IsTrue(pin is PinableContainer<IComposableList<int>>);
+                Assert.IsTrue(pin.Content is FixedList<int>);
+            };
+            var customConverter = new DefaultCustomConverter<int>();
+            customConverter.DataStore = testStore;
             BigList<int> biglist1 = new BigList<int>();
+            biglist1.CustomBuilder = customConverter;
+            biglist1.LeastFetchStore = customConverter;
             int i;
 
             for (i = 1; i <= SIZE; ++i)
@@ -1081,7 +1142,14 @@ namespace UnitTest
         [TestMethod]
         public void InsertPinableContainerTest()
         {
-            var list2 = CreateList(0, 20);
+            var testStore = new TestDataStore<IComposableList<int>>();
+            testStore.AssertType = (pin) => {
+                Assert.IsTrue(pin is PinableContainer<IComposableList<int>>);
+                Assert.IsTrue(pin.Content is FixedList<int>);
+            };
+            var customConverter = new DefaultCustomConverter<int>();
+            customConverter.DataStore = testStore;
+            var list2 = CreateList(0, 20, customConverter, customConverter);
             var collection = new int[] { -10, -9, -8, -7, -6, -5, -4, -3, -2, -1 };
             var e1 = new FixedList<int>(collection.Length,collection.Length);
             e1.AddRange(collection,collection.Length);
@@ -1370,7 +1438,7 @@ namespace UnitTest
             }
         }
 
-        BigList<int> CreateList(int start, int length)
+        BigList<int> CreateList(int start, int length, ICustomBuilder<int> builder = null, IStateStore<int> stateStore = null)
         {
             if (length < 24)
             {
@@ -1378,6 +1446,10 @@ namespace UnitTest
                 for (int i = 0; i < length; ++i)
                     array[i] = i + start;
                 var collection = new BigList<int>();
+                if (builder != null)
+                    collection.CustomBuilder = builder;
+                if (stateStore != null)
+                    collection.LeastFetchStore = stateStore;
                 collection.AddRange(array);
                 return collection;
             }
