@@ -680,19 +680,16 @@ namespace FooProject.Collection
         }
 
         /// <summary>
-        /// AddRangeやInsertRange、AddRangeToFront呼び出し時や初期化の時に追加対象のコレクションをブロックサイズごとに分割するかどうか
+        /// AddRangeやInsertRange、AddRangeToFront呼び出し時や初期化の時に追加対象のコレクションをそのまま使用できるかチェックする
         /// </summary>
         /// <param name="collection">チェック対象のコレクション</param>
-        /// <returns>分割する場合は真を返し、そうでない場合は偽を返す</returns>
+        /// <returns>そのまま使用していい場合は真を返し、そうでない場合は偽を返す</returns>
         /// <remarks>
-        /// IComposableListを継承した奴を突っ込んだ時にのみ反映される。
-        /// なお、このメソッドで分割を抑制しても、状況によっては分割するためにコレクションをコピーすることがある。
-        /// コピーしたくない場合は、IComposableListを継承したクラスを作成した上でDefaultCustomConverterを継承して適切なコレクションを返す必要がある。
-        /// 詳しいやり方はImmutableListTestを参照すること。
+        /// そのまま使用できない場合、全てのコレクションを列挙し、コピーを作成する
         /// </remarks>
-        protected virtual bool IsRequireSplitBlock(IComposableList<T> collection)
+        protected virtual bool IsAllowDirectUseCollection(IComposableList<T> collection)
         {
-            return false;
+            return true;
         }
 
         private Node<T> NodeFromEnumerable(IEnumerable<T> collection, LeafNodeEnumrator<T> leafNodeEnumrator,BigListArgs<T> args)
@@ -711,7 +708,7 @@ namespace FooProject.Collection
                 collection_count = collection.Count();
 #endif
 
-            if(items != null && this.IsRequireSplitBlock(items) == false)
+            if(items != null && this.IsAllowDirectUseCollection(items))
             {
                 leaf = args.CustomBuilder.CreateLeafNode((long)collection_count, items);
                 leaf.NotifyUpdate(0, collection_count, args);

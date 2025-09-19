@@ -47,10 +47,13 @@ namespace FooProject.Collection
             this.CustomBuilder = custom;
         }
 
-        protected override bool IsRequireSplitBlock(IComposableList<T> collection)
+        protected override bool IsAllowDirectUseCollection(IComposableList<T> collection)
         {
-            //そのままノードに突っ込まれると困る
-            return true;
+            //FixedRangeListで無い場合、そのままノードに突っ込まれると困る
+            if (collection is FixedRangeList<T>)
+                return true;
+            else
+                return false;
         }
 
         /// <summary>
@@ -391,8 +394,12 @@ namespace FooProject.Collection
 
         public LeafNode<T> CreateLeafNode(long count, IPinableContainer<IComposableList<T>> container)
         {
-            this.DataStore.Set(container);
-            return new LeafNode<T>(count, container);
+            if(container.Content is FixedRangeList<T>)
+            {
+                this.DataStore.Set(container);
+                return new LeafNode<T>(count, container);
+            }
+            throw new NotSupportedException("FixedRangeListを継承したクラスをcontainerのContentに設定する必要があります");
         }
 
         public void SetState(Node<T> current, long totalLeftCountInList)
