@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -67,6 +68,12 @@ namespace FooProject.Collection
         public LeafNode<T> CreateLeafNode(long count, IComposableList<T> items)
         {
             var container = new PinableContainer<IComposableList<T>>(items);
+            this.DataStore.Set(container);
+            return new LeafNode<T>(count, container);
+        }
+
+        public LeafNode<T> CreateLeafNode(long count, IPinableContainer<IComposableList<T>> container)
+        {
             this.DataStore.Set(container);
             return new LeafNode<T>(count, container);
         }

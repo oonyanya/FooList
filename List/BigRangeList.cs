@@ -389,6 +389,12 @@ namespace FooProject.Collection
             return new RangeLeafNode<T>(count, container);
         }
 
+        public LeafNode<T> CreateLeafNode(long count, IPinableContainer<IComposableList<T>> container)
+        {
+            this.DataStore.Set(container);
+            return new LeafNode<T>(count, container);
+        }
+
         public void SetState(Node<T> current, long totalLeftCountInList)
         {
             if (current == null)

@@ -3,13 +3,14 @@
  *  https://github.com/timdetering/Wintellect.PowerCollections
  *  Fooproject modify
  */
-using FooProject.Collection;
-using FooProject.Collection.DataStore;
-using Microsoft.VisualStudio.TestPlatform.Utilities;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Reflection;
+using FooProject.Collection;
+using FooProject.Collection.DataStore;
+using Microsoft.VisualStudio.TestPlatform.Utilities;
 
 namespace UnitTest
 {
@@ -850,6 +851,30 @@ namespace UnitTest
             i = 1;
             foreach (int x in biglist1)
                 Assert.AreEqual(i++, x);
+
+        }
+
+        public void AddPinableContainerTest()
+        {
+            const int SIZE = 8000;
+            BigList<int> biglist1 = new BigList<int>();
+            int i;
+            for (i = 1; i <= SIZE; ++i)
+            {
+                var collection = new FixedList<int>();
+                collection.Add(i);
+                biglist1.Add(new PinableContainer<IComposableList<int>>(collection));
+            }
+
+            for (i = 1; i <= SIZE; ++i)
+            {
+                Assert.AreEqual(i, biglist1[i - 1]);
+            }
+
+            i = 1;
+            foreach (int x in biglist1)
+                Assert.AreEqual(i++, x);
+
         }
 
         [TestMethod]
@@ -862,6 +887,30 @@ namespace UnitTest
             for (i = 1; i <= SIZE; ++i)
             {
                 biglist1.AddToFront(i);
+            }
+
+            for (i = 1; i <= SIZE; ++i)
+            {
+                Assert.AreEqual(i, biglist1[SIZE - i]);
+            }
+
+            i = SIZE;
+            foreach (int x in biglist1)
+                Assert.AreEqual(i--, x);
+        }
+
+        [TestMethod]
+        public void AddFrontPinableContainerTest()
+        {
+            const int SIZE = 8000;
+            BigList<int> biglist1 = new BigList<int>();
+            int i;
+
+            for (i = 1; i <= SIZE; ++i)
+            {
+                var collection = new FixedList<int>();
+                collection.Add(i);
+                biglist1.AddToFront(new PinableContainer<IComposableList<int>>(collection));
             }
 
             for (i = 1; i <= SIZE; ++i)
@@ -1030,6 +1079,18 @@ namespace UnitTest
         }
 
         [TestMethod]
+        public void InsertPinableContainerTest()
+        {
+            var list2 = CreateList(0, 20);
+            var collection = new int[] { -10, -9, -8, -7, -6, -5, -4, -3, -2, -1 };
+            var e1 = new FixedList<int>(collection.Length,collection.Length);
+            e1.AddRange(collection,collection.Length);
+            list2.Insert(0, new PinableContainer<IComposableList<int>>(e1));
+            list2.Insert(17, new PinableContainer<IComposableList<int>>(e1));
+            InterfaceTests.TestEnumerableElements<int>(list2, new int[] { -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 });
+        }
+
+        [TestMethod]
         public void InsertExceptions()
         {
             BigList<int> list1, list2;
@@ -1049,6 +1110,30 @@ namespace UnitTest
             try
             {
                 list1.Insert(11, 5);
+                Assert.Fail("should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+            }
+
+            try
+            {
+                var collection = new FixedList<int>();
+                collection.Add(5);
+                list1.Insert(-1, new PinableContainer<IComposableList<int>>(collection));
+                Assert.Fail("should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+            }
+
+            try
+            {
+                var collection = new FixedList<int>();
+                collection.Add(5);
+                list1.Insert(11, new PinableContainer<IComposableList<int>>(collection));
                 Assert.Fail("should throw");
             }
             catch (Exception e)
@@ -1459,6 +1544,30 @@ namespace UnitTest
 
             try
             {
+                var collection = new FixedList<int>();
+                collection.AddRange(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 });
+                listMaxSize.Add(new PinableContainer<IComposableList<int>>(collection));
+                Assert.Fail("should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is InvalidOperationException);
+            }
+
+            try
+            {
+                var collection = new FixedList<int>();
+                collection.AddRange(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 });
+                listMaxSize.AddToFront(new PinableContainer<IComposableList<int>>(collection));
+                Assert.Fail("should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is InvalidOperationException);
+            }
+
+            try
+            {
                 listMaxSize.InsertRange(1, new BigList<int>(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 }));
                 Assert.Fail("should throw");
             }
@@ -1470,6 +1579,30 @@ namespace UnitTest
             try
             {
                 listMaxSize.InsertRange(14, new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 });
+                Assert.Fail("should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is InvalidOperationException);
+            }
+
+            try
+            {
+                var collection = new FixedList<int>();
+                collection.AddRange(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 });
+                listMaxSize.Insert(1, new PinableContainer<IComposableList<int>>(collection));
+                Assert.Fail("should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is InvalidOperationException);
+            }
+
+            try
+            {
+                var collection = new FixedList<int>();
+                collection.AddRange(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 });
+                listMaxSize.Insert(14, new PinableContainer<IComposableList<int>>(collection));
                 Assert.Fail("should throw");
             }
             catch (Exception e)

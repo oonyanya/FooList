@@ -50,6 +50,14 @@ namespace FooProject.Collection
         LeafNode<T> CreateLeafNode(long count, IComposableList<T> items);
 
         /// <summary>
+        /// リーフノードを作成する
+        /// </summary>
+        /// <param name="count">アイテム数</param>
+        /// <param name="items">アイテム</param>
+        /// <returns></returns>
+        LeafNode<T> CreateLeafNode(long count, IPinableContainer<IComposableList<T>> items);
+
+        /// <summary>
         /// 幹を表すノードを作成する
         /// </summary>
         /// <param name="node">幹を表すノード</param>

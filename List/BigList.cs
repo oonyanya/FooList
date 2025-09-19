@@ -561,6 +561,38 @@ namespace FooProject.Collection
         }
 
         /// <summary>
+        /// 一番前に追加する
+        /// </summary>
+        /// <param name="pinableContainer"></param>
+        /// <exception cref="InvalidOperationException"></exception>
+        public virtual void AddToFront(IPinableContainer<IComposableList<T>> pinableContainer)
+        {
+            var newItemCount = pinableContainer.Content.Count;
+            if (LongCount + newItemCount > MaxCapacity)
+                throw new InvalidOperationException("too large");
+
+            var newLeaf = CustomBuilder.CreateLeafNode(newItemCount, pinableContainer);
+            if (_root == null)
+            {
+                _root = newLeaf;
+                leafNodeEnumrator.AddLast(newLeaf);
+            }
+            else
+            {
+                var tempLeafNodeEnumrator = new LeafNodeEnumrator<T>();
+                tempLeafNodeEnumrator.AddLast(newLeaf);
+                var args = new BigListArgs<T>(CustomBuilder, LeastFetchStore, this.BlockSize, UpdateType.Add);
+                Node<T> newRoot = _root.PrependInPlace(newLeaf, leafNodeEnumrator, tempLeafNodeEnumrator, args);
+                if (newRoot != _root)
+                {
+                    _root = newRoot;
+                    CheckBalance();
+                }
+            }
+            ResetFetchCache();
+        }
+
+        /// <summary>
         /// 末尾に追加する
         /// </summary>
         /// <param name="item"></param>
@@ -580,6 +612,38 @@ namespace FooProject.Collection
             {
                 var args = new BigListArgs<T>(CustomBuilder, LeastFetchStore, this.BlockSize, UpdateType.Add);
                 Node<T> newRoot = _root.AppendInPlace(item, leafNodeEnumrator, args);
+                if (newRoot != _root)
+                {
+                    _root = newRoot;
+                    CheckBalance();
+                }
+            }
+            ResetFetchCache();
+        }
+
+        /// <summary>
+        /// 末尾に追加する
+        /// </summary>
+        /// <param name="pinableContainer"></param>
+        /// <exception cref="InvalidOperationException"></exception>
+        public virtual void Add(IPinableContainer<IComposableList<T>> pinableContainer)
+        {
+            var newItemCount = pinableContainer.Content.Count;
+            if (LongCount + newItemCount > MaxCapacity)
+                throw new InvalidOperationException("too large");
+
+            var newLeaf = CustomBuilder.CreateLeafNode(newItemCount, pinableContainer);
+            if (_root == null)
+            {
+                _root = newLeaf;
+                leafNodeEnumrator.AddLast(newLeaf);
+            }
+            else
+            {
+                var tempLeafNodeEnumrator = new LeafNodeEnumrator<T>();
+                tempLeafNodeEnumrator.AddLast(newLeaf);
+                var args = new BigListArgs<T>(CustomBuilder, LeastFetchStore, this.BlockSize, UpdateType.Add);
+                Node<T> newRoot = _root.AppendInPlace(newLeaf, leafNodeEnumrator, tempLeafNodeEnumrator, args);
                 if (newRoot != _root)
                 {
                     _root = newRoot;
@@ -895,6 +959,43 @@ namespace FooProject.Collection
         {
             //　こうしないとスタックオーバーフローになる
             this.Insert((long)index, item);
+        }
+
+        /// <summary>
+        /// 末尾に追加する
+        /// </summary>
+        /// <param name="pinableContainer"></param>
+        /// <exception cref="InvalidOperationException"></exception>
+        public virtual void Insert(long index,IPinableContainer<IComposableList<T>> pinableContainer)
+        {
+            var newItemCount = pinableContainer.Content.Count;
+
+            if (LongCount + newItemCount > MaxCapacity)
+                throw new InvalidOperationException("too large");
+
+            var newLeaf = CustomBuilder.CreateLeafNode(newItemCount, pinableContainer);
+            if (index <= 0 || index >= LongCount)
+            {
+                if (index == 0)
+                    AddToFront(pinableContainer);
+                else if (index == LongCount)
+                    Add(pinableContainer);
+                else
+                    throw new ArgumentOutOfRangeException("index");
+            }
+            else
+            {
+                var tempLeafNodeEnumrator = new LeafNodeEnumrator<T>();
+                tempLeafNodeEnumrator.AddLast(newLeaf);
+                var args = new BigListArgs<T>(CustomBuilder, LeastFetchStore, this.BlockSize, UpdateType.Add);
+                Node<T> newRoot = _root.InsertInPlace(index, newLeaf, leafNodeEnumrator, tempLeafNodeEnumrator, args);
+                if (newRoot != _root)
+                {
+                    _root = newRoot;
+                    CheckBalance();
+                }
+            }
+            ResetFetchCache();
         }
 
         /// <summary>

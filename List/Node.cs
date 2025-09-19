@@ -73,7 +73,7 @@ namespace FooProject.Collection
     }
     public class LeafNode<T> : Node<T>
     {
-        public PinableContainer<IComposableList<T>> container;
+        public IPinableContainer<IComposableList<T>> container;
 
         public LeafNode<T> Next { get; set; }
 
@@ -86,7 +86,7 @@ namespace FooProject.Collection
             this.NodeCount = 1;
         }
 
-        public LeafNode(long count, PinableContainer<IComposableList<T>> pinableContent) : this()
+        public LeafNode(long count, IPinableContainer<IComposableList<T>> pinableContent) : this()
         {
             this.container = pinableContent;
             Count = count;
