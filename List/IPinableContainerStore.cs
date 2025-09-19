@@ -9,11 +9,11 @@ namespace FooProject.Collection
 {
     public interface IPinableContainerStore<T>
     {
-        PinnedContent<T> Get(PinableContainer<T> pinableContainer);
+        IPinnedContent<T> Get(IPinableContainer<T> pinableContainer);
 
-        bool TryGet(PinableContainer<T> pinableContainer, out PinnedContent<T> result);
+        bool TryGet(IPinableContainer<T> pinableContainer, out IPinnedContent<T> result);
 
-        void Set(PinableContainer<T> pinableContainer);
+        void Set(IPinableContainer<T> pinableContainer);
 
         void Commit();
     }

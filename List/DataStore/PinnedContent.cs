@@ -7,7 +7,13 @@ using System.Threading.Tasks;
 
 namespace FooProject.Collection.DataStore
 {
-    public class PinnedContent<T> : IDisposable
+    public interface IPinnedContent<T> : IDisposable
+    {
+        T Content { get; }
+        void RemoveContent();
+    }
+
+    public class PinnedContent<T> : IPinnedContent<T>
     {
         public T Content
         {
@@ -17,11 +23,11 @@ namespace FooProject.Collection.DataStore
             }
         }
 
-        PinableContainer<T> container;
+        IPinableContainer<T> container;
 
         IPinableContainerStore<T> DataStore;
 
-        internal PinnedContent(PinableContainer<T> c, IPinableContainerStore<T> dataStore)
+        internal PinnedContent(IPinableContainer<T> c, IPinableContainerStore<T> dataStore)
         {
             container = c;
             DataStore = dataStore;

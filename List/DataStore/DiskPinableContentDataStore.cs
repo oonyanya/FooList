@@ -138,17 +138,18 @@ namespace FooProject.Collection.DataStore
             this.writer.Flush();
         }
 
-        public PinnedContent<T> Get(PinableContainer<T> pinableContainer)
+        public IPinnedContent<T> Get(IPinableContainer<T> pinableContainer)
         {
-            PinnedContent<T> result;
+            IPinnedContent<T> result;
             if (this.TryGet(pinableContainer, out result))
                 return result;
             else
                 throw new ArgumentException();
         }
 
-        public bool TryGet(PinableContainer<T> pinableContainer, out PinnedContent<T> result)
+        public bool TryGet(IPinableContainer<T> ipinableContainer, out IPinnedContent<T> result)
         {
+            var pinableContainer = (PinableContainer<T>)ipinableContainer;
             if (pinableContainer.CacheIndex != PinableContainer<T>.NOTCACHED || pinableContainer.Content?.Equals(default(T)) == false)
             {
                 result = new PinnedContent<T>(pinableContainer, this);
@@ -173,8 +174,9 @@ namespace FooProject.Collection.DataStore
             return true;
         }
 
-        public void Set(PinableContainer<T> pinableContainer)
+        public void Set(IPinableContainer<T> ipinableContainer)
         {
+            var pinableContainer = (PinableContainer<T>)ipinableContainer;
             if (pinableContainer.IsRemoved)
             {
                 if(pinableContainer.Info != null)

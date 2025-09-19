@@ -40,23 +40,24 @@ namespace FooProject.Collection.DataStore
             }
         }
 
-        public PinnedContent<T> Get(PinableContainer<T> pinableContainer)
+        public IPinnedContent<T> Get(IPinableContainer<T> pinableContainer)
         {
-            PinnedContent<T> result;
+            IPinnedContent<T> result;
             if (TryGet(pinableContainer, out result))
                 return result;
             else
                 throw new ArgumentException();            
         }
 
-        public bool TryGet(PinableContainer<T> pinableContainer, out PinnedContent<T> result)
+        public bool TryGet(IPinableContainer<T> pinableContainer, out IPinnedContent<T> result)
         {
             result = new PinnedContent<T>(pinableContainer,this);
             return true;
         }
 
-        public void Set(PinableContainer<T> pinableContainer)
+        public void Set(IPinableContainer<T> ipinableContainer)
         {
+            PinableContainer<T> pinableContainer = (PinableContainer<T>)ipinableContainer;
             if (pinableContainer.IsRemoved)
             {
                 this.emptyList.ReleaseID(pinableContainer.CacheIndex);

@@ -6,7 +6,14 @@ using System.Threading.Tasks;
 
 namespace FooProject.Collection.DataStore
 {
-    public class PinableContainer<T>
+    public interface IPinableContainer<T>
+    {
+        T Content { get; }
+        void RemoveContent();
+        bool IsRemoved { get; set; }
+    }
+
+    public class PinableContainer<T> : IPinableContainer<T>
     {
         internal const long NOTCACHED = -1;
 
@@ -16,7 +23,7 @@ namespace FooProject.Collection.DataStore
 
         public T Content { get; internal set; }
 
-        internal bool IsRemoved { get; set; }
+        public bool IsRemoved { get; set; }
 
 
         public PinableContainer(T content)
