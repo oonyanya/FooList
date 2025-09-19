@@ -571,6 +571,9 @@ namespace FooProject.Collection
             if (LongCount + newItemCount > MaxCapacity)
                 throw new InvalidOperationException("too large");
 
+            if (this.IsAllowDirectUseCollection(pinableContainer.Content) == false)
+                throw new NotSupportedException("IsAllowDirectUseCollection()で真を返す必要があります");
+
             var newLeaf = CustomBuilder.CreateLeafNode(newItemCount, pinableContainer);
             if (_root == null)
             {
@@ -632,6 +635,9 @@ namespace FooProject.Collection
             if (LongCount + newItemCount > MaxCapacity)
                 throw new InvalidOperationException("too large");
 
+            if (this.IsAllowDirectUseCollection(pinableContainer.Content) == false)
+                throw new NotSupportedException("IsAllowDirectUseCollection()で真を返す必要があります");
+
             var newLeaf = CustomBuilder.CreateLeafNode(newItemCount, pinableContainer);
             if (_root == null)
             {
@@ -680,13 +686,10 @@ namespace FooProject.Collection
         }
 
         /// <summary>
-        /// AddRangeやInsertRange、AddRangeToFront呼び出し時や初期化の時に追加対象のコレクションをそのまま使用できるかチェックする
+        /// AddやAddRange、Insert、InsertRange、AddToFronnt、AddRangeToFront呼び出し時や初期化の時に追加対象のコレクションをそのまま使用できるかチェックする
         /// </summary>
         /// <param name="collection">チェック対象のコレクション</param>
         /// <returns>そのまま使用していい場合は真を返し、そうでない場合は偽を返す</returns>
-        /// <remarks>
-        /// そのまま使用できない場合、全てのコレクションを列挙し、コピーを作成する
-        /// </remarks>
         protected virtual bool IsAllowDirectUseCollection(IComposableList<T> collection)
         {
             return true;
@@ -708,8 +711,10 @@ namespace FooProject.Collection
                 collection_count = collection.Count();
 #endif
 
-            if(items != null && this.IsAllowDirectUseCollection(items))
+            if(items != null)
             {
+                if (this.IsAllowDirectUseCollection(items) == false)
+                    throw new NotSupportedException("IsAllowDirectUseCollection()で真を返す必要があります");
                 leaf = args.CustomBuilder.CreateLeafNode((long)collection_count, items);
                 leaf.NotifyUpdate(0, collection_count, args);
                 leafNodeEnumrator.AddLast(leaf);
@@ -969,6 +974,9 @@ namespace FooProject.Collection
 
             if (LongCount + newItemCount > MaxCapacity)
                 throw new InvalidOperationException("too large");
+
+            if (this.IsAllowDirectUseCollection(pinableContainer.Content) == false)
+                throw new NotSupportedException("IsAllowDirectUseCollection()で真を返す必要があります");
 
             var newLeaf = CustomBuilder.CreateLeafNode(newItemCount, pinableContainer);
             if (index <= 0 || index >= LongCount)

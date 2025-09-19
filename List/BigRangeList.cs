@@ -49,11 +49,9 @@ namespace FooProject.Collection
 
         protected override bool IsAllowDirectUseCollection(IComposableList<T> collection)
         {
-            //FixedRangeListで無い場合、そのままノードに突っ込まれると困る
             if (collection is FixedRangeList<T>)
                 return true;
-            else
-                return false;
+            throw new NotSupportedException("FixedRangeList以外を使用することはできません");
         }
 
         /// <summary>
