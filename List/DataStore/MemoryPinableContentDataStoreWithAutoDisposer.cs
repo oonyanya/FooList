@@ -79,6 +79,16 @@ namespace FooProject.Collection.DataStore
             this.writebackCacheList.Flush();
         }
 
+        public IPinableContainer<T> Update(IPinableContainer<T> pinableContainer, T newcontent, long oldstart, long oldcount, long newstart, long newcount)
+        {
+            return this.CreatePinableContainer(newcontent);
+        }
+
+        public IPinableContainer<T> CreatePinableContainer(T content)
+        {
+            return new PinableContainer<T>(content);
+        }
+
         public void Dispose()
         {
             //GC前にプログラム的にリソースを破棄するので

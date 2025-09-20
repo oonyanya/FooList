@@ -715,7 +715,8 @@ namespace FooProject.Collection
             {
                 if (this.IsAllowDirectUseCollection(items) == false)
                     throw new NotSupportedException("IsAllowDirectUseCollection()で真を返す必要があります");
-                leaf = args.CustomBuilder.CreateLeafNode((long)collection_count, items);
+                var leafContainer = args.CustomBuilder.DataStore.CreatePinableContainer(items);
+                leaf = args.CustomBuilder.CreateLeafNode((long)collection_count, leafContainer);
                 leaf.NotifyUpdate(0, collection_count, args);
                 leafNodeEnumrator.AddLast(leaf);
                 if (node == null)
@@ -736,7 +737,8 @@ namespace FooProject.Collection
                 IEnumerator<T> enumerator = collection.GetEnumerator();
                 while ((items = ListFromEnumerator(enumerator, collection_count, args)) != null)
                 {
-                    leaf = args.CustomBuilder.CreateLeafNode(items.Count, items);
+                    var leafContainer = args.CustomBuilder.DataStore.CreatePinableContainer(items);
+                    leaf = args.CustomBuilder.CreateLeafNode(items.Count, leafContainer);
                     leaf.NotifyUpdate(0, items.Count, args);
                     leafNodeEnumrator.AddLast(leaf);
                     if (node == null)

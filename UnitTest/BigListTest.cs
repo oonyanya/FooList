@@ -288,6 +288,16 @@ namespace UnitTest
                 return;
             }
 
+            public IPinableContainer<T> Update(IPinableContainer<T> pinableContainer, T newcontent, long oldstart, long oldcount, long newstart, long newcount)
+            {
+                return this.CreatePinableContainer(newcontent);
+            }
+
+            public IPinableContainer<T> CreatePinableContainer(T content)
+            {
+                return new PinableContainer<T>(content);
+            }
+
             public void Commit()
             {
             }
@@ -915,7 +925,7 @@ namespace UnitTest
             {
                 var collection = new FixedList<int>();
                 collection.Add(i);
-                biglist1.Add(new PinableContainer<IComposableList<int>>(collection));
+                biglist1.Add(testStore.CreatePinableContainer(collection));
             }
 
             for (i = 1; i <= SIZE; ++i)
@@ -971,7 +981,7 @@ namespace UnitTest
             {
                 var collection = new FixedList<int>();
                 collection.Add(i);
-                biglist1.AddToFront(new PinableContainer<IComposableList<int>>(collection));
+                biglist1.AddToFront(testStore.CreatePinableContainer(collection));
             }
 
             for (i = 1; i <= SIZE; ++i)
@@ -1153,8 +1163,8 @@ namespace UnitTest
             var collection = new int[] { -10, -9, -8, -7, -6, -5, -4, -3, -2, -1 };
             var e1 = new FixedList<int>(collection.Length,collection.Length);
             e1.AddRange(collection,collection.Length);
-            list2.Insert(0, new PinableContainer<IComposableList<int>>(e1));
-            list2.Insert(17, new PinableContainer<IComposableList<int>>(e1));
+            list2.Insert(0, testStore.CreatePinableContainer(e1));
+            list2.Insert(17, testStore.CreatePinableContainer(e1));
             InterfaceTests.TestEnumerableElements<int>(list2, new int[] { -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 });
         }
 
@@ -1630,7 +1640,7 @@ namespace UnitTest
             {
                 var collection = new FixedList<int>();
                 collection.AddRange(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 });
-                listMaxSize.AddToFront(new PinableContainer<IComposableList<int>>(collection));
+                listMaxSize.AddToFront(listMaxSize.CustomBuilder.DataStore.CreatePinableContainer(collection));
                 Assert.Fail("should throw");
             }
             catch (Exception e)
@@ -1662,7 +1672,7 @@ namespace UnitTest
             {
                 var collection = new FixedList<int>();
                 collection.AddRange(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 });
-                listMaxSize.Insert(1, new PinableContainer<IComposableList<int>>(collection));
+                listMaxSize.Insert(1, listMaxSize.CustomBuilder.DataStore.CreatePinableContainer(collection));
                 Assert.Fail("should throw");
             }
             catch (Exception e)
@@ -1674,7 +1684,7 @@ namespace UnitTest
             {
                 var collection = new FixedList<int>();
                 collection.AddRange(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 });
-                listMaxSize.Insert(14, new PinableContainer<IComposableList<int>>(collection));
+                listMaxSize.Insert(14, listMaxSize.CustomBuilder.DataStore.CreatePinableContainer(collection));
                 Assert.Fail("should throw");
             }
             catch (Exception e)

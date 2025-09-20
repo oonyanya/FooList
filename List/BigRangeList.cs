@@ -292,7 +292,7 @@ namespace FooProject.Collection
             TotalRangeCount = 0;
         }
 
-        public RangeLeafNode(long count, PinableContainer<IComposableList<T>> container) : base(count, container)
+        public RangeLeafNode(long count, IPinableContainer<IComposableList<T>> container) : base(count, container)
         {
         }
 
@@ -378,16 +378,9 @@ namespace FooProject.Collection
         {
             var list = this.CreateList(4, blocksize);
             list.Add(item);
-            var container = new PinableContainer<IComposableList<T>>(list);
+            var container = DataStore.CreatePinableContainer(list);
             this.DataStore.Set(container);
             return new RangeLeafNode<T>(list.Count, container);
-        }
-
-        public LeafNode<T> CreateLeafNode(long count, IComposableList<T> items)
-        {
-            var container = new PinableContainer<IComposableList<T>>(items);
-            this.DataStore.Set(container);
-            return new RangeLeafNode<T>(count, container);
         }
 
         public LeafNode<T> CreateLeafNode(long count, IPinableContainer<IComposableList<T>> container)
@@ -395,7 +388,7 @@ namespace FooProject.Collection
             if(container.Content is FixedRangeList<T>)
             {
                 this.DataStore.Set(container);
-                return new LeafNode<T>(count, container);
+                return new RangeLeafNode<T>(count, container);
             }
             throw new NotSupportedException("FixedRangeListを継承したクラスをcontainerのContentに設定する必要があります");
         }

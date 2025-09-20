@@ -51,7 +51,7 @@ namespace FooProject.Collection
         public LeafNode<T> CreateLeafNode(int blocksize)
         {
             var newLeafNode = new LeafNode<T>();
-            var container = new PinableContainer<IComposableList<T>>(this.CreateList(4, blocksize));
+            var container = this.DataStore.CreatePinableContainer(this.CreateList(4, blocksize));
             newLeafNode.container = container;
             this.DataStore.Set(container);
             return newLeafNode;
@@ -60,16 +60,9 @@ namespace FooProject.Collection
         public LeafNode<T> CreateLeafNode(T item, int blocksize)
         {
             var list = this.CreateList(4, blocksize, new T[] {item});
-            var container = new PinableContainer<IComposableList<T>>(list);
+            var container = this.DataStore.CreatePinableContainer(list);
             this.DataStore.Set(container);
             return new LeafNode<T>(list.Count, container);
-        }
-
-        public LeafNode<T> CreateLeafNode(long count, IComposableList<T> items)
-        {
-            var container = new PinableContainer<IComposableList<T>>(items);
-            this.DataStore.Set(container);
-            return new LeafNode<T>(count, container);
         }
 
         public LeafNode<T> CreateLeafNode(long count, IPinableContainer<IComposableList<T>> container)

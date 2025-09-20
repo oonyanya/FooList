@@ -15,6 +15,10 @@ namespace FooProject.Collection
 
         void Set(IPinableContainer<T> pinableContainer);
 
+        IPinableContainer<T> Update(IPinableContainer<T> pinableContainer,T newcontent,long oldstart, long oldcount, long newstart, long newcount);
+
+        IPinableContainer<T> CreatePinableContainer(T content);
+
         void Commit();
     }
 

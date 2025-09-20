@@ -330,13 +330,15 @@ namespace FooProject.Collection
                     if(leftItems.QueryAddRange(null, 1))
                     {
                         leftItems.Add(item);
-                        LeafNode<T> leftNode = args.CustomBuilder.CreateLeafNode(index + 1, leftItems);
+                        var leftContainer = args.CustomBuilder.DataStore.Update(this.container, leftItems, 0, items.Count, 0, leftItemCount);
+                        LeafNode<T> leftNode = args.CustomBuilder.CreateLeafNode(index + 1, leftContainer);
                         leftNode.NotifyUpdate(0, leftItems.Count, args);
                         leafNodeEnumrator.Replace(this, leftNode);
 
                         int rightItemCount = items.Count - (int)index;
                         IComposableList<T> rightItems = args.CustomBuilder.CreateList(rightItemCount, args.BlockSize, items.GetRange(splitLength, rightItemCount));
-                        LeafNode<T> rightNode = args.CustomBuilder.CreateLeafNode(Count - index, rightItems);
+                        var rightContainer = args.CustomBuilder.DataStore.Update(this.container, rightItems, 0, items.Count, index, rightItemCount);
+                        LeafNode<T> rightNode = args.CustomBuilder.CreateLeafNode(Count - index, rightContainer);
                         rightNode.NotifyUpdate(0, rightItems.Count, args);
                         leafNodeEnumrator.AddNext(leftNode, rightNode);
 
@@ -344,14 +346,16 @@ namespace FooProject.Collection
                     }
                     else
                     {
-                        LeafNode<T> leftLeafNode = args.CustomBuilder.CreateLeafNode(leftItems.Count, leftItems);
+                        var leftContainer = args.CustomBuilder.DataStore.Update(this.container, leftItems, 0, items.Count, 0, leftItemCount);
+                        LeafNode<T> leftLeafNode = args.CustomBuilder.CreateLeafNode(leftItems.Count, leftContainer);
                         leftLeafNode.NotifyUpdate(0, leftItems.Count, args);
                         Node<T> leftNode = leftLeafNode;
                         leafNodeEnumrator.Replace(this, leftLeafNode);
 
                         int rightItemCount = items.Count - (int)index;
                         IComposableList<T> rightItems = args.CustomBuilder.CreateList(rightItemCount, args.BlockSize, items.GetRange(splitLength, rightItemCount));
-                        LeafNode<T> rightNode = args.CustomBuilder.CreateLeafNode(Count - index, rightItems);
+                        var rightContainer = args.CustomBuilder.DataStore.Update(this.container, rightItems, 0, items.Count, index, rightItemCount);
+                        LeafNode<T> rightNode = args.CustomBuilder.CreateLeafNode(Count - index, rightContainer);
                         rightNode.NotifyUpdate(0, rightItems.Count, args);
 
                         var newNode = args.CustomBuilder.CreateLeafNode(item, args.BlockSize);
@@ -429,7 +433,8 @@ namespace FooProject.Collection
                 }
 
                 IComposableList<T> leftItems = args.CustomBuilder.CreateList(leftItemCount, args.BlockSize, items.GetRange(0, splitLength));
-                var leftLeafNode = args.CustomBuilder.CreateLeafNode(index, leftItems);
+                var leftContainer = args.CustomBuilder.DataStore.Update(this.container, leftItems, 0, items.Count, 0, leftItemCount);
+                var leftLeafNode = args.CustomBuilder.CreateLeafNode(index, leftContainer);
                 leftLeafNode.NotifyUpdate(0, leftItems.Count, args);
                 Node<T> leftNode = leftLeafNode;
                 leafNodeEnumrator.Replace(this, leftLeafNode);
@@ -440,7 +445,8 @@ namespace FooProject.Collection
                     rightItemCount = items.Count - (int)index;
                 }
                 IComposableList<T> rightItems = args.CustomBuilder.CreateList(rightItemCount, args.BlockSize, items.GetRange(splitLength, rightItemCount));
-                var rightLeafNode = args.CustomBuilder.CreateLeafNode(Count - index, rightItems);
+                var rightContainer = args.CustomBuilder.DataStore.Update(this.container, rightItems, 0, items.Count, index, rightItemCount);
+                var rightLeafNode = args.CustomBuilder.CreateLeafNode(Count - index, rightContainer);
                 rightLeafNode.NotifyUpdate(0, rightItems.Count, args);
                 Node<T> rightNode = rightLeafNode;
 
@@ -545,18 +551,22 @@ namespace FooProject.Collection
                 }
 
                 IComposableList<T> leftItems = args.CustomBuilder.CreateList(leftItemCount, args.BlockSize, items.GetRange(0, leftItemCount));
-                var leftLeafNode = args.CustomBuilder.CreateLeafNode(leftItemCount, leftItems);
+                var leftContainer = args.CustomBuilder.DataStore.Update(this.container, leftItems, 0, items.Count, 0, leftItemCount);
+                var leftLeafNode = args.CustomBuilder.CreateLeafNode(leftItemCount, leftContainer);
                 leftLeafNode.NotifyUpdate(0, leftItems.Count, args);
                 Node<T> leftNode = leftLeafNode;
                 leafNodeEnumrator.Replace(this, leftLeafNode);
 
                 int rightItemCount;
+                int rightIndex;
                 checked
                 {
                     rightItemCount = (int)(this.Count - last - 1);
+                    rightIndex = (int)last + 1;
                 }
-                IComposableList<T> rightItems = args.CustomBuilder.CreateList(rightItemCount, args.BlockSize, items.GetRange((int)last + 1, rightItemCount));
-                var rightLeafNode = args.CustomBuilder.CreateLeafNode(rightItemCount, rightItems);
+                IComposableList<T> rightItems = args.CustomBuilder.CreateList(rightItemCount, args.BlockSize, items.GetRange(rightIndex, rightItemCount));
+                var rightContainer = args.CustomBuilder.DataStore.Update(this.container, rightItems, 0, items.Count, rightIndex, rightItemCount);
+                var rightLeafNode = args.CustomBuilder.CreateLeafNode(rightItemCount, rightContainer);
                 rightLeafNode.NotifyUpdate(0, rightItems.Count, args);
                 Node<T> rightNode = rightLeafNode;
 

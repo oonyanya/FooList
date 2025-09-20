@@ -25,7 +25,10 @@ namespace FooProject.Collection.DataStore
 
         public bool IsRemoved { get; set; }
 
-
+        /// <summary>
+        /// コンストラクター。IPinableContainerStoreインターフェイスを継承したクラス内以外では使用しないこと。
+        /// </summary>
+        /// <param name="content"></param>
         public PinableContainer(T content)
         {
             Content = content;
