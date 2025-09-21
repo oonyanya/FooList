@@ -258,12 +258,24 @@ namespace UnitTest
         {
             public Action<IPinableContainer<T>> AssertType;
 
+            public Action<IPinableContainer<T>,T,long,long> AssertUpdate;
+
             public void OnAssertType(IPinableContainer<T> pinableContainer)
             {
                 if (AssertType != null)
                     AssertType(pinableContainer);
                 else
                     throw new NotImplementedException("AssertTypeが実装されてません");
+            }
+
+            public void OnAssertUpdate(IPinableContainer<T> pinableContainer, T newcontent, long oldstart, long oldcount, long newstart, long newcount)
+            {
+                Assert.IsTrue(newstart >= oldstart);
+                Assert.IsTrue(newstart + newcount <= oldstart + oldcount);
+                if (AssertUpdate != null)
+                    AssertUpdate(pinableContainer,newcontent,oldcount,newcount);
+                else
+                    throw new NotImplementedException("AssertUpdateが実装されてません");
             }
 
             public IPinnedContent<T> Get(IPinableContainer<T> pinableContainer)
@@ -290,6 +302,7 @@ namespace UnitTest
 
             public IPinableContainer<T> Update(IPinableContainer<T> pinableContainer, T newcontent, long oldstart, long oldcount, long newstart, long newcount)
             {
+                OnAssertUpdate(pinableContainer,newcontent, oldstart, oldcount,newstart,newcount);
                 return this.CreatePinableContainer(newcontent);
             }
 
@@ -914,6 +927,10 @@ namespace UnitTest
                 Assert.IsTrue(pin is PinableContainer<IComposableList<int>>);
                 Assert.IsTrue(pin.Content is FixedList<int>);
             };
+            testStore.AssertUpdate = (pin, newcontent, oldcount, newcount) => {
+                Assert.IsTrue(pin.Content.Count == oldcount);
+                Assert.IsTrue(newcontent.Count == newcount);
+            };
             var customConverter = new DefaultCustomConverter<int>();
             customConverter.DataStore = testStore;
             BigList<int> biglist1 = new BigList<int>();
@@ -969,6 +986,10 @@ namespace UnitTest
             testStore.AssertType = (pin) => {
                 Assert.IsTrue(pin is PinableContainer<IComposableList<int>>);
                 Assert.IsTrue(pin.Content is FixedList<int>);
+            };
+            testStore.AssertUpdate = (pin, newcontent, oldcount, newcount) => {
+                Assert.IsTrue(pin.Content.Count == oldcount);
+                Assert.IsTrue(newcontent.Count == newcount);
             };
             var customConverter = new DefaultCustomConverter<int>();
             customConverter.DataStore = testStore;
@@ -1156,6 +1177,10 @@ namespace UnitTest
             testStore.AssertType = (pin) => {
                 Assert.IsTrue(pin is PinableContainer<IComposableList<int>>);
                 Assert.IsTrue(pin.Content is FixedList<int>);
+            };
+            testStore.AssertUpdate = (pin, newcontent, oldcount, newcount) => {
+                Assert.IsTrue(pin.Content.Count == oldcount);
+                Assert.IsTrue(newcontent.Count == newcount);
             };
             var customConverter = new DefaultCustomConverter<int>();
             customConverter.DataStore = testStore;
