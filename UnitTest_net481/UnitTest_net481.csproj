@@ -18,7 +18,9 @@
     <Compile Include="..\UnitTest\CacheTest.cs" Link="CacheTest.cs" />
     <Compile Include="..\UnitTest\DiskPinableContentDataStoreTest.cs" Link="DiskPinableContentDataStoreTest.cs" />
     <Compile Include="..\UnitTest\FixedListTest.cs" Link="FixedListTest.cs" />
+    <Compile Include="..\UnitTest\ImmutableListTest.cs" Link="ImmutableListTest.cs" />
     <Compile Include="..\UnitTest\InterfaceTests.cs" Link="InterfaceTests.cs" />
+    <Compile Include="..\UnitTest\LasyLoadListTest.cs" Link="LasyLoadListTest.cs" />
     <Compile Include="..\UnitTest\MemoryPinableContentDataStoreWithAutoDisposerTest.cs" Link="MemoryPinableContentDataStoreWithAutoDisposerTest.cs" />
     <Compile Include="..\UnitTest\MSTestSettings.cs" Link="MSTestSettings.cs" />
   </ItemGroup>

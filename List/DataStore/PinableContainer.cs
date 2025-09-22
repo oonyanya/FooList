@@ -16,6 +16,7 @@ namespace FooProject.Collection.DataStore
     public class PinableContainer<T> : IPinableContainer<T>
     {
         internal const long NOTCACHED = -1;
+        internal const long ALWAYS_KEEP = -2;
 
         internal DiskAllocationInfo Info { get; set; }
 

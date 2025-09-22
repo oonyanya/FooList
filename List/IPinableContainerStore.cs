@@ -7,6 +7,11 @@ using FooProject.Collection.DataStore;
 
 namespace FooProject.Collection
 {
+    /// <summary>
+    /// IPinableContainerを格納する奴
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <remarks>BigListで使用する場合、IComposableListを指定する必要があります</remarks>
     public interface IPinableContainerStore<T>
     {
         IPinnedContent<T> Get(IPinableContainer<T> pinableContainer);
