@@ -44,12 +44,12 @@ namespace UnitTest
     [TestClass]
     public class LasyLoadListTest
     {
-        BigList<byte> CreateList(out ReadonlyContentStoreBase<IComposableList<byte>> datastore,out long loadedCount)
+        BigList<byte> CreateListAndLoad(int maxvalue,out ReadonlyContentStoreBase<IComposableList<byte>> datastore)
         {
             var memoryStream = new MemoryStream();
-            for (int i = 0; i < byte.MaxValue; i++)
+            for (int i = 0; i < maxvalue; i++)
             {
-                memoryStream.WriteByte((byte)i);
+                memoryStream.WriteByte((byte)(i % byte.MaxValue));
             }
             memoryStream.Position = 0;
             var lazyLoadStore = new ReadOnlyByteDataStore(memoryStream);
@@ -59,12 +59,13 @@ namespace UnitTest
             biglist1.CustomBuilder = customConverter;
             biglist1.LeastFetchStore = customConverter;
             datastore = lazyLoadStore;
-            // byte.MaxValueを8で割ると32になる
-            for (int i = 0; i < 32; i++)
+ 
+            const int loadLen = 8;
+            int loopCount = (maxvalue + 1) / loadLen;
+            for (int i = 0; i < loopCount; i++)
             {
-                biglist1.Add(lazyLoadStore.Load(8));
+                biglist1.Add(lazyLoadStore.Load(loadLen));
             }
-            loadedCount = byte.MaxValue;
             return biglist1;
         }
 
@@ -72,15 +73,15 @@ namespace UnitTest
         public void Load()
         {
             ReadonlyContentStoreBase<IComposableList<byte>> dataStore;
-            long loadedCount;
-            var list = CreateList(out dataStore,out loadedCount);
+            var list = CreateListAndLoad(byte.MaxValue,out dataStore);
 
-            Assert.AreEqual(loadedCount, list.Count);
+            Assert.AreEqual(byte.MaxValue, list.Count);
 
             for (int i = 0; i < byte.MaxValue; i++)
             {
                 Assert.AreEqual(i, list[i]);
             }
         }
+
     }
 }
