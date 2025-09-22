@@ -66,12 +66,12 @@ namespace UnitTest
 		/// <param name="valueArray">The values that should be in the collection.</param>
 		/// <param name="mustBeInOrder">Must the value be in order?</param>
 		/// <param name="name">Expected name of the collection, or null for don't check.</param>
-        public static void TestReadonlyCollectionGeneric<T>(ReadOnlyList<T> coll, T[] valueArray, bool mustBeInOrder, string name)
+        public static void TestReadonlyCollectionGeneric<T>(ReadOnlyBigList<T> coll, T[] valueArray, bool mustBeInOrder, string name)
         {
             TestReadonlyCollectionGeneric<T>(coll, valueArray, mustBeInOrder, null, null);
         }
 
-        public static void TestReadonlyCollectionGeneric<T>(ReadOnlyList<T> coll, T[] valueArray, bool mustBeInOrder, string name, BinaryPredicate<T> equals)
+        public static void TestReadonlyCollectionGeneric<T>(ReadOnlyBigList<T> coll, T[] valueArray, bool mustBeInOrder, string name, BinaryPredicate<T> equals)
         {
             TestCollectionGeneric<T>(coll, valueArray, mustBeInOrder, equals);
 
@@ -124,12 +124,12 @@ namespace UnitTest
                  /// <param name="coll">IList&lt;T&gt; to test. </param>
                  /// <param name="valueArray">The values that should be in the list.</param>
                  /// <param name="name">Name of the collection, for exceptions. Null to not check.</param>
-        public static void TestReadOnlyListGeneric<T>(ReadOnlyList<T> coll, T[] valueArray, string name)
+        public static void TestReadOnlyListGeneric<T>(ReadOnlyBigList<T> coll, T[] valueArray, string name)
         {
             TestReadOnlyListGeneric<T>(coll, valueArray, name, null);
         }
 
-        public static void TestReadOnlyListGeneric<T>(ReadOnlyList<T> coll, T[] valueArray, string name, BinaryPredicate<T> equals)
+        public static void TestReadOnlyListGeneric<T>(ReadOnlyBigList<T> coll, T[] valueArray, string name, BinaryPredicate<T> equals)
         {
             if (equals == null)
                 equals = delegate (T x, T y) { return object.Equals(x, y); };

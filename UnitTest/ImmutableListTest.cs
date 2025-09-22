@@ -14,147 +14,13 @@ namespace UnitTest
     public sealed class ImmutableListTest
     {
 
-        class ReadOnlyList<T> : IComposableList<T>
-        {
-            int start, length;
-
-            List<T> items;
-
-            public T this[int index] { get => items[index]; set => throw new NotImplementedException(); }
-
-            public int Count => this.length;
-
-            public bool IsReadOnly => true;
-
-            public ReadOnlyList(IEnumerable<T> collection)
-            {
-                if (collection != null)
-                {
-                    var readonlyList = collection as ReadOnlyList<T>;
-                    if (readonlyList != null)
-                    {
-                        this.items = readonlyList.items;
-                        this.start = readonlyList.start;
-                        this.length = readonlyList.length;
-                    }
-                    else
-                    {
-                        items = new List<T>(collection);
-                        this.start = 0;
-                        this.length = items.Count;
-                    }
-                }
-                else
-                {
-                    items = new List<T>();
-                }
-            }
-
-            internal ReadOnlyList(ReadOnlyList<T> collection, int start = 0, int length = int.MaxValue)
-            {
-                this.items = collection.items;
-                this.start = start;
-                this.length = length == int.MaxValue ? collection.Count : length;
-            }
-
-            public void Add(T item)
-            {
-                throw new NotImplementedException();
-            }
-
-            public void AddRange(IEnumerable<T> collection, int collection_length = -1)
-            {
-                throw new NotImplementedException();
-            }
-
-            public void Clear()
-            {
-                throw new NotImplementedException();
-            }
-
-            public bool Contains(T item)
-            {
-                throw new NotImplementedException();
-            }
-
-            public void CopyTo(T[] array, int arrayIndex)
-            {
-                //VisualStudioでのデバック用に最低限実装しないといけない
-                this.items.CopyTo(this.start, array, arrayIndex, this.length);
-            }
-
-            public IEnumerator<T> GetEnumerator()
-            {
-                int start = this.start;
-                int end = this.start + this.length - 1;
-                for (int i = start; i <= end; i++)
-                {
-                    yield return items[i];
-                }
-            }
-
-            public IEnumerable<T> GetRange(int index, int count)
-            {
-                return new ReadOnlyList<T>(this, index, count);
-            }
-
-            public int IndexOf(T item)
-            {
-                throw new NotImplementedException();
-            }
-
-            public void Insert(int index, T item)
-            {
-                throw new NotImplementedException();
-            }
-
-            public void InsertRange(int index, IEnumerable<T> collection, int collection_length = -1)
-            {
-                throw new NotImplementedException();
-            }
-
-            public bool QueryAddRange(IEnumerable<T> collection, int collection_length = -1)
-            {
-                return false;
-            }
-
-            public bool QueryInsertRange(int index, IEnumerable<T> collection, int collection_length = -1)
-            {
-                return false;
-            }
-
-            public bool QueryRemoveRange(int index, int count)
-            {
-                return false;
-            }
-
-            public bool Remove(T item)
-            {
-                throw new NotImplementedException();
-            }
-
-            public void RemoveAt(int index)
-            {
-                throw new NotImplementedException();
-            }
-
-            public void RemoveRange(int index, int count)
-            {
-                throw new NotImplementedException();
-            }
-
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                return GetEnumerator();
-            }
-        }
         class MixedCustomConverter<T> : DefaultCustomConverter<T>
         {
             public override IComposableList<T> CreateList(long init_capacity, long maxcapacity, IEnumerable<T> collection = null)
             {
-                if (collection is ReadOnlyList<T>)
+                if (collection is ReadOnlyComposableList<T>)
                 {
-                    var list = new ReadOnlyList<T>(collection);
+                    var list = new ReadOnlyComposableList<T>(collection);
                     return list;
                 }
                 else
@@ -169,7 +35,7 @@ namespace UnitTest
         {
             var customBuilder = new MixedCustomConverter<char>();
             customBuilder.DataStore = new MemoryPinableContentDataStore<IComposableList<char>>();
-            var init_collection = new ReadOnlyList<char>("this is a pen");
+            var init_collection = new ReadOnlyComposableList<char>("this is a pen");
             var buf = new FooProject.Collection.BigList<char>(init_collection, customBuilder, customBuilder);
             buf.RemoveAt(5);
             Assert.AreEqual("this s a pen", new string(buf.ToArray()));
@@ -180,7 +46,7 @@ namespace UnitTest
         {
             var customBuilder = new MixedCustomConverter<char>();
             customBuilder.DataStore = new MemoryPinableContentDataStore<IComposableList<char>>();
-            var init_collection = new ReadOnlyList<char>("this is a pen");
+            var init_collection = new ReadOnlyComposableList<char>("this is a pen");
             var buf = new FooProject.Collection.BigList<char>(init_collection, customBuilder, customBuilder);
             buf.RemoveRange(5, 2);
             Assert.AreEqual("this  a pen", new string(buf.ToArray()));
@@ -191,7 +57,7 @@ namespace UnitTest
         {
             var customBuilder = new MixedCustomConverter<char>();
             customBuilder.DataStore = new MemoryPinableContentDataStore<IComposableList<char>>();
-            var init_collection = new ReadOnlyList<char>("this  a pen");
+            var init_collection = new ReadOnlyComposableList<char>("this  a pen");
             var buf = new FooProject.Collection.BigList<char>(init_collection, customBuilder, customBuilder);
             buf.CustomBuilder = customBuilder;
             buf.Insert(5, 'i');
@@ -203,7 +69,7 @@ namespace UnitTest
         {
             var customBuilder = new MixedCustomConverter<char>();
             customBuilder.DataStore = new MemoryPinableContentDataStore<IComposableList<char>>();
-            var init_collection = new ReadOnlyList<char>("this  a pen");
+            var init_collection = new ReadOnlyComposableList<char>("this  a pen");
             var buf = new FooProject.Collection.BigList<char>(init_collection, customBuilder, customBuilder);
             buf.CustomBuilder = customBuilder;
             buf.InsertRange(5, "is");
@@ -226,7 +92,7 @@ namespace UnitTest
         {
             var customBuilder = new MixedCustomConverter<char>();
             customBuilder.DataStore = new MemoryPinableContentDataStore<IComposableList<char>>();
-            var init_collection = new ReadOnlyList<char>("this is a");
+            var init_collection = new ReadOnlyComposableList<char>("this is a");
             var buf = new FooProject.Collection.BigList<char>(init_collection, customBuilder, customBuilder);
             buf.CustomBuilder = customBuilder;
             buf.AddRange(" pen");
@@ -238,7 +104,7 @@ namespace UnitTest
         {
             var customBuilder = new MixedCustomConverter<char>();
             customBuilder.DataStore = new MemoryPinableContentDataStore<IComposableList<char>>();
-            var init_collection = new ReadOnlyList<char>("this is a");
+            var init_collection = new ReadOnlyComposableList<char>("this is a");
             var buf = new FooProject.Collection.BigList<char>(init_collection, customBuilder, customBuilder);
             buf.CustomBuilder = customBuilder;
             buf.AddToFront(' ');

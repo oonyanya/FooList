@@ -1297,7 +1297,7 @@ namespace UnitTest
         {
             BigList<int> list1 = CreateList(0, 400);
             int[] elements = new int[400];
-            ReadOnlyList<int> list2 = list1.AsReadOnly();
+            ReadOnlyBigList<int> list2 = list1.AsReadOnly();
 
             for (int i = 0; i < 400; ++i)
                 elements[i] = i;

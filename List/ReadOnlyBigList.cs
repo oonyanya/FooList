@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace FooProject.Collection
 {
-    public class ReadOnlyList<T> : IReadOnlyList<T>, IReadOnlyCollection<T>, IList<T>
+    public class ReadOnlyBigList<T> : IReadOnlyList<T>, IReadOnlyCollection<T>, IList<T>
     {
         public virtual int Count { get; }
 

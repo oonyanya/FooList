@@ -57,7 +57,7 @@ namespace FooProject.Collection
     /// https://www.cs.tufts.edu/comp/150FP/archive/hans-boehm/ropes.pdf
     /// </remarks>
     /// <typeparam name="T">The item type of the collection.</typeparam>
-    public class BigList<T> : ReadOnlyList<T>, IList<T>
+    public class BigList<T> : ReadOnlyBigList<T>, IList<T>
     {
         internal const long MAXITEMS = int.MaxValue - 1;    // maximum number of items in a BigList.
         // The fibonacci numbers. Used in the rebalancing algorithm. Final MaxValue makes sure we don't go off the end.
@@ -925,9 +925,9 @@ namespace FooProject.Collection
         /// リードオンリーリストを返す
         /// </summary>
         /// <returns></returns>
-        public ReadOnlyList<T> AsReadOnly()
+        public ReadOnlyBigList<T> AsReadOnly()
         {
-            return (ReadOnlyList<T>)this;
+            return (ReadOnlyBigList<T>)this;
         }
 
         /// <summary>
