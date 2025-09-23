@@ -144,5 +144,31 @@ namespace UnitTest
             }
         }
 
+        [TestMethod]
+        public void RemoveTest()
+        {
+            ReadonlyContentStoreBase<IComposableList<byte>> dataStore;
+            var expected = new List<int>(Enumerable.Range(0, byte.MaxValue));
+            var list = CreateListAndLoad(expected, out dataStore);
+
+            expected.RemoveAt(0);
+            list.RemoveAt(0);
+
+            expected.RemoveAt(4);
+            list.RemoveAt(4);
+
+            expected.RemoveAt(128);
+            list.RemoveAt(128);
+
+            expected.RemoveAt(251);
+            list.RemoveAt(251);
+
+            Assert.AreEqual(expected.Count, list.Count);
+
+            for (int i = 0; i < expected.Count; i++)
+            {
+                Assert.AreEqual(expected[i], list[i]);
+            }
+        }
     }
 }
