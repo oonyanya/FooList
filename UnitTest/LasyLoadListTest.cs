@@ -42,12 +42,15 @@ namespace UnitTest
     [TestClass]
     public class LasyLoadListTest
     {
-        BigList<byte> CreateListAndLoad(int maxvalue,out ReadonlyContentStoreBase<IComposableList<byte>> datastore)
+        BigList<byte> CreateListAndLoad(IEnumerable<int> collection,out ReadonlyContentStoreBase<IComposableList<byte>> datastore)
         {
             var memoryStream = new MemoryStream();
-            for (int i = 0; i < maxvalue; i++)
+            int collection_count = collection.Count();
+            //面倒なのでオーバーフロー対策のために256のあまりを突っ込んでる
+            foreach(var i in collection)
             {
                 memoryStream.WriteByte((byte)(i % byte.MaxValue));
+
             }
             memoryStream.Position = 0;
             var lazyLoadStore = new ReadOnlyByteDataStore(memoryStream);
@@ -59,7 +62,7 @@ namespace UnitTest
             datastore = lazyLoadStore;
  
             const int loadLen = 8;
-            int loopCount = (maxvalue + 1) / loadLen;
+            int loopCount = (collection_count + 1) / loadLen;
             for (int i = 0; i < loopCount; i++)
             {
                 biglist1.Add(lazyLoadStore.Load(loadLen));
@@ -71,7 +74,7 @@ namespace UnitTest
         public void Load()
         {
             ReadonlyContentStoreBase<IComposableList<byte>> dataStore;
-            var list = CreateListAndLoad(byte.MaxValue,out dataStore);
+            var list = CreateListAndLoad(Enumerable.Range(0,byte.MaxValue),out dataStore);
 
             Assert.AreEqual(byte.MaxValue, list.Count);
 
@@ -85,7 +88,7 @@ namespace UnitTest
         public void Add()
         {
             ReadonlyContentStoreBase<IComposableList<byte>> dataStore;
-            var list = CreateListAndLoad(byte.MaxValue, out dataStore);
+            var list = CreateListAndLoad(Enumerable.Range(0, byte.MaxValue), out dataStore);
 
             list.Add(0);
             list.Add(1);
@@ -104,7 +107,7 @@ namespace UnitTest
         public void AddToFront()
         {
             ReadonlyContentStoreBase<IComposableList<byte>> dataStore;
-            var list = CreateListAndLoad(byte.MaxValue, out dataStore);
+            var list = CreateListAndLoad(Enumerable.Range(0, byte.MaxValue), out dataStore);
 
             list.AddToFront(0);
             list.AddToFront(1);
