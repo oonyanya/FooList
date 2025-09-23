@@ -555,7 +555,6 @@ namespace FooProject.Collection
                 var leftLeafNode = args.CustomBuilder.CreateLeafNode(leftItemCount, leftContainer);
                 leftLeafNode.NotifyUpdate(0, leftItems.Count, args);
                 Node<T> leftNode = leftLeafNode;
-                leafNodeEnumrator.Replace(this, leftLeafNode);
 
                 int rightItemCount;
                 int rightIndex;
@@ -570,9 +569,26 @@ namespace FooProject.Collection
                 rightLeafNode.NotifyUpdate(0, rightItems.Count, args);
                 Node<T> rightNode = rightLeafNode;
 
-                leftNode = leftNode.AppendInPlace(rightNode, leafNodeEnumrator, null, args);
-
-                return leftNode;
+                if (leftItemCount == 0 && rightItemCount == 0)
+                {
+                    return null;
+                }
+                else if (leftItemCount == 0)
+                {
+                    leafNodeEnumrator.Replace(this, rightLeafNode);
+                    return rightLeafNode;
+                }
+                else if (rightItemCount == 0)
+                {
+                    leafNodeEnumrator.Replace(this, leftLeafNode);
+                    return leftLeafNode;
+                }
+                else
+                {
+                    leafNodeEnumrator.Replace(this, leftLeafNode);
+                    leftNode = leftNode.AppendInPlace(rightNode, leafNodeEnumrator, null, args);
+                    return leftNode;
+                }
             }
         }
 

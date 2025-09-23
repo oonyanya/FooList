@@ -154,11 +154,11 @@ namespace UnitTest
             expected.RemoveAt(0);
             list.RemoveAt(0);
 
-            expected.RemoveAt(4);
-            list.RemoveAt(4);
+            expected.RemoveAt(14);
+            list.RemoveAt(14);
 
-            expected.RemoveAt(128);
-            list.RemoveAt(128);
+            expected.RemoveAt(18);
+            list.RemoveAt(18);
 
             expected.RemoveAt(251);
             list.RemoveAt(251);
