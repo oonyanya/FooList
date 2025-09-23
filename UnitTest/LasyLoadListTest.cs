@@ -120,5 +120,29 @@ namespace UnitTest
             }
         }
 
+        [TestMethod]
+        public void InsertTest()
+        {
+            ReadonlyContentStoreBase<IComposableList<byte>> dataStore;
+            var expected = new List<int>(Enumerable.Range(0, byte.MaxValue));
+            var list = CreateListAndLoad(expected, out dataStore);
+
+            expected.Insert(0, 0);
+            list.Insert(0, 0);
+
+            expected.Insert(4, 0);
+            list.Insert(4, 0);
+
+            expected.Insert(255, 0);
+            list.Insert(255, 0);
+
+            Assert.AreEqual(expected.Count, list.Count);
+
+            for(int i = 0; i < expected.Count;i++)
+            {
+                Assert.AreEqual(expected[i],list[i]);
+            }
+        }
+
     }
 }
