@@ -12,6 +12,10 @@ namespace FooProject.Collection.DataStore
         bool disposedValue = false;
         TwoQueueCacheList<long, PinableContainer<T>> writebackCacheList = null;
 
+        /// <summary>
+        /// コンストラクター
+        /// </summary>
+        /// <param name="cache_limit">キャッシュの量。すくなくとも、CacheParameters.MINCACHESIZE以上は指定する必要がある。</param>
         public MemoryPinableContentDataStoreWithAutoDisposer(int cache_limit = 128)
         {
             this.writebackCacheList = new TwoQueueCacheList<long, PinableContainer<T>>();

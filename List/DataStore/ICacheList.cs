@@ -3,6 +3,17 @@ using System.Collections.Generic;
 
 namespace FooProject.Collection.DataStore
 {
+    /// <summary>
+    /// 全てのキャッシュ用クラスで共通の値を設定する
+    /// </summary>
+    public class CacheParameters
+    {
+        /// <summary>
+        /// キャッシュの最低値
+        /// </summary>
+        public const int MINCACHESIZE = 4;
+    }
+
     public class CacheOutedEventArgs<K, V> : EventArgs
     {
         public K Key { get; private set; }

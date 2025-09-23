@@ -37,7 +37,7 @@ namespace FooProject.Collection.DataStore
         const int PAGESIZE = 16384;
         //FileStreamのバッファーサイズ。
         const int BUFFERSIZE = 4096;
-
+        
         string tempFilePath;
         ISerializeData<T> serializer;
         EmptyList emptyList = new EmptyList();
@@ -54,7 +54,7 @@ namespace FooProject.Collection.DataStore
         /// コンストラクター
         /// </summary>
         /// <param name="serializer">ISerializeDataを継承したクラスのインスタンス</param>
-        /// <param name="cache_limit">キャッシュしておく量。少なくとも２以上は指定する必要があります</param>
+        /// <param name="cache_limit">キャッシュしておく量。すくなくとも、CacheParameters.MINCACHESIZE以上は指定する必要がある。</param>
         public DiskPinableContentDataStore(ISerializeData<T> serializer, int cache_limit = 128): this(serializer,null,cache_limit)
         {
         }
@@ -64,7 +64,7 @@ namespace FooProject.Collection.DataStore
         /// </summary>
         /// <param name="serializer">ISerializeDataを継承したクラスのインスタンス</param>
         /// <param name="workfolderpath">ワークファイルを格納するフォルダーへのフルパス。nullの場合は%TEMP%を参照します。</param>
-        /// <param name="cache_limit">キャッシュしておく量。少なくとも４以上は指定する必要があります</param>
+        /// <param name="cache_limit">キャッシュしておく量。すくなくとも、CacheParameters.MINCACHESIZE以上は指定する必要がある。</param>
         public DiskPinableContentDataStore(ISerializeData<T> serializer,string workfolderpath,int cache_limit = 128)
         {
             if (workfolderpath == null)

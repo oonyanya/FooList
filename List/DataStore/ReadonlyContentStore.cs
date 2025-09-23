@@ -12,6 +12,10 @@ namespace FooProject.Collection.DataStore
         EmptyList emptyList = new EmptyList();
         TwoQueueCacheList<long, PinableContainer<T>> cacheList = null;
 
+        /// <summary>
+        /// コンストラクター
+        /// </summary>
+        /// <param name="cache_limit">キャッシュの量。すくなくとも、CacheParameters.MINCACHESIZE以上は指定する必要がある。</param>
         public ReadonlyContentStoreBase(int cache_limit = 128)
         {
             this.cacheList = new TwoQueueCacheList<long, PinableContainer<T>>();
