@@ -25,8 +25,7 @@ namespace UnitTest
             byte[] array = new byte[count];
             index = stream.Position;
             read_bytes = stream.Read(array, 0, count);
-            var list = new FixedList<byte>(array.Length, array.Length);
-            list.AddRange(array.Take(read_bytes));
+            var list = new ReadOnlyComposableList<byte>(array.Take(read_bytes));
             return list;
         }
 
@@ -35,8 +34,7 @@ namespace UnitTest
             byte[] array = new byte[count];
             stream.Position = index;
             stream.Read(array, 0, count);
-            var list = new FixedList<byte>(array.Length, array.Length);
-            list.AddRange(array);
+            var list = new ReadOnlyComposableList<byte>(array);
             return list;
         }
     }
@@ -80,6 +78,42 @@ namespace UnitTest
             for (int i = 0; i < byte.MaxValue; i++)
             {
                 Assert.AreEqual(i, list[i]);
+            }
+        }
+
+        [TestMethod]
+        public void Add()
+        {
+            ReadonlyContentStoreBase<IComposableList<byte>> dataStore;
+            var list = CreateListAndLoad(byte.MaxValue, out dataStore);
+
+            list.Add(0);
+            list.Add(1);
+
+            Assert.AreEqual(byte.MaxValue + 2, list.Count);
+
+            for (int i = 0; i < byte.MaxValue; i++)
+            {
+                Assert.AreEqual(i, list[i]);
+            }
+            Assert.AreEqual(0, list[byte.MaxValue]);
+            Assert.AreEqual(1, list[byte.MaxValue + 1]);
+        }
+
+        [TestMethod]
+        public void AddToFront()
+        {
+            ReadonlyContentStoreBase<IComposableList<byte>> dataStore;
+            var list = CreateListAndLoad(byte.MaxValue, out dataStore);
+
+            list.AddToFront(0);
+            list.AddToFront(1);
+
+            Assert.AreEqual(byte.MaxValue + 2, list.Count);
+
+            for (int i = 2, j = 0; i < byte.MaxValue + 2; i++, j++)
+            {
+                Assert.AreEqual(j, list[i]);
             }
         }
 

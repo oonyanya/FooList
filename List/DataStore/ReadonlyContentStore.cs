@@ -51,6 +51,8 @@ namespace FooProject.Collection.DataStore
             long index;
             var content = OnLoad(count, out index, out read_bytes);
             PinableContainer<T> newpin = (PinableContainer<T>)this.CreatePinableContainer(content);
+            //ディスク上に存在するので永遠に保存しておく必要はない
+            newpin.CacheIndex = PinableContainer<T>.NOTCACHED;
             newpin.Info = new DiskAllocationInfo(index, read_bytes);
             return newpin;
         }
@@ -132,7 +134,10 @@ namespace FooProject.Collection.DataStore
 
         public IPinableContainer<T> CreatePinableContainer(T content)
         {
-            return new PinableContainer<T>(content);
+            var newPinableContainer = new PinableContainer<T>(content);
+            //メモリー上にだけ存在する奴があるのでデフォルトは常に保持しておく
+            newPinableContainer.CacheIndex = PinableContainer<T>.ALWAYS_KEEP;
+            return newPinableContainer;
         }
 
     }
