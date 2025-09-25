@@ -133,6 +133,9 @@ namespace UnitTest
             expected.Insert(4, 0);
             list.Insert(4, 0);
 
+            expected.Insert(12, 0);
+            list.Insert(12, 0);
+
             expected.Insert(255, 0);
             list.Insert(255, 0);
 
