@@ -309,7 +309,798 @@ namespace UnitTest
             }
         }
 
+        /// <summary>
+        ///  Test a read-write IList&lt;T&gt; that should contain the given values, possibly in order. Destroys the collection in the process.
+        /// </summary>
+        /// <param name="coll">IList&lt;T&gt; to test. </param>
+        /// <param name="valueArray">The values that should be in the list.</param>
+        public static void TestReadWriteListGeneric<T>(IList<T> coll, T[] valueArray)
+        {
+            TestReadWriteListGeneric<T>(coll, valueArray, null);
+        }
 
+        public static void TestReadWriteListGeneric<T>(IList<T> coll, T[] valueArray, BinaryPredicate<T> equals)
+        {
+            if (equals == null)
+                equals = delegate (T x, T y) { return object.Equals(x, y); };
+
+            TestListGeneric(coll, valueArray, equals);     // Basic read-only list stuff.
+
+            // Check the indexer getter.
+            T[] save = new T[coll.Count];
+            for (int i = coll.Count - 1; i >= 0; --i)
+            {
+                Assert.AreEqual(valueArray[i], coll[i]);
+                int index = coll.IndexOf(valueArray[i]);
+                Assert.IsTrue(index >= 0);
+                Assert.IsTrue(index == i || (index < i && object.Equals(coll[index], valueArray[i])));
+                save[i] = coll[i];
+            }
+
+            // Check the setter by reversing the list.
+            for (int i = 0; i < coll.Count / 2; ++i)
+            {
+                T temp = coll[i];
+                coll[i] = coll[coll.Count - 1 - i];
+                coll[coll.Count - 1 - i] = temp;
+            }
+
+            for (int i = 0; i < coll.Count; ++i)
+            {
+                Assert.AreEqual(valueArray[coll.Count - 1 - i], coll[i]);
+                int index = coll.IndexOf(valueArray[coll.Count - 1 - i]);
+                Assert.IsTrue(index >= 0);
+                Assert.IsTrue(index == i || (index < i && object.Equals(coll[index], valueArray[coll.Count - 1 - i])));
+            }
+
+            // Reverse back
+            for (int i = 0; i < coll.Count / 2; ++i)
+            {
+                T temp = coll[i];
+                coll[i] = coll[coll.Count - 1 - i];
+                coll[coll.Count - 1 - i] = temp;
+            }
+
+            T item = valueArray.Length > 0 ? valueArray[valueArray.Length / 2] : default(T);
+            // Check exceptions from index out of range.
+            try
+            {
+                coll[-1] = item;
+                Assert.Fail("Should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+            }
+            try
+            {
+                coll[int.MinValue] = item;
+                Assert.Fail("Should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+            }
+            try
+            {
+                T dummy = coll[-2];
+                Assert.Fail("Should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+            }
+            try
+            {
+                coll[coll.Count] = item;
+                Assert.Fail("Should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+            }
+            try
+            {
+                T dummy = coll[coll.Count];
+                Assert.Fail("Should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+            }
+            try
+            {
+                T dummy = coll[int.MaxValue];
+                Assert.Fail("Should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+            }
+            try
+            {
+                coll[int.MaxValue] = item;
+                Assert.Fail("Should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+            }
+            try
+            {
+                coll.Insert(-1, item);
+                Assert.Fail("Should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+            }
+            try
+            {
+                coll.Insert(coll.Count + 1, item);
+                Assert.Fail("Should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+            }
+            try
+            {
+                coll.Insert(int.MaxValue, item);
+                Assert.Fail("Should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+            }
+            try
+            {
+                coll.RemoveAt(coll.Count);
+                Assert.Fail("Should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+            }
+            try
+            {
+                coll.RemoveAt(-1);
+                Assert.Fail("Should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+            }
+            try
+            {
+                coll.RemoveAt(int.MaxValue);
+                Assert.Fail("Should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+            }
+            try
+            {
+                coll.RemoveAt(coll.Count);
+                Assert.Fail("Should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+            }
+
+            // Insert at the beginning.
+            coll.Insert(0, item);
+            Assert.AreEqual(coll[0], item);
+            Assert.AreEqual(valueArray.Length + 1, coll.Count);
+            for (int i = 0; i < valueArray.Length; ++i)
+                Assert.AreEqual(valueArray[i], coll[i + 1]);
+
+            // Insert at the end
+            coll.Insert(valueArray.Length + 1, item);
+            Assert.AreEqual(coll[valueArray.Length + 1], item);
+            Assert.AreEqual(valueArray.Length + 2, coll.Count);
+            for (int i = 0; i < valueArray.Length; ++i)
+                Assert.AreEqual(valueArray[i], coll[i + 1]);
+
+            // Delete at the beginning.
+            coll.RemoveAt(0);
+            Assert.AreEqual(coll[valueArray.Length], item);
+            Assert.AreEqual(valueArray.Length + 1, coll.Count);
+            for (int i = 0; i < valueArray.Length; ++i)
+                Assert.AreEqual(valueArray[i], coll[i]);
+
+            // Delete at the end.
+            coll.RemoveAt(valueArray.Length);
+            Assert.AreEqual(valueArray.Length, coll.Count);
+            for (int i = 0; i < valueArray.Length; ++i)
+                Assert.AreEqual(valueArray[i], coll[i]);
+
+            // Insert at the middle.
+            coll.Insert(valueArray.Length / 2, item);
+            Assert.AreEqual(valueArray.Length + 1, coll.Count);
+            Assert.AreEqual(item, coll[valueArray.Length / 2]);
+            for (int i = 0; i < valueArray.Length; ++i)
+            {
+                if (i < valueArray.Length / 2)
+                    Assert.AreEqual(valueArray[i], coll[i]);
+                else
+                    Assert.AreEqual(valueArray[i], coll[i + 1]);
+            }
+
+            // Delete at the middle.
+            coll.RemoveAt(valueArray.Length / 2);
+            Assert.AreEqual(valueArray.Length, coll.Count);
+            for (int i = 0; i < valueArray.Length; ++i)
+                Assert.AreEqual(valueArray[i], coll[i]);
+
+            // Delete all from the middle.
+            for (int i = 0; i < valueArray.Length; ++i)
+                coll.RemoveAt(coll.Count / 2);
+            Assert.AreEqual(0, coll.Count);
+
+            // Build up in order.
+            for (int i = 0; i < save.Length; ++i)
+            {
+                coll.Insert(i, save[i]);
+            }
+
+            TestListGeneric(coll, valueArray, equals);     // Basic read-only list stuff.
+
+            coll.Clear();
+            Assert.AreEqual(0, coll.Count);
+
+            // Build up in reverse order.
+            for (int i = 0; i < save.Length; ++i)
+            {
+                coll.Insert(0, save[save.Length - 1 - i]);
+            }
+            TestListGeneric(coll, valueArray, equals);     // Basic read-only list stuff.
+
+            // Check read-write collection stuff.
+            TestReadWriteCollectionGeneric<T>(coll, valueArray, true);
+        }
+
+        /// <summary>
+        ///  Test a read-write ICollection&lt;string&gt; that should contain the given values, possibly in order. Destroys the collection in the process.
+        /// </summary>
+        /// <param name="coll">ICollection to test. </param>
+        /// <param name="valueArray">The values that should be in the collection.</param>
+        /// <param name="mustBeInOrder">Must the values be in order?</param>
+        public static void TestReadWriteCollectionGeneric<T>(ICollection<T> coll, T[] valueArray, bool mustBeInOrder)
+        {
+            TestReadWriteCollectionGeneric<T>(coll, valueArray, mustBeInOrder, null);
+        }
+
+        public static void TestReadWriteCollectionGeneric<T>(ICollection<T> coll, T[] valueArray, bool mustBeInOrder, BinaryPredicate<T> equals)
+        {
+            TestCollectionGeneric<T>(coll, valueArray, mustBeInOrder, equals);
+
+            // Test read-only flag.
+            Assert.IsFalse(coll.IsReadOnly);
+
+            // Clear and Count.
+            coll.Clear();
+            Assert.AreEqual(0, coll.Count);
+
+            // Add all the items back.
+            foreach (T item in valueArray)
+                coll.Add(item);
+            Assert.AreEqual(valueArray.Length, coll.Count);
+            TestCollectionGeneric<T>(coll, valueArray, mustBeInOrder, equals);
+
+            // Remove all the items again.
+            foreach (T item in valueArray)
+                coll.Remove(item);
+            Assert.AreEqual(0, coll.Count);
+        }
+
+        /// <summary>
+        ///  Test an ICollection that should contain the given values, possibly in order.
+        /// </summary>
+        /// <param name="coll">ICollection to test. </param>
+        /// <param name="valueArray">The values that should be in the collection.</param>
+        /// <param name="mustBeInOrder">Must the values be in order?</param>
+        public static void TestCollection<T>(ICollection coll, T[] valueArray, bool mustBeInOrder)
+        {
+            T[] values = (T[])valueArray.Clone();       // clone the array so we can destroy it.
+
+            // Check ICollection.Count.
+            Assert.AreEqual(values.Length, coll.Count);
+
+            // Check ICollection.GetEnumerator().
+            int i = 0, j;
+
+            foreach (T s in coll)
+            {
+                if (mustBeInOrder)
+                {
+                    Assert.AreEqual(values[i], s);
+                }
+                else
+                {
+                    bool found = false;
+
+                    for (j = 0; j < values.Length; ++j)
+                    {
+                        if (object.Equals(values[j], s))
+                        {
+                            found = true;
+                            values[j] = default(T);
+                            break;
+                        }
+                    }
+
+                    Assert.IsTrue(found);
+                }
+
+                ++i;
+            }
+
+            // Check IsSyncronized, SyncRoot.
+            Assert.IsFalse(coll.IsSynchronized);
+            Assert.IsNotNull(coll.SyncRoot);
+
+            // Check CopyTo.
+            values = (T[])valueArray.Clone();       // clone the array so we can destroy it.
+
+            T[] newKeys = new T[coll.Count + 2];
+
+            coll.CopyTo(newKeys, 1);
+            for (i = 0, j = 1; i < coll.Count; ++i, ++j)
+            {
+                if (mustBeInOrder)
+                {
+                    Assert.AreEqual(values[i], newKeys[j]);
+                }
+                else
+                {
+                    bool found = false;
+
+                    for (int k = 0; k < values.Length; ++k)
+                    {
+                        if (object.Equals(values[k], newKeys[j]))
+                        {
+                            found = true;
+                            values[k] = default(T);
+                            break;
+                        }
+                    }
+
+                    Assert.IsTrue(found);
+                }
+            }
+
+            // Shouldn't have disturbed the values around what was filled in.
+            Assert.AreEqual(default(T), newKeys[0]);
+            Assert.AreEqual(default(T), newKeys[coll.Count + 1]);
+
+            // Check CopyTo exceptions.
+            if (coll.Count > 0)
+            {
+                try
+                {
+                    coll.CopyTo(null, 0);
+                    Assert.Fail("Copy to null should throw exception");
+                }
+                catch (Exception e)
+                {
+                    Assert.IsTrue(e is ArgumentNullException);
+                }
+                try
+                {
+                    coll.CopyTo(newKeys, 3);
+                    Assert.Fail("CopyTo should throw argument exception");
+                }
+                catch (Exception e)
+                {
+                    Assert.IsTrue(e is ArgumentException);
+                }
+                try
+                {
+                    coll.CopyTo(newKeys, -1);
+                    Assert.Fail("CopyTo should throw argument out of range exception");
+                }
+                catch (Exception e)
+                {
+                    Assert.IsTrue(e is ArgumentOutOfRangeException);
+                }
+            }
+        }
+        
+        /// <summary>
+                 /// Test read-only non-generic IList that should contain the given values, possibly in order. Does not change
+                 /// the list. Does not force the list to be read-only.
+                 /// </summary>
+                 /// <param name="coll">IList to test. </param>
+                 /// <param name="valueArray">The values that should be in the list.</param>
+        public static void TestList<T>(IList coll, T[] valueArray)
+        {
+            // Check basic read-only collection stuff.
+            TestCollection<T>(coll, valueArray, true);
+
+            // Check the indexer getter and IndexOf, backwards
+            for (int i = coll.Count - 1; i >= 0; --i)
+            {
+                Assert.AreEqual(valueArray[i], coll[i]);
+                int index = coll.IndexOf(valueArray[i]);
+                Assert.IsTrue(coll.Contains(valueArray[i]));
+                Assert.IsTrue(index >= 0);
+                Assert.IsTrue(index == i || (index < i && object.Equals(coll[index], valueArray[i])));
+            }
+
+            // Check the indexer getter and IndexOf, forwards
+            for (int i = 0; i < valueArray.Length; ++i)
+            {
+                Assert.AreEqual(valueArray[i], coll[i]);
+                int index = coll.IndexOf(valueArray[i]);
+                Assert.IsTrue(coll.Contains(valueArray[i]));
+                Assert.IsTrue(index >= 0);
+                Assert.IsTrue(index == i || (index < i && object.Equals(coll[index], valueArray[i])));
+            }
+
+            // Check the indexer getter and IndexOf, jumping by 3s
+            for (int i = 0; i < valueArray.Length; i += 3)
+            {
+                Assert.AreEqual(valueArray[i], coll[i]);
+                int index = coll.IndexOf(valueArray[i]);
+                Assert.IsTrue(coll.Contains(valueArray[i]));
+                Assert.IsTrue(index >= 0);
+                Assert.IsTrue(index == i || (index < i && object.Equals(coll[index], valueArray[i])));
+            }
+
+            // Check exceptions from index out of range.
+            try
+            {
+                object dummy = coll[-1];
+                Assert.Fail("Should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+            }
+            try
+            {
+                object dummy = coll[int.MinValue];
+                Assert.Fail("Should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+            }
+            try
+            {
+                object dummy = coll[-2];
+                Assert.Fail("Should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+            }
+            try
+            {
+                object dummy = coll[coll.Count];
+                Assert.Fail("Should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+            }
+            try
+            {
+                object dummy = coll[int.MaxValue];
+                Assert.Fail("Should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+            }
+
+            // Check bad type.
+            if (typeof(T) != typeof(object))
+            {
+                int index = coll.IndexOf(new object());
+                Assert.AreEqual(-1, index);
+
+                bool b = coll.Contains(new object());
+                Assert.IsFalse(b);
+            }
+        }
+        
+        /// <summary>
+                 ///  Test a read-write non-generic IList that should contain the given values, possibly in order. Destroys the collection in the process.
+                 /// </summary>
+                 /// <param name="coll">IList to test. </param>
+                 /// <param name="valueArray">The values that should be in the list.</param>
+        public static void TestReadWriteList<T>(IList coll, T[] valueArray)
+        {
+            TestList(coll, valueArray);     // Basic read-only list stuff.
+
+            // Check read only
+            Assert.IsFalse(coll.IsReadOnly);
+            Assert.IsFalse(coll.IsReadOnly);
+
+            // Check the indexer getter.
+            T[] save = new T[coll.Count];
+            for (int i = coll.Count - 1; i >= 0; --i)
+            {
+                Assert.AreEqual(valueArray[i], coll[i]);
+                int index = coll.IndexOf(valueArray[i]);
+                Assert.IsTrue(index >= 0);
+                Assert.IsTrue(index == i || (index < i && object.Equals(coll[index], valueArray[i])));
+                save[i] = (T)coll[i];
+            }
+
+            // Check the setter by reversing the list.
+            for (int i = 0; i < coll.Count / 2; ++i)
+            {
+                T temp = (T)coll[i];
+                coll[i] = coll[coll.Count - 1 - i];
+                coll[coll.Count - 1 - i] = temp;
+            }
+
+            for (int i = 0; i < coll.Count; ++i)
+            {
+                Assert.AreEqual(valueArray[coll.Count - 1 - i], coll[i]);
+                int index = coll.IndexOf(valueArray[coll.Count - 1 - i]);
+                Assert.IsTrue(index >= 0);
+                Assert.IsTrue(index == i || (index < i && object.Equals(coll[index], valueArray[coll.Count - 1 - i])));
+            }
+
+            // Reverse back
+            for (int i = 0; i < coll.Count / 2; ++i)
+            {
+                T temp = (T)coll[i];
+                coll[i] = coll[coll.Count - 1 - i];
+                coll[coll.Count - 1 - i] = temp;
+            }
+
+            T item = valueArray.Length > 0 ? valueArray[valueArray.Length / 2] : default(T);
+            // Check exceptions from index out of range.
+            try
+            {
+                coll[-1] = item;
+                Assert.Fail("Should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+            }
+            try
+            {
+                coll[int.MinValue] = item;
+                Assert.Fail("Should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+            }
+            try
+            {
+                object dummy = coll[-2];
+                Assert.Fail("Should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+            }
+            try
+            {
+                coll[coll.Count] = item;
+                Assert.Fail("Should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+            }
+            try
+            {
+                object dummy = coll[coll.Count];
+                Assert.Fail("Should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+            }
+            try
+            {
+                object dummy = coll[int.MaxValue];
+                Assert.Fail("Should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+            }
+            try
+            {
+                coll[int.MaxValue] = item;
+                Assert.Fail("Should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+            }
+            try
+            {
+                coll.Insert(-1, item);
+                Assert.Fail("Should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+            }
+            try
+            {
+                coll.Insert(coll.Count + 1, item);
+                Assert.Fail("Should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+            }
+            try
+            {
+                coll.Insert(int.MaxValue, item);
+                Assert.Fail("Should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+            }
+            try
+            {
+                coll.RemoveAt(coll.Count);
+                Assert.Fail("Should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+            }
+            try
+            {
+                coll.RemoveAt(-1);
+                Assert.Fail("Should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+            }
+            try
+            {
+                coll.RemoveAt(int.MaxValue);
+                Assert.Fail("Should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+            }
+            try
+            {
+                coll.RemoveAt(coll.Count);
+                Assert.Fail("Should throw");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e is ArgumentOutOfRangeException);
+            }
+
+            // Check operations with bad type.
+            if (typeof(T) != typeof(object))
+            {
+                try
+                {
+                    coll.Add(new object());
+                    Assert.Fail("should throw");
+                }
+                catch (Exception e)
+                {
+                    Assert.IsTrue(e is ArgumentException);
+                }
+
+                try
+                {
+                    coll.Insert(0, new object());
+                    Assert.Fail("should throw");
+                }
+                catch (Exception e)
+                {
+                    Assert.IsTrue(e is ArgumentException);
+                }
+
+                int index = coll.IndexOf(new object());
+                Assert.AreEqual(-1, index);
+
+                coll.Remove(new object());
+            }
+
+            // Insert at the beginning.
+            coll.Insert(0, item);
+            Assert.AreEqual(coll[0], item);
+            Assert.AreEqual(valueArray.Length + 1, coll.Count);
+            for (int i = 0; i < valueArray.Length; ++i)
+                Assert.AreEqual(valueArray[i], coll[i + 1]);
+
+            // Insert at the end
+            coll.Insert(valueArray.Length + 1, item);
+            Assert.AreEqual(coll[valueArray.Length + 1], item);
+            Assert.AreEqual(valueArray.Length + 2, coll.Count);
+            for (int i = 0; i < valueArray.Length; ++i)
+                Assert.AreEqual(valueArray[i], coll[i + 1]);
+
+            // Delete at the beginning.
+            coll.RemoveAt(0);
+            Assert.AreEqual(coll[valueArray.Length], item);
+            Assert.AreEqual(valueArray.Length + 1, coll.Count);
+            for (int i = 0; i < valueArray.Length; ++i)
+                Assert.AreEqual(valueArray[i], coll[i]);
+
+            // Delete at the end.
+            coll.RemoveAt(valueArray.Length);
+            Assert.AreEqual(valueArray.Length, coll.Count);
+            for (int i = 0; i < valueArray.Length; ++i)
+                Assert.AreEqual(valueArray[i], coll[i]);
+
+            // Insert at the middle.
+            coll.Insert(valueArray.Length / 2, item);
+            Assert.AreEqual(valueArray.Length + 1, coll.Count);
+            Assert.AreEqual(item, coll[valueArray.Length / 2]);
+            for (int i = 0; i < valueArray.Length; ++i)
+            {
+                if (i < valueArray.Length / 2)
+                    Assert.AreEqual(valueArray[i], coll[i]);
+                else
+                    Assert.AreEqual(valueArray[i], coll[i + 1]);
+            }
+
+            // Delete at the middle.
+            coll.RemoveAt(valueArray.Length / 2);
+            Assert.AreEqual(valueArray.Length, coll.Count);
+            for (int i = 0; i < valueArray.Length; ++i)
+                Assert.AreEqual(valueArray[i], coll[i]);
+
+            // Delete all from the middle.
+            for (int i = 0; i < valueArray.Length; ++i)
+                coll.RemoveAt(coll.Count / 2);
+            Assert.AreEqual(0, coll.Count);
+
+            // Build up in order.
+            for (int i = 0; i < save.Length; ++i)
+            {
+                coll.Insert(i, save[i]);
+            }
+
+            TestList<T>(coll, valueArray);     // Basic read-only list stuff.
+
+            coll.Clear();
+            Assert.AreEqual(0, coll.Count);
+
+            // Build up in order with Add
+            for (int i = 0; i < save.Length; ++i)
+            {
+                coll.Add(save[i]);
+            }
+
+            TestList<T>(coll, valueArray);     // Basic read-only list stuff.
+
+            // Remove in order with Remove.
+            for (int i = 0; i < valueArray.Length; ++i)
+            {
+                coll.Remove(valueArray[i]);
+            }
+
+            Assert.AreEqual(0, coll.Count);
+
+            // Build up in reverse order with Insert
+            for (int i = 0; i < save.Length; ++i)
+            {
+                coll.Insert(0, save[save.Length - 1 - i]);
+            }
+            TestList<T>(coll, valueArray);     // Basic read-only list stuff.
+
+            // Check read-write collection stuff.
+            TestCollection<T>(coll, valueArray, true);
+        }
         /// <summary>
         /// Test read-only IList&lt;T&gt; that should contain the given values, possibly in order. Does not change
         /// the list. Does not force the list to be read-only.

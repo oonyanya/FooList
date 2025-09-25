@@ -350,6 +350,49 @@ namespace UnitTest
             Assert.AreEqual(0, list2[0]);
         }
 
+        // Try Create an enumerable.
+        [TestMethod]
+        public void CreateFromEnumerable()
+        {
+            const int SIZE = 8000;
+            int[] items = new int[SIZE];
+            BigList<int> biglist1;
+            int i;
+
+            for (i = 0; i < SIZE; ++i)
+                items[i] = i + 1;
+            biglist1 = new BigList<int>(items);
+
+            for (i = 1; i <= SIZE; ++i)
+            {
+                Assert.AreEqual(i, biglist1[i - 1]);
+            }
+
+            i = 1;
+            foreach (int x in biglist1)
+                Assert.AreEqual(i++, x);
+
+            BigList<int> biglist2 = new BigList<int>(biglist1);
+
+            for (i = 1; i <= SIZE; ++i)
+            {
+                Assert.AreEqual(i, biglist1[i - 1]);
+            }
+
+            i = 1;
+            foreach (int x in biglist2)
+                Assert.AreEqual(i++, x);
+        }
+
+
+        [TestMethod]
+        public void CreateFromEnumerable2()
+        {
+            int[] array = new int[0];
+            BigList<int> biglist1 = new BigList<int>(array);
+            Assert.AreEqual(0, biglist1.Count);
+        }
+
         [TestMethod]
         public void IndexerExceptions()
         {
@@ -465,6 +508,53 @@ namespace UnitTest
         }
 
         [TestMethod]
+        public void AppendAll()
+        {
+            const int SIZE = 8000;
+            BigList<int> biglist1 = new BigList<int>();
+
+            int i = 1, j = 0;
+            while (i <= SIZE)
+            {
+                int[] array = new int[j];
+                for (int x = 0; x < j; ++x)
+                    array[x] = i + x;
+                biglist1.AddRange(array);
+                /*
+                if (i % 13 <= 2)
+                    biglist1.Clone();
+                */
+                i += j;
+                j += 1;
+                if (j == 20)
+                    j = 0;
+            }
+            int size = i - 1;
+
+            Assert.AreEqual(size, biglist1.Count);
+
+            for (i = 1; i <= size; ++i)
+            {
+                Assert.AreEqual(i, biglist1[i - 1]);
+            }
+
+            i = 1;
+            foreach (int x in biglist1)
+                Assert.AreEqual(i++, x);
+
+            BigList<int> biglist2 = new BigList<int>(biglist1);
+
+            for (i = 1; i <= SIZE; ++i)
+            {
+                Assert.AreEqual(i, biglist1[i - 1]);
+            }
+
+            i = 1;
+            foreach (int x in biglist2)
+                Assert.AreEqual(i++, x);
+        }
+
+        [TestMethod]
         public void PrependAll()
         {
             const int SIZE = 8000;
@@ -509,6 +599,54 @@ namespace UnitTest
             i = size;
             foreach (int x in biglist2)
                 Assert.AreEqual(i--, x);
+        }
+
+        [TestMethod]
+        public void AppendBigList()
+        {
+            const int SIZE = 8000;
+            BigList<int> biglist1 = new BigList<int>();
+
+            int i = 1, j = 0;
+            while (i <= SIZE)
+            {
+                int[] array = new int[j];
+                for (int x = 0; x < j; ++x)
+                    array[x] = i + x;
+                BigList<int> biglistOther = new BigList<int>(array);
+                biglist1.AddRange(biglistOther);
+                /*
+                if (i % 13 <= 2)
+                    biglist1.Clone();
+                */
+                i += j;
+                j += 1;
+                if (j == 20)
+                    j = 0;
+            }
+            int size = i - 1;
+
+            Assert.AreEqual(size, biglist1.Count);
+
+            for (i = 1; i <= size; ++i)
+            {
+                Assert.AreEqual(i, biglist1[i - 1]);
+            }
+
+            i = 1;
+            foreach (int x in biglist1)
+                Assert.AreEqual(i++, x);
+
+            BigList<int> biglist2 = new BigList<int>(biglist1);
+
+            for (i = 1; i <= size; ++i)
+            {
+                Assert.AreEqual(i, biglist1[i - 1]);
+            }
+
+            i = 1;
+            foreach (int x in biglist2)
+                Assert.AreEqual(i++, x);
         }
 
         [TestMethod]
@@ -566,7 +704,7 @@ namespace UnitTest
         }
 
         [TestMethod]
-        public void AddRangeFrontTest()
+        public void PrependBigList()
         {
             const int SIZE = 8000;
             BigList<int> biglist1 = new BigList<int>();
@@ -577,7 +715,12 @@ namespace UnitTest
                 int[] array = new int[j];
                 for (int x = 0; x < j; ++x)
                     array[j - x - 1] = i + x;
-                biglist1.AddRangeToFront(array);
+                BigList<int> biglistOther = new BigList<int>(array);
+                biglist1.AddRangeToFront(biglistOther);
+                /*
+                if (i % 13 <= 2)
+                    biglist1.Clone();
+                */
                 i += j;
                 j += 1;
                 if (j == 20)
@@ -595,38 +738,17 @@ namespace UnitTest
             i = size;
             foreach (int x in biglist1)
                 Assert.AreEqual(i--, x);
-        }
 
-        [TestMethod]
-        public void AddRangeTest()
-        {
-            const int SIZE = 8000;
-            BigList<int> biglist1 = new BigList<int>();
+            BigList<int> biglist2 = new BigList<int>(biglist1);
 
-            int i = 1, j = 0;
-            while (i <= SIZE)
+            for (i = 1; i <= SIZE; ++i)
             {
-                int[] array = new int[j];
-                for (int x = 0; x < j; ++x)
-                    array[x] = i + x;
-                biglist1.AddRange(array);
-                i += j;
-                j += 1;
-                if (j == 20)
-                    j = 0;
-            }
-            int size = i - 1;
-
-            Assert.AreEqual(size, biglist1.Count);
-
-            for (i = 1; i <= size; ++i)
-            {
-                Assert.AreEqual(i, biglist1[i - 1]);
+                Assert.AreEqual(i, biglist1[size - i]);
             }
 
-            i = 1;
-            foreach (int x in biglist1)
-                Assert.AreEqual(i++, x);
+            i = size;
+            foreach (int x in biglist2)
+                Assert.AreEqual(i--, x);
         }
 
         [TestMethod]
@@ -1235,6 +1357,66 @@ namespace UnitTest
                 Assert.IsTrue(e is ArgumentOutOfRangeException);
                 Assert.AreEqual("index", ((ArgumentOutOfRangeException)e).ParamName);
             }
+        }
+
+        [TestMethod]
+        public void AddToSelf()
+        {
+            BigList<int> list1 = new BigList<int>();
+
+            for (int i = 0; i < 20; ++i)
+                list1.Add(i);
+
+            list1.AddRange(list1);
+            Assert.AreEqual(40, list1.Count);
+            for (int i = 0; i < 40; ++i)
+                Assert.AreEqual(i % 20, list1[i]);
+
+            list1.Clear();
+            for (int i = 0; i < 20; ++i)
+                list1.Add(i);
+
+            list1.AddRangeToFront(list1);
+            Assert.AreEqual(40, list1.Count);
+            for (int i = 0; i < 40; ++i)
+                Assert.AreEqual(i % 20, list1[i]);
+
+
+            list1.Clear();
+            for (int i = 0; i < 20; ++i)
+                list1.Add(i);
+
+            list1.InsertRange(7, list1);
+            Assert.AreEqual(40, list1.Count);
+            for (int i = 0; i < 40; ++i)
+            {
+                if (i < 7)
+                    Assert.AreEqual(i, list1[i]);
+                else if (i >= 7 && i < 27)
+                    Assert.AreEqual(i - 7, list1[i]);
+                else if (i >= 27)
+                    Assert.AreEqual(i - 20, list1[i]);
+            }
+        }
+
+        [TestMethod]
+        public void GenericIListInterface()
+        {
+            BigList<int> list = new BigList<int>();
+            int[] array = new int[0];
+            //InterfaceTests.TestReadWriteListGeneric<int>((IList<int>)list, array);
+
+            list = CreateList(0, 5);
+            array = new int[5];
+            for (int i = 0; i < array.Length; ++i)
+                array[i] = i;
+            InterfaceTests.TestReadWriteListGeneric<int>((IList<int>)list, array);
+
+            list = CreateList(0, 300);
+            array = new int[300];
+            for (int i = 0; i < array.Length; ++i)
+                array[i] = i;
+            InterfaceTests.TestReadWriteListGeneric<int>((IList<int>)list, array);
         }
 
         BigList<int> CreateList(int start, int length, ICustomBuilder<int> builder = null, IStateStore<int> stateStore = null)

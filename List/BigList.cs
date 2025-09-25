@@ -1146,6 +1146,9 @@ namespace FooProject.Collection
             if (newRoot != _root)
             {
                 _root = newRoot;
+                //newRootがNULLということは全て消されたことを意味する
+                if (_root == null)
+                    _leafNodeEnumrator.Clear();
                 CheckBalance();
             }
             ResetFetchCache();
