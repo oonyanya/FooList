@@ -400,7 +400,7 @@ namespace FooProject.Collection
                 var current = stack.Pop();
                 if (current.IsBalanced())
                 {
-                    var args = new BigListArgs<T>(CustomBuilder, CustomConverter, this.BlockSize, UpdateType.Rebalance);
+                    var args = new BigListArgs<T>(CustomBuilder, LeastFetchStore, this.BlockSize, UpdateType.Rebalance);
                     AddBalancedNodeToRebalanceArray(rebalanceArray, current, args);
                 }
                 else
