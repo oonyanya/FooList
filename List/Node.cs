@@ -757,7 +757,8 @@ namespace FooProject.Collection
                 {
                     result = LeftPinnedContent.Content.QueryInsertRange(0, null, (int)newLeafNode.Count);
                 }
-                if(result)
+                //Leftはリーフノードであることが確定してるのでスタックに積む必要がない
+                if (result)
                     return NewNodeInPlace(Left.PrependInPlace(node, leafNodeEnumrator, nodeBelongLeafNodeEnumrator, args), Right);
             }
             if (leafNodeEnumrator != null)
@@ -782,6 +783,7 @@ namespace FooProject.Collection
                 {
                     result = RightPinnedContent.Content.QueryAddRange(null, (int)newLeafNode.Count);
                 }
+                //Rightはリーフノードであることが確定してるのでスタックに積む必要がない
                 if (result)
                     return NewNodeInPlace(Left, Right.AppendInPlace(node, leafNodeEnumrator, nodeBelongLeafNodeEnumrator, args));
             }
