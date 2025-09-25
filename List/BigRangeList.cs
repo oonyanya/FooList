@@ -73,7 +73,7 @@ namespace FooProject.Collection
         public override void Set(long index, T value)
         {
             var args = new BigListArgs<T>(CustomBuilder, LeastFetchStore, this.BlockSize, UpdateType.Overwrite);
-            Root.SetAtInPlace(index, value, args);
+            Root.SetAtInPlace(index, value, leafNodeEnumrator, args);
         }
 
         [Obsolete]

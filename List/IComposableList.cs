@@ -36,6 +36,13 @@ namespace FooProject.Collection
         /// <returns>削除できるなら真を返す</returns>
         bool QueryRemoveRange(int index, int count);
         /// <summary>
+        /// 更新可能かどうか
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="item"></param>
+        /// <returns>更新可能なら真を返す</returns>
+        bool QueryUpdate(int index,T item);
+        /// <summary>
         /// まとめて追加する
         /// </summary>
         /// <param name="collection"></param>

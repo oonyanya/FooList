@@ -101,6 +101,11 @@ namespace FooProject.Collection
             return false;
         }
 
+        public bool QueryUpdate(int index, T item)
+        {
+            return false;
+        }
+
         public bool Remove(T item)
         {
             throw new NotImplementedException();

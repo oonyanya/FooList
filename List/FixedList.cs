@@ -43,6 +43,8 @@ namespace FooProject.Collection
 
         public bool QueryInsertRange(int index, IEnumerable<T> collection, int collection_length = -1) { return this.Count + collection_length <= this.MaxCapacity; }
 
+        public bool QueryUpdate(int index, T item) { return true; }
+
         public bool QueryRemoveRange(int index, int count) { return true; }
 
         public virtual void Add(T item)

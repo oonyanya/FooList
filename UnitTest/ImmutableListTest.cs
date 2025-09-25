@@ -18,15 +18,8 @@ namespace UnitTest
         {
             public override IComposableList<T> CreateList(long init_capacity, long maxcapacity, IEnumerable<T> collection = null)
             {
-                if (collection is ReadOnlyComposableList<T>)
-                {
-                    var list = new ReadOnlyComposableList<T>(collection);
-                    return list;
-                }
-                else
-                {
-                    return base.CreateList(init_capacity, maxcapacity, collection);
-                }
+                var list = new ReadOnlyComposableList<T>(collection);
+                return list;
             }
         }
 
@@ -74,6 +67,19 @@ namespace UnitTest
             buf.CustomBuilder = customBuilder;
             buf.InsertRange(5, "is");
             Assert.AreEqual("this is a pen", new string(buf.ToArray()));
+        }
+
+        [TestMethod]
+        public void SetTest()
+        {
+            var customBuilder = new MixedCustomConverter<char>();
+            customBuilder.DataStore = new MemoryPinableContentDataStore<IComposableList<char>>();
+            var init_collection = new ReadOnlyComposableList<char>("this xs a pen");
+            var buf = new FooProject.Collection.BigList<char>(init_collection, customBuilder, customBuilder);
+            buf.CustomBuilder = customBuilder;
+            buf[5] = 'i';
+            Assert.AreEqual("this is a pen", new string(buf.ToArray()));
+
         }
 
         [TestMethod]

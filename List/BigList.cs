@@ -74,7 +74,9 @@ namespace FooProject.Collection
 #endif
         internal const int BALANCEFACTOR = 6;      // how far the root must be in depth from fully balanced to invoke the rebalance operation (min 3).
         Node<T> _root;
-        LeafNodeEnumrator<T> leafNodeEnumrator = new LeafNodeEnumrator<T>();
+        LeafNodeEnumrator<T> _leafNodeEnumrator = new LeafNodeEnumrator<T>();
+
+        private protected LeafNodeEnumrator<T> leafNodeEnumrator { get { return _leafNodeEnumrator; } }
 
         private protected Node<T> Root {  get { return _root; } }
 
@@ -206,16 +208,8 @@ namespace FooProject.Collection
 
             long relativeIndex;
             LeafNode<T> curLeaf = (LeafNode<T>)IndexOfNode(index, out relativeIndex);
-            checked
-            {
-                using (var pinnedContent = CustomBuilder.DataStore.Get(curLeaf.container))
-                {
-                    var items = pinnedContent.Content;
-                    items[(int)relativeIndex] = value;
-                }
-            }
             var args = new BigListArgs<T>(CustomBuilder, LeastFetchStore, this.BlockSize, UpdateType.Overwrite);
-            curLeaf.NotifyUpdate(relativeIndex, 1, args);
+            curLeaf.SetAtInPlace(relativeIndex, value, leafNodeEnumrator, args);
         }
 
         private Node<T> IndexOfNode(long index,out long resultRelativeIndex)
@@ -544,13 +538,13 @@ namespace FooProject.Collection
             {
                 var newLeaf = CustomBuilder.CreateLeafNode(item, this.BlockSize);
                 _root = newLeaf;
-                leafNodeEnumrator.AddLast(newLeaf);
+                _leafNodeEnumrator.AddLast(newLeaf);
 
             }
             else
             {
                 var args = new BigListArgs<T>(CustomBuilder, LeastFetchStore, this.BlockSize, UpdateType.Add);
-                Node<T> newRoot = _root.PrependInPlace(item, leafNodeEnumrator, args);
+                Node<T> newRoot = _root.PrependInPlace(item, _leafNodeEnumrator, args);
                 if (newRoot != _root)
                 {
                     _root = newRoot;
@@ -578,14 +572,14 @@ namespace FooProject.Collection
             if (_root == null)
             {
                 _root = newLeaf;
-                leafNodeEnumrator.AddLast(newLeaf);
+                _leafNodeEnumrator.AddLast(newLeaf);
             }
             else
             {
                 var tempLeafNodeEnumrator = new LeafNodeEnumrator<T>();
                 tempLeafNodeEnumrator.AddLast(newLeaf);
                 var args = new BigListArgs<T>(CustomBuilder, LeastFetchStore, this.BlockSize, UpdateType.Add);
-                Node<T> newRoot = _root.PrependInPlace(newLeaf, leafNodeEnumrator, tempLeafNodeEnumrator, args);
+                Node<T> newRoot = _root.PrependInPlace(newLeaf, _leafNodeEnumrator, tempLeafNodeEnumrator, args);
                 if (newRoot != _root)
                 {
                     _root = newRoot;
@@ -609,12 +603,12 @@ namespace FooProject.Collection
             {
                 var newLeaf = CustomBuilder.CreateLeafNode(item, this.BlockSize);
                 _root = newLeaf;
-                leafNodeEnumrator.AddLast(newLeaf);
+                _leafNodeEnumrator.AddLast(newLeaf);
             }
             else
             {
                 var args = new BigListArgs<T>(CustomBuilder, LeastFetchStore, this.BlockSize, UpdateType.Add);
-                Node<T> newRoot = _root.AppendInPlace(item, leafNodeEnumrator, args);
+                Node<T> newRoot = _root.AppendInPlace(item, _leafNodeEnumrator, args);
                 if (newRoot != _root)
                 {
                     _root = newRoot;
@@ -642,14 +636,14 @@ namespace FooProject.Collection
             if (_root == null)
             {
                 _root = newLeaf;
-                leafNodeEnumrator.AddLast(newLeaf);
+                _leafNodeEnumrator.AddLast(newLeaf);
             }
             else
             {
                 var tempLeafNodeEnumrator = new LeafNodeEnumrator<T>();
                 tempLeafNodeEnumrator.AddLast(newLeaf);
                 var args = new BigListArgs<T>(CustomBuilder, LeastFetchStore, this.BlockSize, UpdateType.Add);
-                Node<T> newRoot = _root.AppendInPlace(newLeaf, leafNodeEnumrator, tempLeafNodeEnumrator, args);
+                Node<T> newRoot = _root.AppendInPlace(newLeaf, _leafNodeEnumrator, tempLeafNodeEnumrator, args);
                 if (newRoot != _root)
                 {
                     _root = newRoot;
@@ -778,7 +772,7 @@ namespace FooProject.Collection
             else if (_root == null)
             {
                 _root = node;
-                leafNodeEnumrator = tempLeafNodeEnumrator;
+                _leafNodeEnumrator = tempLeafNodeEnumrator;
                 CheckBalance();
             }
             else
@@ -786,7 +780,7 @@ namespace FooProject.Collection
                 if (LongCount + node.Count > MaxCapacity)
                     throw new InvalidOperationException("too large");
 
-                Node<T> newRoot = _root.AppendInPlace(node, leafNodeEnumrator,tempLeafNodeEnumrator, args);
+                Node<T> newRoot = _root.AppendInPlace(node, _leafNodeEnumrator,tempLeafNodeEnumrator, args);
                 if (newRoot != _root)
                 {
                     _root = newRoot;
@@ -815,7 +809,7 @@ namespace FooProject.Collection
             else if (_root == null)
             {
                 _root = node;
-                leafNodeEnumrator = tempLeafNodeEnumrator;
+                _leafNodeEnumrator = tempLeafNodeEnumrator;
                 CheckBalance();
             }
             else
@@ -823,7 +817,7 @@ namespace FooProject.Collection
                 if (LongCount + node.Count > MaxCapacity)
                     throw new InvalidOperationException("too large");
 
-                Node<T> newRoot = _root.PrependInPlace(node, leafNodeEnumrator, tempLeafNodeEnumrator, args);
+                Node<T> newRoot = _root.PrependInPlace(node, _leafNodeEnumrator, tempLeafNodeEnumrator, args);
                 if (newRoot != _root)
                 {
                     _root = newRoot;
@@ -839,7 +833,7 @@ namespace FooProject.Collection
         public new void Clear()
         {
             this._root = null;
-            this.leafNodeEnumrator.Clear();
+            this._leafNodeEnumrator.Clear();
             ResetFetchCache();
         }
 
@@ -941,7 +935,7 @@ namespace FooProject.Collection
                 throw new InvalidOperationException("too large");
 
             //どうせMAXITEMSまでしか保持できないので、インデクサーで取得しても問題はない
-            foreach (var node in leafNodeEnumrator)
+            foreach (var node in _leafNodeEnumrator)
             {
                 using (var pinnedContent = CustomBuilder.DataStore.Get(node.container))
                 {
@@ -995,7 +989,7 @@ namespace FooProject.Collection
                 var tempLeafNodeEnumrator = new LeafNodeEnumrator<T>();
                 tempLeafNodeEnumrator.AddLast(newLeaf);
                 var args = new BigListArgs<T>(CustomBuilder, LeastFetchStore, this.BlockSize, UpdateType.Add);
-                Node<T> newRoot = _root.InsertInPlace(index, newLeaf, leafNodeEnumrator, tempLeafNodeEnumrator, args);
+                Node<T> newRoot = _root.InsertInPlace(index, newLeaf, _leafNodeEnumrator, tempLeafNodeEnumrator, args);
                 if (newRoot != _root)
                 {
                     _root = newRoot;
@@ -1032,12 +1026,12 @@ namespace FooProject.Collection
                 {
                     var newLeafNode = CustomBuilder.CreateLeafNode(item, this.BlockSize);
                     _root = newLeafNode;
-                    leafNodeEnumrator.AddLast(newLeafNode);
+                    _leafNodeEnumrator.AddLast(newLeafNode);
                 }
                 else
                 {
                     var args = new BigListArgs<T>(CustomBuilder, LeastFetchStore, this.BlockSize, UpdateType.Insert);
-                    Node<T> newRoot = _root.InsertInPlace(index, item, leafNodeEnumrator, args);
+                    Node<T> newRoot = _root.InsertInPlace(index, item, _leafNodeEnumrator, args);
                     if (newRoot != _root)
                     {
                         _root = newRoot;
@@ -1084,7 +1078,7 @@ namespace FooProject.Collection
                     if (LongCount + node.Count > MaxCapacity)
                         throw new InvalidOperationException("too large");
 
-                    Node<T> newRoot = _root.InsertInPlace(index, node, leafNodeEnumrator, tempLeafNodeEnumrator, args);
+                    Node<T> newRoot = _root.InsertInPlace(index, node, _leafNodeEnumrator, tempLeafNodeEnumrator, args);
                     if (newRoot != _root)
                     {
                         _root = newRoot;
@@ -1148,7 +1142,7 @@ namespace FooProject.Collection
                 throw new ArgumentOutOfRangeException("count");
 
             var args = new BigListArgs<T>(CustomBuilder, LeastFetchStore, this.BlockSize, UpdateType.Remove);
-            Node<T> newRoot = _root.RemoveRangeInPlace(index, index + count - 1, leafNodeEnumrator, args);
+            Node<T> newRoot = _root.RemoveRangeInPlace(index, index + count - 1, _leafNodeEnumrator, args);
             if (newRoot != _root)
             {
                 _root = newRoot;

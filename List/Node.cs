@@ -55,7 +55,7 @@ namespace FooProject.Collection
             return (Depth == 0 || (Depth - 1 <= BigList<T>.MAXFIB && NodeCount >= BigList<T>.FIBONACCI[Depth - 1]));
         }
 
-        public abstract Node<T> SetAtInPlace(long index, T item,BigListArgs<T> args);
+        public abstract Node<T> SetAtInPlace(long index, T item, LeafNodeEnumrator<T> leafNodeEnumrator, BigListArgs<T> args);
 
         public abstract Node<T> PrependInPlace(Node<T> node, LeafNodeEnumrator<T> leafNodeEnumrator, LeafNodeEnumrator<T> nodeBelongLeafNodeEnumrator,BigListArgs<T> args);
 
@@ -92,12 +92,25 @@ namespace FooProject.Collection
             Count = count;
         }
 
-        public override Node<T> SetAtInPlace(long index, T item,BigListArgs<T> args)
+        public override Node<T> SetAtInPlace(long index, T item, LeafNodeEnumrator<T> leafNodeEnumrator, BigListArgs<T> args)
         {
+            bool requireSetNotInPlace = false;
             using(var pinnedContent = args.CustomBuilder.DataStore.Get(this.container))
             {
-                var items = pinnedContent.Content;
-                items[(int)index] = item;
+                if (pinnedContent.Content.QueryUpdate((int)index, item))
+                {
+                    var items = pinnedContent.Content;
+                    items[(int)index] = item;
+                }
+                else
+                {
+                    requireSetNotInPlace = true;
+                }
+            }
+            if (requireSetNotInPlace)
+            {
+                var node = this.RemoveRangeInPlace(index, index, leafNodeEnumrator, args);
+                return node.InsertInPlace(index,item,leafNodeEnumrator,args);
             }
             NotifyUpdate(index, 1, args);
             return this;
@@ -664,7 +677,7 @@ namespace FooProject.Collection
             return this;
         }
 
-        public override Node<T> SetAtInPlace(long index, T item,BigListArgs<T> args)
+        public override Node<T> SetAtInPlace(long index, T item,LeafNodeEnumrator<T> leafNodeEnumrator, BigListArgs<T> args)
         {
 #if MODIFY_NODE_BY_NORECURSIVE
             Stack<NodeWalkInfo> traklist = new Stack<NodeWalkInfo>();
@@ -688,7 +701,7 @@ namespace FooProject.Collection
             }
 
             System.Diagnostics.Debug.Assert(currentIndex >= 0);
-            Node<T> resultNode = current.SetAtInPlace(currentIndex,item,args);
+            Node<T> resultNode = current.SetAtInPlace(currentIndex,item, leafNodeEnumrator, args);
 
             NodeWalkInfo poped = null;
 
@@ -722,12 +735,12 @@ namespace FooProject.Collection
 
             if (index < leftCount)
             {
-                var newLeft = Left.SetAtInPlace(index, item, args);
+                var newLeft = Left.SetAtInPlace(index, item, leafNodeEnumrator, args);
                 return NewNodeInPlace(newLeft, Right);
             }
             else
             {
-                var newRight = Right.SetAtInPlace(index - leftCount, item, args);
+                var newRight = Right.SetAtInPlace(index - leftCount, item, leafNodeEnumrator, args);
                 return NewNodeInPlace(Left, newRight);
             }
 #endif
