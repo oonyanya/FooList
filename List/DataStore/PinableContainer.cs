@@ -6,6 +6,10 @@ using System.Threading.Tasks;
 
 namespace FooProject.Collection.DataStore
 {
+    /// <summary>
+    /// 固定可能なコンテナ―を表すインターフェイス
+    /// </summary>
+    /// <typeparam name="T">格納対象の型</typeparam>
     public interface IPinableContainer<T>
     {
         T Content { get; }

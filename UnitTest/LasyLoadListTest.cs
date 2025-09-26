@@ -12,6 +12,7 @@ using Microsoft.VisualStudio.TestPlatform.Utilities;
 
 namespace UnitTest
 {
+    // 注意：テスト用に作ったので、BOMは全く考慮してない
     class ReadOnlyCharDataStore : ReadonlyContentStoreBase<IComposableList<char>>
     {
         MemoryStream stream;
@@ -92,7 +93,6 @@ namespace UnitTest
         BigList<char> CreateListAndLoad(string str, out ReadonlyContentStoreBase<IComposableList<char>> datastore)
         {
             var memoryStream = new MemoryStream();
-            //面倒なのでオーバーフロー対策のために256のあまりを突っ込んでる
             memoryStream.Write(Encoding.UTF8.GetBytes(str));
             memoryStream.Position = 0;
             var lazyLoadStore = new ReadOnlyCharDataStore(memoryStream, Encoding.UTF8);

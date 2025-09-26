@@ -7,6 +7,10 @@ using System.Threading.Tasks;
 
 namespace FooProject.Collection.DataStore
 {
+    /// <summary>
+    /// 読み取り専用ストアの基底クラス
+    /// </summary>
+    /// <typeparam name="T">格納対象の型</typeparam>
     public class ReadonlyContentStoreBase<T> : IPinableContainerStore<T>
     {
         EmptyList emptyList = new EmptyList();
@@ -44,11 +48,23 @@ namespace FooProject.Collection.DataStore
             }
         }
 
+        /// <summary>
+        /// 初回、読み込み時に呼び出される
+        /// </summary>
+        /// <param name="count">読み込む要素数</param>
+        /// <param name="index">割り当てられたインデックス。専らファイル上のアドレスを指す。</param>
+        /// <param name="read_bytes">割り当てられたバイト数。</param>
+        /// <returns>読み込んだ要素を返す</returns>
         public virtual T OnLoad(int count,out long index,out int read_bytes)
         {
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// 初回読み込みを行う
+        /// </summary>
+        /// <param name="count">読み込みたい要素数</param>
+        /// <returns>IPinableContainerを返す</returns>
         public IPinableContainer<T> Load(int count)
         {
             int read_bytes;
@@ -61,6 +77,12 @@ namespace FooProject.Collection.DataStore
             return newpin;
         }
 
+        /// <summary>
+        /// 何らかの理由で再読み込みを行った際に呼び出される。例えば、メモリー上にある要素が不要になった後、再度、読み込む必要が出てきたときに呼び出される。
+        /// </summary>
+        /// <param name="index">読み込むべきインデックス。専らファイル上のアドレスを指す。</param>
+        /// <param name="bytes">読み込むべきバイト数</param>
+        /// <returns>読み込んだ要素を返す</returns>
         public virtual T OnRead(long index, int bytes)
         {
             throw new NotImplementedException();

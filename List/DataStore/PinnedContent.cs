@@ -7,6 +7,10 @@ using System.Threading.Tasks;
 
 namespace FooProject.Collection.DataStore
 {
+    /// <summary>
+    /// 固定されたコンテナ―を表す
+    /// </summary>
+    /// <typeparam name="T">格納対象の型</typeparam>
     public interface IPinnedContent<T> : IDisposable
     {
         T Content { get; }

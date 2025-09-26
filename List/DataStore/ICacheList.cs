@@ -14,11 +14,31 @@ namespace FooProject.Collection.DataStore
         public const int MINCACHESIZE = 4;
     }
 
+    /// <summary>
+    /// キャッシュアウト時に呼び出されるクラス
+    /// </summary>
+    /// <typeparam name="K"></typeparam>
+    /// <typeparam name="V"></typeparam>
     public class CacheOutedEventArgs<K, V> : EventArgs
     {
+        /// <summary>
+        /// キー
+        /// </summary>
         public K Key { get; private set; }
+        /// <summary>
+        /// 格納されている奴
+        /// </summary>
         public V Value { get; private set; }
+        /// <summary>
+        /// 書き込みが必要かどうか
+        /// </summary>
         public bool RequireWriteBack { get; private set; }
+        /// <summary>
+        /// コンストラクター
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="value"></param>
+        /// <param name="requireWriteBack"></param>
         public CacheOutedEventArgs(K key, V value, bool requireWriteBack)
         {
             Key = key;
@@ -27,10 +47,15 @@ namespace FooProject.Collection.DataStore
         }
     }
 
+    /// <summary>
+    /// キャッシュリストを表すインターフェイス
+    /// </summary>
+    /// <typeparam name="K">キーとなる型</typeparam>
+    /// <typeparam name="V">キーに対応する物の型</typeparam>
     public interface ICacheList<K, V>
     {
         /// <summary>
-        /// キャッシュアウト時に呼び出される
+        /// キャッシュアウト時および破棄された時に呼び出される
         /// </summary>
         event Action<CacheOutedEventArgs<K, V>> CacheOuted;
 
