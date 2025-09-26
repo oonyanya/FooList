@@ -135,6 +135,100 @@ namespace UnitTest
             }
         }
 
+        [TestMethod]
+        public void AddRangeStringTest()
+        {
+            ReadonlyContentStoreBase<IComposableList<char>> dataStore;
+            var str = "日本国民は、正当に選挙された国会における代表者を通じて行動し、われらとわれらの子孫のために、諸国民との協和による成果と、わが国全土にわたって自由のもたらす恵沢を確保し、政府の行為によって再び戦争の惨禍が起ることのないやうにすることを決意し、ここに主権が国民に存することを宣言し、この憲法を確定する。";
+            var str_builder = new StringBuilder(str);
+            var list = CreateListAndLoad(str, out dataStore);
+
+            str_builder.Append("neko");
+            list.AddRange("neko");
+
+            Assert.AreEqual(str_builder.Length, list.Count);
+
+            for (int i = 0; i < str_builder.Length; i++)
+            {
+                Assert.AreEqual(str_builder[i], list[i]);
+            }
+        }
+
+        [TestMethod]
+        public void AddRangeToFrontStringTest()
+        {
+            ReadonlyContentStoreBase<IComposableList<char>> dataStore;
+            var str = "日本国民は、正当に選挙された国会における代表者を通じて行動し、われらとわれらの子孫のために、諸国民との協和による成果と、わが国全土にわたって自由のもたらす恵沢を確保し、政府の行為によって再び戦争の惨禍が起ることのないやうにすることを決意し、ここに主権が国民に存することを宣言し、この憲法を確定する。";
+            var str_builder = new StringBuilder(str);
+            var list = CreateListAndLoad(str, out dataStore);
+
+            str_builder.Insert(0,"neko");
+            list.AddRangeToFront("neko");
+
+            Assert.AreEqual(str_builder.Length, list.Count);
+
+            for (int i = 0; i < str_builder.Length; i++)
+            {
+                Assert.AreEqual(str_builder[i], list[i]);
+            }
+        }
+
+        [TestMethod]
+        public void InsertRangeStringTest()
+        {
+            ReadonlyContentStoreBase<IComposableList<char>> dataStore;
+            var str = "日本国民は、正当に選挙された国会における代表者を通じて行動し、われらとわれらの子孫のために、諸国民との協和による成果と、わが国全土にわたって自由のもたらす恵沢を確保し、政府の行為によって再び戦争の惨禍が起ることのないやうにすることを決意し、ここに主権が国民に存することを宣言し、この憲法を確定する。";
+            var str_builder = new StringBuilder(str);
+            var list = CreateListAndLoad(str, out dataStore);
+
+            str_builder.Insert(0, "neko");
+            list.InsertRange(0, "neko");
+
+            str_builder.Insert(4, "neko");
+            list.InsertRange(4, "neko");
+
+            str_builder.Insert(31, "neko");
+            list.InsertRange(31, "neko");
+
+            str_builder.Insert(str.Length - 1 + 12, "neko");
+            list.InsertRange(str.Length - 1 + 12, "neko");
+
+            Assert.AreEqual(str_builder.Length, list.Count);
+
+            for (int i = 0; i < str_builder.Length; i++)
+            {
+                Assert.AreEqual(str_builder[i], list[i]);
+            }
+        }
+
+        [TestMethod]
+        public void RemoveRangeStringTest()
+        {
+            ReadonlyContentStoreBase<IComposableList<char>> dataStore;
+            var str = "日本国民は、正当に選挙された国会における代表者を通じて行動し、われらとわれらの子孫のために、諸国民との協和による成果と、わが国全土にわたって自由のもたらす恵沢を確保し、政府の行為によって再び戦争の惨禍が起ることのないやうにすることを決意し、ここに主権が国民に存することを宣言し、この憲法を確定する。";
+            var str_builder = new StringBuilder(str);
+            var list = CreateListAndLoad(str, out dataStore);
+
+            str_builder.Remove(0,2);
+            list.RemoveRange(0,2);
+
+            str_builder.Remove(14,2);
+            list.RemoveRange(14,2);
+
+            str_builder.Remove(18,2);
+            list.RemoveRange(18,2);
+
+            str_builder.Remove(str.Length - 1 - 8, 2);
+            list.RemoveRange(str.Length - 1 - 8, 2);
+
+            Assert.AreEqual(str_builder.Length, list.Count);
+
+            for (int i = 0; i < str_builder.Length; i++)
+            {
+                Assert.AreEqual(str_builder[i], list[i]);
+            }
+        }
+
         BigList<byte> CreateListAndLoad(IEnumerable<int> collection,out ReadonlyContentStoreBase<IComposableList<byte>> datastore)
         {
             var memoryStream = new MemoryStream();
