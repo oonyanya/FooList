@@ -781,7 +781,7 @@ namespace UnitTest
         }
 
             [TestMethod]
-        public void AddTest()
+        public void AppendItem()
         {
             const int SIZE = 8000;
             BigList<int> biglist1 = new BigList<int>();
@@ -804,7 +804,7 @@ namespace UnitTest
         }
 
         [TestMethod]
-        public void AddPinableContainerTest()
+        public void AppendItemPinableContainerTest()
         {
             const int SIZE = 8000;
 
@@ -843,7 +843,7 @@ namespace UnitTest
         }
 
         [TestMethod]
-        public void AddFrontTest()
+        public void PrependItemTest()
         {
             const int SIZE = 8000;
             BigList<int> biglist1 = new BigList<int>();
@@ -865,7 +865,7 @@ namespace UnitTest
         }
 
         [TestMethod]
-        public void AddFrontPinableContainerTest()
+        public void PrependItemPinableContainerTest()
         {
             const int SIZE = 8000;
             var testStore = new TestDataStore<IComposableList<int>>();
@@ -986,7 +986,7 @@ namespace UnitTest
 
 
         [TestMethod]
-        public void IndexTest()
+        public void IndexOf2Test()
         {
             BigList<int> list = new BigList<int>(new int[] { 4, 8, 1, 1, 4, 9, 7, 11, 4, 9, 1, 7, 19, 1, 7 });
             int index;
@@ -1009,7 +1009,7 @@ namespace UnitTest
         }
 
         [TestMethod]
-        public void InsertTest()
+        public void InsertItemTest()
         {
             BigList<int> list1, list2, list3;
 
@@ -1172,7 +1172,7 @@ namespace UnitTest
         }
 
         [TestMethod]
-        public void InserRangetTest()
+        public void InsertListTest()
         {
             BigList<int> list2;
             IEnumerable<int> e1;
@@ -1207,7 +1207,37 @@ namespace UnitTest
         }
 
         [TestMethod]
-        public void RemoveTest()
+        public void RemoveAtTest()
+        {
+            BigList<int> list1 = new BigList<int>();
+            for (int i = 0; i < 100; ++i)
+                list1.Add(i);
+
+            for (int i = 0; i < 50; ++i)
+                list1.RemoveAt(50);
+
+            list1.RemoveAt(0);
+
+            for (int i = 1; i < list1.Count; i += 2)
+                list1.RemoveAt(i);
+
+            InterfaceTests.TestEnumerableElements<int>(list1, new int[] { 1, 3, 4, 6, 7, 9, 10, 12, 13, 15, 16, 18, 19, 21, 22, 24, 25, 27, 28, 30, 31, 33, 34, 36, 37, 39, 40, 42, 43, 45, 46, 48, 49 });
+
+            list1 = CreateList(0, 100);
+
+            for (int i = 0; i < 50; ++i)
+                list1.RemoveAt(50);
+
+            list1.RemoveAt(0);
+
+            for (int i = 1; i < list1.Count; i += 2)
+                list1.RemoveAt(i);
+
+            InterfaceTests.TestEnumerableElements<int>(list1, new int[] { 1, 3, 4, 6, 7, 9, 10, 12, 13, 15, 16, 18, 19, 21, 22, 24, 25, 27, 28, 30, 31, 33, 34, 36, 37, 39, 40, 42, 43, 45, 46, 48, 49 });
+        }
+
+        [TestMethod]
+        public void RemoveAtTest2()
         {
             var buf = new FooProject.Collection.BigList<char>();
             buf.AddRange("0123456789");
@@ -1445,7 +1475,7 @@ namespace UnitTest
         }
 
         [TestMethod]
-        public void RemoveAtTest()
+        public void RemoveAt2Test()
         {
             BigList<int> list1 = new BigList<int>();
             for (int i = 0; i < 100; ++i)
