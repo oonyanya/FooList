@@ -90,7 +90,8 @@ namespace UnitTest
     [TestClass]
     public class LasyLoadListTest
     {
-        BigList<char> CreateListAndLoad(string str, out ReadonlyContentStoreBase<IComposableList<char>> datastore)
+        const int loadLen = 8;
+        BigList<char> CreateListAndLoad(string str, out ReadonlyContentStoreBase<IComposableList<char>> datastore,Action<BigList<char>> fn = null)
         {
             var memoryStream = new MemoryStream();
             memoryStream.Write(Encoding.UTF8.GetBytes(str));
@@ -103,21 +104,61 @@ namespace UnitTest
             biglist1.LeastFetchStore = customConverter;
             datastore = lazyLoadStore;
 
-            const int loadLen = 8;
             int leftLen = str.Length;
             while (leftLen - loadLen > 0)
             {
                 var pinableContainer = lazyLoadStore.Load(loadLen);
                 biglist1.Add(pinableContainer);
                 leftLen -= loadLen;
+                if (fn != null)
+                    fn(biglist1);
             }
             if (leftLen > 0)
             {
                 var pinableContainer = lazyLoadStore.Load(leftLen);
                 biglist1.Add(pinableContainer);
+                if (fn != null)
+                    fn(biglist1);
             }
 
             return biglist1;
+        }
+
+        [TestMethod]
+        public void LoadStringWithAddAndInsertAndRemoveTest()
+        {
+            ReadonlyContentStoreBase<IComposableList<char>> dataStore;
+            var str = "日本国民は、正当に選挙された国会における代表者を通じて行動し、われらとわれらの子孫のために、諸国民との協和による成果と、わが国全土にわたって自由のもたらす恵沢を確保し、政府の行為によって再び戦争の惨禍が起ることのないやうにすることを決意し、ここに主権が国民に存することを宣言し、この憲法を確定する。";
+            var str_builder = new StringBuilder(str);
+            var list = CreateListAndLoad(str, out dataStore, (biglist) =>
+            {
+                switch ((biglist.Count / loadLen) % 5)
+                {
+                    case 1:
+                        str_builder.Insert(biglist.Count, "test");
+                        biglist.AddRange("test");
+                        break;
+                    case 2:
+                        str_builder.Insert(biglist.Count - loadLen, "test");
+                        biglist.InsertRange(biglist.Count - loadLen, "test");
+                        break;
+                    case 3:
+                        str_builder.Insert(biglist.Count - loadLen / 2, "test");
+                        biglist.InsertRange(biglist.Count - loadLen / 2, "test");
+                        break;
+                    case 4:
+                        str_builder.Remove(biglist.Count - loadLen, 2);
+                        biglist.RemoveRange(biglist.Count - loadLen ,2);
+                        break;
+                }
+            });
+
+            Assert.AreEqual(str_builder.Length, list.Count);
+
+            for (int i = 0; i < str.Length; i++)
+            {
+                Assert.AreEqual(str_builder[i], list[i]);
+            }
         }
 
         [TestMethod]
