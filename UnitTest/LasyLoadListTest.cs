@@ -12,54 +12,6 @@ using Microsoft.VisualStudio.TestPlatform.Utilities;
 
 namespace UnitTest
 {
-    // 注意：テスト用に作ったので、BOMは全く考慮してない
-    class ReadOnlyCharDataStore : ReadonlyContentStoreBase<IComposableList<char>>
-    {
-        MemoryStream stream;
-        Encoding _encoding;
-        Decoder _decoder;
-        long _leastLoadPostion;
-        public ReadOnlyCharDataStore(MemoryStream stream,Encoding enc) : base(8)
-        {
-            this.stream = stream;
-            _encoding = enc;
-            _decoder = enc.GetDecoder();
-            _leastLoadPostion = 0;
-        }
-
-        public override IComposableList<char> OnLoad(int count, out long index, out int read_bytes)
-        {
-            int byte_array_len = _encoding.GetMaxByteCount(count);
-            byte[] byte_array = new byte[byte_array_len];
-
-            stream.Position = _leastLoadPostion;
-
-            index = _leastLoadPostion;
-            stream.Read(byte_array, 0, byte_array.Length);
-
-            var char_array = new char[count];
-
-            int acutal_bytes, actual_chars;
-            bool completed;
-            _decoder.Convert(byte_array, 0, byte_array_len, char_array, 0, char_array.Length, false, out  acutal_bytes, out actual_chars, out completed);
-
-            _leastLoadPostion += acutal_bytes;
-            read_bytes = acutal_bytes;
-
-            return new ReadOnlyComposableList<char>(char_array);
-        }
-
-        public override IComposableList<char> OnRead(long index, int bytes)
-        {
-            byte[] array = new byte[bytes];
-            stream.Position = index;
-            stream.Read(array, 0, bytes);
-            var str = _encoding.GetString(array, 0, bytes);
-            var list = new ReadOnlyComposableList<char>(str);
-            return list;
-        }
-    }
-
     class ReadOnlyByteDataStore : ReadonlyContentStoreBase<IComposableList<byte>>
     {
         MemoryStream stream;
@@ -96,6 +48,11 @@ namespace UnitTest
             var memoryStream = new MemoryStream();
             memoryStream.Write(Encoding.UTF8.GetBytes(str));
             memoryStream.Position = 0;
+            return CreateListAndLoad(memoryStream, str.Length, out datastore, fn);
+        }
+
+        BigList<char> CreateListAndLoad(MemoryStream memoryStream,int strlen, out ReadonlyContentStoreBase<IComposableList<char>> datastore, Action<BigList<char>> fn = null)
+        {
             var lazyLoadStore = new ReadOnlyCharDataStore(memoryStream, Encoding.UTF8);
             var customConverter = new DefaultCustomConverter<char>();
             customConverter.DataStore = lazyLoadStore;
@@ -104,7 +61,7 @@ namespace UnitTest
             biglist1.LeastFetchStore = customConverter;
             datastore = lazyLoadStore;
 
-            int leftLen = str.Length;
+            int leftLen = strlen;
             while (leftLen - loadLen > 0)
             {
                 var pinableContainer = lazyLoadStore.Load(loadLen);
@@ -122,6 +79,25 @@ namespace UnitTest
             }
 
             return biglist1;
+        }
+
+        [TestMethod]
+        public void LoadStringWithBOMTest()
+        {
+            ReadonlyContentStoreBase<IComposableList<char>> dataStore;
+            var str = "日本国民は、正当に選挙された国会における代表者を通じて行動し、われらとわれらの子孫のために、諸国民との協和による成果と、わが国全土にわたって自由のもたらす恵沢を確保し、政府の行為によって再び戦争の惨禍が起ることのないやうにすることを決意し、ここに主権が国民に存することを宣言し、この憲法を確定する。";
+            var memoryStream = new MemoryStream();
+            memoryStream.Write(Encoding.UTF8.Preamble);
+            memoryStream.Write(Encoding.UTF8.GetBytes(str));
+            memoryStream.Position = 0;
+            var list = CreateListAndLoad(memoryStream, str.Length, out dataStore);
+
+            Assert.AreEqual(str.Length, list.Count);
+
+            for (int i = 0; i < str.Length; i++)
+            {
+                Assert.AreEqual(str[i], list[i]);
+            }
         }
 
         [TestMethod]
