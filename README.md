@@ -4,6 +4,14 @@ https://github.com/timdetering/Wintellect.PowerCollections
 
 のBigListからIList<T>のメンバーだけ移植しました。もともとの方ではノードの共有をすることがありますが、テキストエディタだとノートを共有する必要性がまったくないので、あえてこの機能は省きました。
 
+## プログラムの構成
+
+EditorDemo　ベンチマーク用デモ
+TextReaderDemo　テキストリーダー
+List　BigListなどのクラスライブラリ
+UnitTest　ユニットテスト
+UnitTest_net481　.net standard 2.0向けユニットテスト
+
 ## 使い方
 
 オンメモリーで動かしたい場合は普通に初期化すれば動きます。
@@ -34,7 +42,7 @@ BigRangeList()を初期化しているところ以降を読めばにテーブル
 
 Ropeっぽいことをしたい場合、ImmutableListTestクラスを参照してください。
 
-遅延読み込みを行いたい場合、LasyLoadListTestクラスやTextReaderDemo/Program.csを参照してください。
+遅延読み込みを行いたい場合やメモリーマッピングしたい場合、LasyLoadListTestクラスやTextReaderDemo/Program.csを参照してください。
 
 ## 特徴
 
