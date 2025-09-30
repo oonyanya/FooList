@@ -7,9 +7,13 @@ https://github.com/timdetering/Wintellect.PowerCollections
 ## プログラムの構成
 
 EditorDemo　ベンチマーク用デモ
+
 TextReaderDemo　テキストリーダー
+
 List　BigListなどのクラスライブラリ
+
 UnitTest　ユニットテスト
+
 UnitTest_net481　.net standard 2.0向けユニットテスト
 
 ## 使い方
