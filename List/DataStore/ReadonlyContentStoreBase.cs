@@ -13,11 +13,19 @@ namespace FooProject.Collection.DataStore
     /// <typeparam name="T">格納対象の型</typeparam>
     public class ReadonlyContentStoreBase<T> : IPinableContainerStore<T>
     {
-        EmptyList emptyList = new EmptyList();
-        TwoQueueCacheList<long, PinableContainer<T>> cacheList = null;
+        //データーストアのID一覧。初期状態はDEFAULT_IDとなる。
+        const int DEFAULT_ID = 0;
         const int SECONDARY_DATA_STORE_ID = 1;
 
-        public IPinableContainerStore<T> SecondaryDataStore { get; set; }
+        EmptyList emptyList = new EmptyList();
+        TwoQueueCacheList<long, PinableContainer<T>> cacheList = null;
+        IPinableContainerStore<T> _SecondaryDataStore;
+
+        public IPinableContainerStore<T> SecondaryDataStore
+        {
+            get { return _SecondaryDataStore; }
+            set { if (value == null) throw new ArgumentNullException(); _SecondaryDataStore = value; }
+        }
 
         /// <summary>
         /// コンストラクター
@@ -25,13 +33,14 @@ namespace FooProject.Collection.DataStore
         /// <param name="cache_limit">キャッシュの量。すくなくとも、CacheParameters.MINCACHESIZE以上は指定する必要がある。</param>
         public ReadonlyContentStoreBase(int cache_limit = 128)
         {
+            this.SecondaryDataStore = new MemoryPinableContentDataStore<T>();
             this.cacheList = new TwoQueueCacheList<long, PinableContainer<T>>();
             this.cacheList.Limit = cache_limit;
             this.cacheList.CacheOuted += (ev) => {
                 var key = ev.Key;
                 var outed_item = ev.Value;
 
-                if (outed_item.IsRemoved == true || outed_item.CacheIndex == PinableContainer<T>.ALWAYS_KEEP)
+                if (outed_item.IsRemoved == true)
                     return;
 
                 outed_item.Content = default(T);
@@ -89,6 +98,8 @@ namespace FooProject.Collection.DataStore
             //ディスク上に存在するので永遠に保存しておく必要はない
             newpin.CacheIndex = PinableContainer<T>.NOTCACHED;
             newpin.Info = new DiskAllocationInfo(index, read_bytes);
+            //まずはプライマリーデーターストアを使用する
+            newpin.ID = DEFAULT_ID;
             return newpin;
         }
 
@@ -105,13 +116,10 @@ namespace FooProject.Collection.DataStore
 
         public IPinnedContent<T> Get(IPinableContainer<T> ipinableContainer)
         {
-            if (SecondaryDataStore != null)
+            switch (ipinableContainer.ID)
             {
-                switch (ipinableContainer.ID)
-                {
-                    case SECONDARY_DATA_STORE_ID:
-                        return this.SecondaryDataStore.Get(ipinableContainer);
-                }
+                case SECONDARY_DATA_STORE_ID:
+                    return this.SecondaryDataStore.Get(ipinableContainer);
             }
 
             IPinnedContent<T> result;
@@ -123,13 +131,10 @@ namespace FooProject.Collection.DataStore
 
         public bool TryGet(IPinableContainer<T> ipinableContainer, out IPinnedContent<T> result)
         {
-            if (SecondaryDataStore != null)
+            switch (ipinableContainer.ID)
             {
-                switch (ipinableContainer.ID)
-                {
-                    case SECONDARY_DATA_STORE_ID:
-                        return this.SecondaryDataStore.TryGet(ipinableContainer, out result);
-                }
+                case SECONDARY_DATA_STORE_ID:
+                    return this.SecondaryDataStore.TryGet(ipinableContainer, out result);
             }
 
             var pinableContainer = (PinableContainer<T>)ipinableContainer;
@@ -156,16 +161,12 @@ namespace FooProject.Collection.DataStore
 
         public void Set(IPinableContainer<T> ipinableContainer)
         {
-            if (SecondaryDataStore != null)
+            switch (ipinableContainer.ID)
             {
-                switch (ipinableContainer.ID)
-                {
-                    case SECONDARY_DATA_STORE_ID:
-                        this.SecondaryDataStore.Set(ipinableContainer);
-                        return;
-                }
+                case SECONDARY_DATA_STORE_ID:
+                    this.SecondaryDataStore.Set(ipinableContainer);
+                    return;
             }
-
             PinableContainer<T> pinableContainer = (PinableContainer<T>)ipinableContainer;
             if (pinableContainer.IsRemoved)
             {
@@ -175,9 +176,6 @@ namespace FooProject.Collection.DataStore
                 pinableContainer.CacheIndex = PinableContainer<T>.NOTCACHED;
                 return;
             }
-
-            if (pinableContainer.CacheIndex == PinableContainer<T>.ALWAYS_KEEP)
-                return;
 
             if (pinableContainer.CacheIndex == PinableContainer<T>.NOTCACHED)
             {
@@ -190,39 +188,21 @@ namespace FooProject.Collection.DataStore
 
         public void Commit()
         {
-            if (SecondaryDataStore != null)
-            {
-                this.SecondaryDataStore.Commit();
-            }
+            this.SecondaryDataStore.Commit();
         }
 
         public IPinableContainer<T> Update(IPinableContainer<T> pinableContainer, T newcontent, long oldstart, long oldcount, long newstart, long newcount)
         {
-            if (SecondaryDataStore != null)
-            {
-                switch (pinableContainer.ID)
-                {
-                    case SECONDARY_DATA_STORE_ID:
-                        var updatedPinableContainer = this.SecondaryDataStore.Update(pinableContainer, newcontent, oldstart, oldcount, newstart, newcount);
-                        updatedPinableContainer.ID = SECONDARY_DATA_STORE_ID;
-                        return updatedPinableContainer;
-                }
-            }
-            //面倒なので変更した奴はキャッシュアウトの対象外にする
-            var ipinableContainer = this.CreatePinableContainer(newcontent);
-            PinableContainer<T> newPinableContainer = (PinableContainer<T>)ipinableContainer;
-            newPinableContainer.CacheIndex = PinableContainer<T>.ALWAYS_KEEP;
-            return newPinableContainer;
+            //TODO:本当はコピーしないほうがいいが、面倒なので全部コピーする
+            var updatedPinableContainer = this.SecondaryDataStore.Update(pinableContainer, newcontent, oldstart, oldcount, newstart, newcount);
+            updatedPinableContainer.ID = SECONDARY_DATA_STORE_ID;
+            return updatedPinableContainer;
         }
 
         public IPinableContainer<T> CreatePinableContainer(T content)
         {
             var newPinableContainer = new PinableContainer<T>(content);
-            //メモリー上にだけ存在する奴があるのでデフォルトは常に保持しておく
-            if (SecondaryDataStore != null)
-                newPinableContainer.ID = SECONDARY_DATA_STORE_ID;
-            else
-                newPinableContainer.CacheIndex = PinableContainer<T>.ALWAYS_KEEP;
+            newPinableContainer.ID = SECONDARY_DATA_STORE_ID;
             return newPinableContainer;
         }
 

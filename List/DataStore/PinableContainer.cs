@@ -33,9 +33,6 @@ namespace FooProject.Collection.DataStore
     public class PinableContainer<T> : IPinableContainer<T>
     {
         internal const long NOTCACHED = -1;
-        internal const long ALWAYS_KEEP = -2;
-
-        public const int DEFAULT_ID = 0;
 
         internal DiskAllocationInfo Info { get; set; }
 
@@ -57,7 +54,6 @@ namespace FooProject.Collection.DataStore
             Info = null;
             CacheIndex = NOTCACHED;
             IsRemoved = false;
-            ID = DEFAULT_ID;
         }
 
         public void RemoveContent()
