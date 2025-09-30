@@ -33,7 +33,7 @@ else
     while (exitflag == false)
     {
         Console.WriteLine("");
-        Console.WriteLine("input command(load [block number]/show [index]/exit/usage):");
+        Console.WriteLine("input command(load [block number]/loadall/show [index]/exit/usage):");
         string cmd = Console.ReadLine();
 
         string[] cmds = cmd.Split(" ");
@@ -55,11 +55,22 @@ else
                 }
                 Console.WriteLine("success to load");
                 break;
+            case "loadall":
+                while (true)
+                {
+                    var pinableContainer = lazyLoadStore.Load(biglist1.BlockSize);
+                    if (pinableContainer == null)
+                        break;
+                    biglist1.Add(pinableContainer);
+                }
+                Console.WriteLine("success to load");
+                break;
             case "show":
                 Console.WriteLine("");
                 if (number >= 0 && number < biglist1.Count)
                 {
-                    string text = new string(biglist1.GetRangeEnumerable(number, biglist1.BlockSize).ToArray());
+                    int count = biglist1.Count - number;
+                    string text = new string(biglist1.GetRangeEnumerable(number, count).ToArray());
                     Console.WriteLine(text);
                 }
                 else
@@ -72,6 +83,7 @@ else
                 break;
             case "usage":
                 Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}" + "bytes");
+                Console.WriteLine("Loaded Char Count:" + biglist1.Count);
                 break;
         }
     }
