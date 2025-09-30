@@ -55,6 +55,7 @@ namespace FooProject.Collection.DataStore
         /// <param name="index">割り当てられたインデックス。専らファイル上のアドレスを指す。</param>
         /// <param name="read_bytes">割り当てられたバイト数。</param>
         /// <returns>読み込んだ要素を返す</returns>
+        /// <remarks>read_bytesが0を返した場合、これ以上読み取るものがないことを表す</remarks>
         public virtual T OnLoad(int count,out long index,out int read_bytes)
         {
             throw new NotImplementedException();
@@ -64,12 +65,14 @@ namespace FooProject.Collection.DataStore
         /// 初回読み込みを行う
         /// </summary>
         /// <param name="count">読み込みたい要素数</param>
-        /// <returns>IPinableContainerを返す</returns>
+        /// <returns>IPinableContainerを返す。これ以上読み取ることができない場合、nullを返す。</returns>
         public IPinableContainer<T> Load(int count)
         {
             int read_bytes;
             long index;
             var content = OnLoad(count, out index, out read_bytes);
+            if (read_bytes == 0)
+                return null;
             PinableContainer<T> newpin = (PinableContainer<T>)this.CreatePinableContainer(content);
             //ディスク上に存在するので永遠に保存しておく必要はない
             newpin.CacheIndex = PinableContainer<T>.NOTCACHED;

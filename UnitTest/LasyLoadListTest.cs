@@ -61,18 +61,10 @@ namespace UnitTest
             biglist1.LeastFetchStore = customConverter;
             datastore = lazyLoadStore;
 
-            int leftLen = strlen;
-            while (leftLen - loadLen > 0)
-            {
+            while(true){
                 var pinableContainer = lazyLoadStore.Load(loadLen);
-                biglist1.Add(pinableContainer);
-                leftLen -= loadLen;
-                if (fn != null)
-                    fn(biglist1);
-            }
-            if (leftLen > 0)
-            {
-                var pinableContainer = lazyLoadStore.Load(leftLen);
+                if (pinableContainer == null)
+                    break;
                 biglist1.Add(pinableContainer);
                 if (fn != null)
                     fn(biglist1);

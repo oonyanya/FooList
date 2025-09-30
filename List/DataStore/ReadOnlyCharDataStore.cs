@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using FooProject.Collection;
@@ -65,7 +66,13 @@ namespace FooProject.Collection.DataStore
             stream.Position = _leastLoadPostion;
 
             index = _leastLoadPostion;
-            stream.Read(byte_array, 0, byte_array.Length);
+            var stream_read_bytes = stream.Read(byte_array, 0, byte_array.Length);
+            if(stream_read_bytes == 0)
+            {
+                read_bytes = 0;
+                _decoder.Reset();
+                return null;
+            }
 
             int fetch_index = GetFetchIndexWithoutPreamble(byte_array, _encoding);
             if (fetch_index > 0)
@@ -76,14 +83,14 @@ namespace FooProject.Collection.DataStore
 
             var char_array = new char[count];
 
-            int acutal_bytes, actual_chars;
+            int converted_bytes, converted_chars;
             bool completed;
-            _decoder.Convert(byte_array, fetch_index, byte_array_len - fetch_index, char_array, 0, char_array.Length, false, out acutal_bytes, out actual_chars, out completed);
+            _decoder.Convert(byte_array, fetch_index, stream_read_bytes - fetch_index, char_array, 0, char_array.Length, false, out converted_bytes, out converted_chars, out completed);
 
-            _leastLoadPostion += acutal_bytes;
-            read_bytes = acutal_bytes;
+            _leastLoadPostion += converted_bytes;
+            read_bytes = converted_bytes;
 
-            return new ReadOnlyComposableList<char>(char_array);
+            return new ReadOnlyComposableList<char>(char_array.Take(converted_chars));
         }
 
         public override IComposableList<char> OnRead(long index, int bytes)
