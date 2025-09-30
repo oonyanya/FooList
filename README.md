@@ -34,7 +34,7 @@ BigRangeList()を初期化しているところ以降を読めばにテーブル
 
 Ropeっぽいことをしたい場合、ImmutableListTestクラスを参照してください。
 
-遅延読み込みを行いたい場合、LasyLoadListTestクラスを参照してください。
+遅延読み込みを行いたい場合、LasyLoadListTestクラスやTextReaderDemo/Program.csを参照してください。
 
 ## 特徴
 
