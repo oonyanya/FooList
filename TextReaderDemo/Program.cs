@@ -69,7 +69,7 @@ else
                 Console.WriteLine("");
                 if (number >= 0 && number < biglist1.Count)
                 {
-                    int count = biglist1.Count - number;
+                    int count = Math.Min(biglist1.Count - number,biglist1.BlockSize);
                     string text = new string(biglist1.GetRangeEnumerable(number, count).ToArray());
                     Console.WriteLine(text);
                 }
