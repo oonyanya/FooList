@@ -38,11 +38,11 @@ else
     while (exitflag == false)
     {
         Console.WriteLine("");
-        Console.WriteLine("input command(load [block number]/loadall/show [index]/exit/usage):");
+        Console.WriteLine("input command(if want to show help text,input help):");
         string cmd = Console.ReadLine();
 
         string[] cmds = cmd.Split(" ");
-        Parser.Default.ParseArguments<LoadCommnad, LoadAllCommnad, UsageCommnad, InsertCommand, RemoveCommand, ShowCommand, ExitCommnad>(cmds)
+        Parser.Default.ParseArguments<LoadCommnad, LoadAllCommnad, SaveCommand, UsageCommnad, InsertCommand, RemoveCommand, ShowCommand, ExitCommnad>(cmds)
             .WithParsed<LoadCommnad>(opt => {
                 for (int i = 0; i < opt.Count; i++)
                 {
@@ -63,12 +63,49 @@ else
                 }
                 Console.WriteLine("success to load");
             })
+            .WithParsed<SaveCommand>(opt => {
+                var saveFileStream = new FileStream(opt.FilePath.Trim('"'), FileMode.OpenOrCreate);
+                saveFileStream.Position = 0;
+                var streamWriter = new StreamWriter(saveFileStream);
+                foreach (var item in biglist1.Chunk(biglist1.BlockSize))
+                {
+                    streamWriter.Write(item);
+                }
+                Console.WriteLine("success to " + opt.FilePath);
+            })
             .WithParsed<UsageCommnad>(opt => {
                 Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}" + "bytes");
                 Console.WriteLine("Loaded Char Count:" + biglist1.Count);
             })
-            .WithParsed<InsertCommand>(opt => { })
-            .WithParsed<RemoveCommand>(opt => { })
+            .WithParsed<InsertCommand>(opt => {
+                var number = opt.Index;
+                if (number >= 0 && number < biglist1.Count)
+                {
+                    biglist1.InsertRange(number,opt.Text);
+                    Console.WriteLine("success");
+                }
+                else
+                {
+                    Console.WriteLine("too large index");
+                }
+            })
+            .WithParsed<RemoveCommand>(opt => {
+                var number = opt.Index;
+                if (number >= 0 && number < biglist1.Count)
+                {
+                    var length = biglist1.Count;
+                    if(number + length > biglist1.Count)
+                    {
+                        length = biglist1.Count - number;
+                    }
+                    biglist1.RemoveRange(number, opt.Length);
+                    Console.WriteLine("success");
+                }
+                else
+                {
+                    Console.WriteLine("too large index");
+                }
+            })
             .WithParsed<ShowCommand>(opt => {
                 Console.WriteLine("");
                 var number = opt.Index;
