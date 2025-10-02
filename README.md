@@ -8,7 +8,7 @@ https://github.com/timdetering/Wintellect.PowerCollections
 
 EditorDemo　ベンチマーク用デモ
 
-TextReaderDemo　テキストリーダー
+TextReaderDemo　コマンドベース簡易テキストエディタ
 
 List　BigListなどのクラスライブラリ
 
