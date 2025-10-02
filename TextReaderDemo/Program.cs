@@ -22,7 +22,21 @@ if(File.Exists(filepath) == false)
 }
 else
 {
-    var stream = new FileStream(filepath, FileMode.Open);
+    FileStream stream = null;
+    try
+    {
+        stream = new FileStream(filepath, FileMode.Open);
+    }
+    catch (IOException ex)
+    {
+        Console.WriteLine(ex.Message);
+        Environment.Exit(1);
+    }
+    catch (UnauthorizedAccessException ex)
+    {
+        Console.WriteLine(ex.Message);
+        Environment.Exit(1);
+    }
 
     var memoryStore = new MemoryPinableContentDataStore<IComposableList<char>>();
     var lazyLoadStore = new ReadOnlyCharDataStore(stream, Encoding.UTF8);
@@ -64,14 +78,33 @@ else
                 Console.WriteLine("success to load");
             })
             .WithParsed<SaveCommand>(opt => {
-                var saveFileStream = new FileStream(opt.FilePath.Trim('"'), FileMode.OpenOrCreate);
-                saveFileStream.Position = 0;
-                var streamWriter = new StreamWriter(saveFileStream);
-                foreach (var item in biglist1.Chunk(biglist1.BlockSize))
+                try
                 {
-                    streamWriter.Write(item);
+                    using (var saveFileStream = new FileStream(opt.FilePath.Trim('"'), FileMode.OpenOrCreate))
+                    {
+                        saveFileStream.Position = 0;
+                        using (var streamWriter = new StreamWriter(saveFileStream))
+                        {
+                            foreach (var item in biglist1.Chunk(biglist1.BlockSize))
+                            {
+                                streamWriter.Write(item);
+                            }
+                            Console.WriteLine("success to " + opt.FilePath);
+                        }
+                    }
                 }
-                Console.WriteLine("success to " + opt.FilePath);
+                catch (DirectoryNotFoundException ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+                catch (IOException ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+                catch (UnauthorizedAccessException ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
             })
             .WithParsed<UsageCommnad>(opt => {
                 Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}" + "bytes");
