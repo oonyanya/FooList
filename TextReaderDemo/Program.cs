@@ -1,12 +1,17 @@
-﻿using System.ComponentModel;
+﻿using CommandLine;
+using FooProject.Collection;
+using FooProject.Collection.DataStore;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Numerics;
+using System.Reflection.Emit;
 using System.Runtime;
 using System.Runtime.CompilerServices;
 using System.Text;
-using FooProject.Collection;
-using FooProject.Collection.DataStore;
+using TextReaderDemo;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 Console.WriteLine("open filename to show?");
 string filepath = Console.ReadLine().Trim('"');
@@ -37,16 +42,9 @@ else
         string cmd = Console.ReadLine();
 
         string[] cmds = cmd.Split(" ");
-        int number = 0;
-        if(cmds.Length > 1)
-        {
-            number = int.Parse(cmds[1]);
-        }
-
-        switch (cmds[0])
-        {
-            case "load":
-                for (int i = 0; i < number; i++)
+        Parser.Default.ParseArguments<LoadCommnad, LoadAllCommnad, UsageCommnad, InsertCommand, RemoveCommand, ShowCommand, ExitCommnad>(cmds)
+            .WithParsed<LoadCommnad>(opt => {
+                for (int i = 0; i < opt.Count; i++)
                 {
                     var pinableContainer = lazyLoadStore.Load(biglist1.BlockSize);
                     if (pinableContainer == null)
@@ -54,8 +52,8 @@ else
                     biglist1.Add(pinableContainer);
                 }
                 Console.WriteLine("success to load");
-                break;
-            case "loadall":
+            })
+            .WithParsed<LoadAllCommnad>(opt => {
                 while (true)
                 {
                     var pinableContainer = lazyLoadStore.Load(biglist1.BlockSize);
@@ -64,12 +62,19 @@ else
                     biglist1.Add(pinableContainer);
                 }
                 Console.WriteLine("success to load");
-                break;
-            case "show":
+            })
+            .WithParsed<UsageCommnad>(opt => {
+                Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}" + "bytes");
+                Console.WriteLine("Loaded Char Count:" + biglist1.Count);
+            })
+            .WithParsed<InsertCommand>(opt => { })
+            .WithParsed<RemoveCommand>(opt => { })
+            .WithParsed<ShowCommand>(opt => {
                 Console.WriteLine("");
+                var number = opt.Index;
                 if (number >= 0 && number < biglist1.Count)
                 {
-                    int count = Math.Min(biglist1.Count - number,biglist1.BlockSize);
+                    int count = Math.Min(biglist1.Count - number, biglist1.BlockSize);
                     string text = new string(biglist1.GetRangeEnumerable(number, count).ToArray());
                     Console.WriteLine(text);
                 }
@@ -77,15 +82,10 @@ else
                 {
                     Console.WriteLine("too large index");
                 }
-                break;
-            case "exit":
+            })
+            .WithParsed<ExitCommnad>(opt => {
                 exitflag = true;
-                break;
-            case "usage":
-                Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}" + "bytes");
-                Console.WriteLine("Loaded Char Count:" + biglist1.Count);
-                break;
-        }
+            });
     }
 
 }
