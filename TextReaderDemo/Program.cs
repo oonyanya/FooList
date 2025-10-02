@@ -19,7 +19,7 @@ string filepath = Console.ReadLine().Trim('"');
 FileStream stream = null;
 try
 {
-    stream = new FileStream(filepath, FileMode.Open);
+    stream = new FileStream(filepath, FileMode.Open,FileAccess.Read,FileShare.Read);
 }
 catch (DirectoryNotFoundException ex)
 {
