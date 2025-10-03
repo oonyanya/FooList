@@ -15,4 +15,6 @@
     <ProjectReference Include="..\List\FooProject.Collection.csproj" />
   </ItemGroup>
 
+  <Import Project="..\SharedDemoProgram\SharedDemoProgram.projitems" Label="Shared" />
+
 </Project>

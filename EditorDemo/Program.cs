@@ -16,6 +16,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Runtime;
 using EditorDemo;
+using SharedDemoProgram;
 
 const int BENCHMARK_SIZE = 1000000;
 

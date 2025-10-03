@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTest_net481", "UnitTest
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TextReaderDemo", "TextReaderDemo\TextReaderDemo.csproj", "{9C1B9490-1752-49D7-84A0-7A64A2DEC4D5}"
 EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "SharedDemoProgram", "SharedDemoProgram\SharedDemoProgram.shproj", "{3F8F85E6-B563-4E11-9550-ED288393053A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,5 +47,10 @@ Global
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {8CE95CE2-975E-478A-8669-8C82CAA97579}
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		SharedDemoProgram\SharedDemoProgram.projitems*{1b82c21b-1301-45c0-a65b-44b25fe9c7c0}*SharedItemsImports = 5
+		SharedDemoProgram\SharedDemoProgram.projitems*{3f8f85e6-b563-4e11-9550-ed288393053a}*SharedItemsImports = 13
+		SharedDemoProgram\SharedDemoProgram.projitems*{9c1b9490-1752-49d7-84a0-7a64a2dec4d5}*SharedItemsImports = 5
 	EndGlobalSection
 EndGlobal

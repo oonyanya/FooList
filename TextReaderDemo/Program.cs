@@ -11,7 +11,7 @@ using System.Runtime;
 using System.Runtime.CompilerServices;
 using System.Text;
 using TextReaderDemo;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+using SharedDemoProgram;
 
 Console.WriteLine("open filename to show?");
 string filepath = Console.ReadLine().Trim('"');
@@ -57,40 +57,46 @@ while (exitflag == false)
     string[] cmds = cmd.Split(" ");
     Parser.Default.ParseArguments<LoadCommnad, LoadAllCommnad, SaveCommand, UsageCommnad, InsertCommand, RemoveCommand, ShowCommand, ExitCommnad>(cmds)
         .WithParsed<LoadCommnad>(opt => {
-            for (int i = 0; i < opt.Count; i++)
-            {
-                var pinableContainer = lazyLoadStore.Load(biglist1.BlockSize);
-                if (pinableContainer == null)
-                    break;
-                biglist1.Add(pinableContainer);
-            }
-            Console.WriteLine("success to load");
+            var time = BenchmarkRunner.Run(() => {
+                for (int i = 0; i < opt.Count; i++)
+                {
+                    var pinableContainer = lazyLoadStore.Load(biglist1.BlockSize);
+                    if (pinableContainer == null)
+                        break;
+                    biglist1.Add(pinableContainer);
+                }
+            });
+            Console.WriteLine($"success to load. elapsed time:{time} ms");
         })
         .WithParsed<LoadAllCommnad>(opt => {
-            while (true)
-            {
-                var pinableContainer = lazyLoadStore.Load(biglist1.BlockSize);
-                if (pinableContainer == null)
-                    break;
-                biglist1.Add(pinableContainer);
-            }
-            Console.WriteLine("success to load");
+            var time = BenchmarkRunner.Run(() => {
+                while (true)
+                {
+                    var pinableContainer = lazyLoadStore.Load(biglist1.BlockSize);
+                    if (pinableContainer == null)
+                        break;
+                    biglist1.Add(pinableContainer);
+                }
+            });
+            Console.WriteLine($"success to load.elapsed time:{time} ms");
         })
         .WithParsed<SaveCommand>(opt => {
             try
             {
-                using (var saveFileStream = new FileStream(opt.FilePath.Trim('"'), FileMode.OpenOrCreate))
-                {
-                    saveFileStream.Position = 0;
-                    using (var streamWriter = new StreamWriter(saveFileStream))
+                var time = BenchmarkRunner.Run(() => {
+                    using (var saveFileStream = new FileStream(opt.FilePath.Trim('"'), FileMode.OpenOrCreate))
                     {
-                        foreach (var item in biglist1.Chunk(biglist1.BlockSize))
+                        saveFileStream.Position = 0;
+                        using (var streamWriter = new StreamWriter(saveFileStream))
                         {
-                            streamWriter.Write(item);
+                            foreach (var item in biglist1.Chunk(biglist1.BlockSize))
+                            {
+                                streamWriter.Write(item);
+                            }
                         }
-                        Console.WriteLine("success to " + opt.FilePath);
                     }
-                }
+                });
+                Console.WriteLine($"success to save {opt.FilePath}. elapsed time:{time} ms");
             }
             catch (DirectoryNotFoundException ex)
             {
@@ -113,8 +119,10 @@ while (exitflag == false)
             var number = opt.Index;
             if (number >= 0 && number < biglist1.Count)
             {
-                biglist1.InsertRange(number, opt.Text);
-                Console.WriteLine("success");
+                var time = BenchmarkRunner.Run(() => {
+                    biglist1.InsertRange(number, opt.Text);
+                });
+                Console.WriteLine($"success.elapsed time:{time} ms");
             }
             else
             {
@@ -130,8 +138,10 @@ while (exitflag == false)
                 {
                     length = biglist1.Count - number;
                 }
-                biglist1.RemoveRange(number, opt.Length);
-                Console.WriteLine("success");
+                var time = BenchmarkRunner.Run(() => {
+                    biglist1.RemoveRange(number, opt.Length);
+                });
+                Console.WriteLine($"success.elapsed time:{time} ms");
             }
             else
             {
@@ -144,8 +154,12 @@ while (exitflag == false)
             if (number >= 0 && number < biglist1.Count)
             {
                 int count = Math.Min(biglist1.Count - number, biglist1.BlockSize);
-                string text = new string(biglist1.GetRangeEnumerable(number, count).ToArray());
+                string text = string.Empty;
+                var time = BenchmarkRunner.Run(() => {
+                    text = new string(biglist1.GetRangeEnumerable(number, count).ToArray());
+                });
                 Console.WriteLine(text);
+                Console.WriteLine($"elapsed time:{time} ms");
             }
             else
             {

@@ -13,6 +13,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\List\FooProject.Collection.csproj" />
+    <ProjectReference Include="..\TextReaderDemo\TextReaderDemo.csproj" />
   </ItemGroup>
+
+  <Import Project="..\SharedDemoProgram\SharedDemoProgram.projitems" Label="Shared" />
 
 </Project>
