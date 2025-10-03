@@ -8,7 +8,7 @@ https://github.com/timdetering/Wintellect.PowerCollections
 
 EditorDemo　ベンチマーク用デモ
 
-TextReaderDemo　コマンドベース簡易テキストエディタ
+TextReaderDemo　コマンドベース簡易テキストエディタ。メモリーマップドファイルみたいなことをしているので、開くのは早いですが、上書き保存はできない仕様になってます。
 
 List　BigListなどのクラスライブラリ
 
