@@ -13,6 +13,8 @@ using System.Text;
 using TextReaderDemo;
 using SharedDemoProgram;
 
+const int DEFAULT_SHOW_LENGTH = 1024;
+
 Console.WriteLine("open filename to show?");
 string filepath = Console.ReadLine().Trim('"');
 
@@ -133,13 +135,13 @@ while (exitflag == false)
             var number = opt.Index;
             if (number >= 0 && number < biglist1.Count)
             {
-                var length = biglist1.Count;
+                var length = opt.Length;
                 if (number + length > biglist1.Count)
                 {
                     length = biglist1.Count - number;
                 }
                 var time = BenchmarkRunner.Run(() => {
-                    biglist1.RemoveRange(number, opt.Length);
+                    biglist1.RemoveRange(number, length);
                 });
                 Console.WriteLine($"success.elapsed time:{time} ms");
             }
@@ -153,10 +155,18 @@ while (exitflag == false)
             var number = opt.Index;
             if (number >= 0 && number < biglist1.Count)
             {
-                int count = Math.Min(biglist1.Count - number, biglist1.BlockSize);
+                var length = opt.Length;
+
+                if (opt.Length == 0)
+                    length = DEFAULT_SHOW_LENGTH;
+
+                if (number + length > biglist1.Count)
+                {
+                    length = biglist1.Count - number;
+                }
                 string text = string.Empty;
                 var time = BenchmarkRunner.Run(() => {
-                    text = new string(biglist1.GetRangeEnumerable(number, count).ToArray());
+                    text = new string(biglist1.GetRangeEnumerable(number, length).ToArray());
                 });
                 Console.WriteLine(text);
                 Console.WriteLine($"elapsed time:{time} ms");

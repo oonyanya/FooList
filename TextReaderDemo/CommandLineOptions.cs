@@ -57,6 +57,9 @@ namespace TextReaderDemo
     {
         [Value(0, MetaName = "IndexValue")]
         public int Index { get; set; }
+
+        [Value(1, MetaName = "LengthValue",Required = false)]
+        public int Length { get; set; }
     }
 
     [Verb("remove", HelpText = "Remove text from index with length")]
