@@ -71,4 +71,21 @@ namespace TextReaderDemo
         [Value(1, MetaName = "LengthValue")]
         public int Length { get; set; }
     }
+
+    [Verb("find", HelpText = "Find string within loaded text")]
+    internal class FindCommand
+    {
+        [Value(0, MetaName = "TextValue")]
+        public string Text { get; set; }
+
+        [Value(1, MetaName = "IndexValue", Required = false)]
+        public int Index { get; set; }
+
+        [Value(2, MetaName = "LengthValue", Required = false)]
+        public int Length { get; set; }
+
+        [Option("ci", Required = false, Default = false )]
+        public bool CaseInsensitive { get; set; }
+
+    }
 }

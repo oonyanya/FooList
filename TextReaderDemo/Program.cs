@@ -1,7 +1,4 @@
-﻿using CommandLine;
-using FooProject.Collection;
-using FooProject.Collection.DataStore;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -10,8 +7,12 @@ using System.Reflection.Emit;
 using System.Runtime;
 using System.Runtime.CompilerServices;
 using System.Text;
-using TextReaderDemo;
+using CommandLine;
+using FooProject.Collection;
+using FooProject.Collection.DataStore;
 using SharedDemoProgram;
+using TextReaderDemo;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 const int DEFAULT_SHOW_LENGTH = 1024;
 
@@ -57,7 +58,7 @@ while (exitflag == false)
     string cmd = Console.ReadLine();
 
     string[] cmds = cmd.Split(" ");
-    Parser.Default.ParseArguments<LoadCommnad, LoadAllCommnad, SaveCommand, UsageCommnad, InsertCommand, RemoveCommand, ShowCommand, ExitCommnad>(cmds)
+    Parser.Default.ParseArguments<LoadCommnad, LoadAllCommnad, SaveCommand, UsageCommnad, InsertCommand, RemoveCommand, ShowCommand, ExitCommnad, FindCommand>(cmds)
         .WithParsed<LoadCommnad>(opt => {
             var time = BenchmarkRunner.Run(() => {
                 for (int i = 0; i < opt.Count; i++)
@@ -175,6 +176,41 @@ while (exitflag == false)
             {
                 Console.WriteLine("too large index");
             }
+        })
+        .WithParsed<FindCommand>(opt =>
+        {
+            var number = opt.Index;
+            if (number >= 0 && number < biglist1.Count)
+            {
+                var length = opt.Length;
+
+                if (opt.Length == 0)
+                    length = biglist1.Count;
+
+                if (number + length > biglist1.Count)
+                {
+                    length = biglist1.Count - number;
+                }
+                long foundIndex = -1;
+                var time = BenchmarkRunner.Run(() => {
+                    var textSearch = new TextSearch(opt.Text, opt.CaseInsensitive);
+                    foundIndex = textSearch.IndexOf(biglist1, number, length);
+                });
+                if (foundIndex == -1)
+                {
+                    Console.WriteLine("not found");
+                }
+                else
+                {
+                    Console.WriteLine($"found text index:{foundIndex}");
+                }
+                Console.WriteLine($"elapsed time:{time} ms");
+            }
+            else
+            {
+                Console.WriteLine("too large index");
+            }
+
         })
         .WithParsed<ExitCommnad>(opt => {
             exitflag = true;
