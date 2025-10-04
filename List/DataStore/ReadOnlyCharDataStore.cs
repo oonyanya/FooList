@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -61,36 +62,45 @@ namespace FooProject.Collection.DataStore
         public override IComposableList<char> OnLoad(int count, out long index, out int read_bytes)
         {
             int byte_array_len = _encoding.GetMaxByteCount(count);
-            byte[] byte_array = new byte[byte_array_len];
+            byte[] byte_array =　ArrayPool<byte>.Shared.Rent(byte_array_len);
 
-            stream.Position = _leastLoadPostion;
-
-            index = _leastLoadPostion;
-            var stream_read_bytes = stream.Read(byte_array, 0, byte_array.Length);
-            if(stream_read_bytes == 0)
+            try
             {
-                read_bytes = 0;
-                _decoder.Reset();
-                return null;
-            }
+                stream.Position = _leastLoadPostion;
 
-            int fetch_index = GetFetchIndexWithoutPreamble(byte_array, _encoding);
-            if (fetch_index > 0)
+                index = _leastLoadPostion;
+                var stream_read_bytes = stream.Read(byte_array, 0, byte_array.Length);
+                if (stream_read_bytes == 0)
+                {
+                    read_bytes = 0;
+                    _decoder.Reset();
+                    //.NET standard 2.0以降だとfinallyに飛ぶので何もしなくていい
+                    return null;
+                }
+
+                int fetch_index = GetFetchIndexWithoutPreamble(byte_array, _encoding);
+                if (fetch_index > 0)
+                {
+                    index += fetch_index;
+                    _leastLoadPostion += fetch_index;
+                }
+
+                var char_array = new char[count];
+
+                int converted_bytes, converted_chars;
+                bool completed;
+                _decoder.Convert(byte_array, fetch_index, stream_read_bytes - fetch_index, char_array, 0, char_array.Length, false, out converted_bytes, out converted_chars, out completed);
+
+                _leastLoadPostion += converted_bytes;
+                read_bytes = converted_bytes;
+
+                return new ReadOnlyComposableList<char>(char_array.Take(converted_chars));
+            }
+            finally
             {
-                index += fetch_index;
-                _leastLoadPostion += fetch_index;
+                //返却しないとメモリーリークする
+                ArrayPool<byte>.Shared.Return(byte_array);
             }
-
-            var char_array = new char[count];
-
-            int converted_bytes, converted_chars;
-            bool completed;
-            _decoder.Convert(byte_array, fetch_index, stream_read_bytes - fetch_index, char_array, 0, char_array.Length, false, out converted_bytes, out converted_chars, out completed);
-
-            _leastLoadPostion += converted_bytes;
-            read_bytes = converted_bytes;
-
-            return new ReadOnlyComposableList<char>(char_array.Take(converted_chars));
         }
 
         public override IComposableList<char> OnRead(long index, int bytes)
