@@ -87,6 +87,11 @@ while (exitflag == false)
             try
             {
                 var time = BenchmarkRunner.Run(() => {
+                    if (string.IsNullOrEmpty(opt.FilePath))
+                    {
+                        Console.WriteLine("must be set filepath");
+                        return;
+                    }
                     using (var saveFileStream = new FileStream(opt.FilePath.Trim('"'), FileMode.OpenOrCreate))
                     {
                         saveFileStream.Position = 0;
