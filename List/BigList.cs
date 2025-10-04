@@ -18,6 +18,7 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.VisualBasic;
 using FooProject.Collection.DataStore;
+using System.Buffers;
 
 namespace FooProject.Collection
 {
@@ -657,25 +658,28 @@ namespace FooProject.Collection
         {
             int i = 0;
             T[] items;
-            if (collection_count < args.BlockSize)
-                items = new T[collection_count];
-            else
-                items = new T[args.BlockSize];
+            items = ArrayPool<T>.Shared.Rent(args.BlockSize);
 
-
-            while (i < args.BlockSize && enumerator.MoveNext())
+            try
             {
-                items[i] = enumerator.Current;
-                i++;
+                while (i < args.BlockSize && enumerator.MoveNext())
+                {
+                    items[i] = enumerator.Current;
+                    i++;
+                }
+
+                if (i > 0)
+                {
+                    return args.CustomBuilder.CreateList(i, args.BlockSize, items.Take(i));
+                }
+                else
+                {
+                    return null;
+                }
             }
-
-            if (i > 0)
+            finally
             {
-                return args.CustomBuilder.CreateList(i, args.BlockSize, items.Take(i));
-            }
-            else
-            {
-                return null;
+                ArrayPool<T>.Shared.Return(items);
             }
         }
 
