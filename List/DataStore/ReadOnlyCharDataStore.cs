@@ -63,6 +63,7 @@ namespace FooProject.Collection.DataStore
         {
             int byte_array_len = _encoding.GetMaxByteCount(count);
             byte[] byte_array =　ArrayPool<byte>.Shared.Rent(byte_array_len);
+            var char_array = ArrayPool<char>.Shared.Rent(count);
 
             try
             {
@@ -85,11 +86,9 @@ namespace FooProject.Collection.DataStore
                     _leastLoadPostion += fetch_index;
                 }
 
-                var char_array = new char[count];
-
                 int converted_bytes, converted_chars;
                 bool completed;
-                _decoder.Convert(byte_array, fetch_index, stream_read_bytes - fetch_index, char_array, 0, char_array.Length, false, out converted_bytes, out converted_chars, out completed);
+                _decoder.Convert(byte_array, fetch_index, stream_read_bytes - fetch_index, char_array, 0, count, false, out converted_bytes, out converted_chars, out completed);
 
                 _leastLoadPostion += converted_bytes;
                 read_bytes = converted_bytes;
@@ -100,6 +99,7 @@ namespace FooProject.Collection.DataStore
             {
                 //返却しないとメモリーリークする
                 ArrayPool<byte>.Shared.Return(byte_array);
+                ArrayPool<char>.Shared.Return(char_array);
             }
         }
 
