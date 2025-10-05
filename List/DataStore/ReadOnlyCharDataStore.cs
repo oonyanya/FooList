@@ -8,11 +8,48 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
 using FooProject.Collection;
 using FooProject.Collection.DataStore;
+using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
+
+
+#if NET6_0_OR_GREATER
+using System.IO.Pipelines;
+#endif
 
 namespace FooProject.Collection.DataStore
 {
+#if NET6_0_OR_GREATER
+    public static class DecoderExtension
+    {
+        public static void Convert(this Decoder decoder, in ReadOnlySequence<byte> bytes, Span<char> writer, int char_count, bool flush, out int totalBytesWritten, out int totalCharsWritten, out bool completed)
+        {
+            totalBytesWritten = 0;
+            totalCharsWritten = 0;
+            completed = false;
+
+            if (bytes.IsSingleSegment)
+            {
+                decoder.Convert(bytes.FirstSpan, writer.Slice(0,char_count), flush, out totalBytesWritten, out totalCharsWritten, out completed);
+            }
+            else
+            {
+                ReadOnlySequence<byte> remainingBytes = bytes;
+                int charsWritten = 0;
+                int bytesWritten = 0;
+
+                foreach (var mem in remainingBytes)
+                {
+                    decoder.Convert(mem.Span, writer, flush, out bytesWritten, out charsWritten, out completed);
+                    totalBytesWritten += bytesWritten;
+                    totalCharsWritten += charsWritten;
+                }
+            }
+        }
+    }
+#endif
     /// <summary>
     /// 読み取り専用文字列のためのデーターストア
     /// </summary>
@@ -23,18 +60,24 @@ namespace FooProject.Collection.DataStore
         Encoding _encoding;
         Decoder _decoder;
         long _leastLoadPostion;
+#if NET6_0_OR_GREATER
+        PipeReader _pipeReader;
+#endif
 
         /// <summary>
         /// コンストラクター
         /// </summary>
         /// <param name="stream">読み取り対象のストリーム</param>
         /// <param name="enc">エンコーディング</param>
-        public ReadOnlyCharDataStore(Stream stream, Encoding enc) : base(8)
+        public ReadOnlyCharDataStore(Stream stream, Encoding enc,int buffersize = -1) : base(8)
         {
             this.stream = stream;
             _encoding = enc;
             _decoder = enc.GetDecoder();
             _leastLoadPostion = 0;
+#if NET6_0_OR_GREATER
+            this._pipeReader = PipeReader.Create(stream);
+#endif
         }
 
         private int GetFetchIndexWithoutPreamble(byte[] bytes, Encoding encoding)
@@ -57,6 +100,98 @@ namespace FooProject.Collection.DataStore
             }
 
             return index;
+        }
+
+#if NET6_0_OR_GREATER
+        private ReadOnlySequence<byte> SkipPreaemble(ReadOnlySequence<byte> buffer, ReadOnlySpan<byte> preaemble)
+        {
+            var skipLengh = 0;
+            int preaembleIndex = 0;
+            foreach (var mem in buffer)
+            {
+                if (preaembleIndex >= preaemble.Length)
+                    break;
+                for (int i = 0; i < mem.Span.Length && preaembleIndex < preaemble.Length; i++)
+                {
+                    if (mem.Span[i] == preaemble[preaembleIndex])
+                    {
+                        skipLengh++;
+                    }
+                    preaembleIndex++;
+                }
+            }
+            return buffer.Slice(skipLengh);
+        }
+#endif
+
+        public override async Task<OnLoadAsyncResult<IComposableList<char>>> OnLoadAsync(int count)
+        {
+#if NET6_0_OR_GREATER
+            int byte_array_len = _encoding.GetMaxByteCount(count);
+            ArrayBufferWriter<char> arrayBufferWriter = new ArrayBufferWriter<char>(count);
+            int leftCount = count;
+
+            try
+            {
+                long index = _leastLoadPostion;
+                int totalConvertedBytes = 0;
+                int totalConvertedChars = 0;
+
+                while (leftCount > 0)
+                {
+                    stream.Position = _leastLoadPostion;
+
+                    var bufferResult = await _pipeReader.ReadAsync().ConfigureAwait(false);
+
+                    if (bufferResult.IsCompleted && bufferResult.Buffer.Length == 0)
+                    {
+                        _decoder.Reset();
+                        break;
+                    }
+
+                    var skippedReadOnlyBuffer = bufferResult.Buffer;
+                    int skippedLength = 0;
+
+                    if (_leastLoadPostion == 0 && _encoding.Preamble.Length > 0)
+                    {
+                        skippedReadOnlyBuffer = SkipPreaemble(bufferResult.Buffer, _encoding.Preamble);
+                        var preambleBufferPosition = bufferResult.Buffer.GetPosition(_encoding.Preamble.Length);
+                        _pipeReader.AdvanceTo(preambleBufferPosition);
+                        _leastLoadPostion += _encoding.Preamble.Length;
+                        index += _encoding.Preamble.Length;
+                    }
+
+                    int converted_bytes, converted_chars;
+                    bool completed;
+                    _decoder.Convert(skippedReadOnlyBuffer.Slice(0, Math.Min(byte_array_len, skippedReadOnlyBuffer.Length)), arrayBufferWriter.GetSpan(), Math.Min(count,leftCount), false, out converted_bytes, out converted_chars, out completed);
+                    arrayBufferWriter.Advance(converted_chars);
+                    _pipeReader.AdvanceTo(skippedReadOnlyBuffer.Slice(0, converted_bytes).End);
+                    leftCount -= converted_chars;
+
+                    totalConvertedBytes += converted_bytes;
+                    totalConvertedChars += converted_chars;
+
+                    _leastLoadPostion += converted_bytes;
+                }
+
+                var list = new ReadOnlyComposableList<char>(arrayBufferWriter.WrittenSpan.ToArray());
+
+                if(list.Count == 0)
+                {
+                    return new OnLoadAsyncResult<IComposableList<char>>(null, 0, 0);
+                }
+                else
+                {
+                    return new OnLoadAsyncResult<IComposableList<char>>(list, index, totalConvertedBytes);
+                }
+            }
+            finally
+            {
+            }
+
+#else
+            throw new NotSupportedException(".net 6.0以降を使用してください");
+#endif
         }
 
         public override IComposableList<char> OnLoad(int count, out long index, out int read_bytes)

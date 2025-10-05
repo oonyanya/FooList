@@ -51,7 +51,7 @@ namespace UnitTest
             return CreateListAndLoad(memoryStream, str.Length, out datastore, fn);
         }
 
-        BigList<char> CreateListAndLoad(MemoryStream memoryStream,int strlen, out ReadonlyContentStoreBase<IComposableList<char>> datastore, Action<BigList<char>> fn = null)
+        BigList<char> CreateList(MemoryStream memoryStream, int strlen, out ReadonlyContentStoreBase<IComposableList<char>> datastore)
         {
             var memoryStore = new MemoryPinableContentDataStore<IComposableList<char>>();
             var lazyLoadStore = new ReadOnlyCharDataStore(memoryStream, Encoding.UTF8);
@@ -62,8 +62,15 @@ namespace UnitTest
             biglist1.CustomBuilder = customConverter;
             biglist1.LeastFetchStore = customConverter;
             datastore = lazyLoadStore;
+            return biglist1;
+        }
 
-            while(true){
+        BigList<char> CreateListAndLoad(MemoryStream memoryStream,int strlen, out ReadonlyContentStoreBase<IComposableList<char>> datastore, Action<BigList<char>> fn = null)
+        {
+            ReadonlyContentStoreBase<IComposableList<char>> lazyLoadStore;
+            var biglist1 = CreateList(memoryStream, strlen, out lazyLoadStore);
+            datastore = lazyLoadStore;
+            while (true){
                 var pinableContainer = lazyLoadStore.Load(loadLen);
                 if (pinableContainer == null)
                     break;
@@ -73,6 +80,23 @@ namespace UnitTest
             }
 
             return biglist1;
+        }
+
+        async Task< (BigList<char> list, ReadonlyContentStoreBase<IComposableList<char>> dataStore)> CreateListAndLoadAsync(MemoryStream memoryStream, int strlen, Action<BigList<char>> fn = null)
+        {
+            ReadonlyContentStoreBase<IComposableList<char>> lazyLoadStore;
+            var biglist1 = CreateList(memoryStream, strlen, out lazyLoadStore);
+            while (true)
+            {
+                var pinableContainer = await lazyLoadStore.LoadAsync(loadLen);
+                if (pinableContainer == null)
+                    break;
+                biglist1.Add(pinableContainer);
+                if (fn != null)
+                    fn(biglist1);
+            }
+
+            return (biglist1,lazyLoadStore);
         }
 
         [TestMethod]
@@ -93,6 +117,26 @@ namespace UnitTest
                 Assert.AreEqual(str[i], list[i]);
             }
         }
+
+#if NET6_0_OR_GREATER
+        [TestMethod]
+        public void LoadAsyncStringWithBOMTest()
+        {
+            var str = "日本国民は、正当に選挙された国会における代表者を通じて行動し、われらとわれらの子孫のために、諸国民との協和による成果と、わが国全土にわたって自由のもたらす恵沢を確保し、政府の行為によって再び戦争の惨禍が起ることのないやうにすることを決意し、ここに主権が国民に存することを宣言し、この憲法を確定する。";
+            var memoryStream = new MemoryStream();
+            memoryStream.Write(Encoding.UTF8.Preamble);
+            memoryStream.Write(Encoding.UTF8.GetBytes(str));
+            memoryStream.Position = 0;
+            var result = CreateListAndLoadAsync(memoryStream, str.Length).Result;
+            var list = result.list;
+            Assert.AreEqual(str.Length, list.Count);
+
+            for (int i = 0; i < str.Length; i++)
+            {
+                Assert.AreEqual(str[i], list[i]);
+            }
+        }
+#endif
 
         [TestMethod]
         public void LoadStringWithAddAndInsertAndRemoveTest()

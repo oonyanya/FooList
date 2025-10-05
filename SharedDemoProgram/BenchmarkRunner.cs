@@ -32,6 +32,26 @@ namespace SharedDemoProgram
                 System.Diagnostics.Debug.WriteLine("end prevent sleep");
             }
         }
+
+        public static async Task<long> RunAsync(Func<Task> action)
+        {
+            if (action == null)
+                throw new ArgumentNullException("action");
+
+            try
+            {
+                NativeMethods.EnableConstantPower(true);
+                var sw = Stopwatch.StartNew();
+                await action();
+                sw.Stop();
+                return sw.ElapsedMilliseconds;
+            }
+            finally
+            {
+                NativeMethods.EnableConstantPower(false);
+                System.Diagnostics.Debug.WriteLine("end prevent sleep");
+            }
+        }
     }
 
     internal static class NativeMethods

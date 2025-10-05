@@ -58,9 +58,11 @@ while (exitflag == false)
     string cmd = Console.ReadLine();
 
     string[] cmds = cmd.Split(" ");
-    Parser.Default.ParseArguments<LoadCommnad, LoadAllCommnad, SaveCommand, UsageCommnad, InsertCommand, RemoveCommand, ShowCommand, ExitCommnad, FindCommand>(cmds)
-        .WithParsed<LoadCommnad>(opt => {
-            var time = BenchmarkRunner.Run(() => {
+    await Parser.Default.ParseArguments<LoadCommnad, LoadAllCommnad, SaveCommand, UsageCommnad, InsertCommand, RemoveCommand, ShowCommand, ExitCommnad, FindCommand>(cmds)
+        .WithParsed<LoadCommnad>(opt =>
+        {
+            var time = BenchmarkRunner.Run(() =>
+            {
                 for (int i = 0; i < opt.Count; i++)
                 {
                     var pinableContainer = lazyLoadStore.Load(biglist1.BlockSize);
@@ -71,22 +73,12 @@ while (exitflag == false)
             });
             Console.WriteLine($"success to load. elapsed time:{time} ms");
         })
-        .WithParsed<LoadAllCommnad>(opt => {
-            var time = BenchmarkRunner.Run(() => {
-                while (true)
-                {
-                    var pinableContainer = lazyLoadStore.Load(biglist1.BlockSize);
-                    if (pinableContainer == null)
-                        break;
-                    biglist1.Add(pinableContainer);
-                }
-            });
-            Console.WriteLine($"success to load.elapsed time:{time} ms");
-        })
-        .WithParsed<SaveCommand>(opt => {
+        .WithParsed<SaveCommand>(opt =>
+        {
             try
             {
-                var time = BenchmarkRunner.Run(() => {
+                var time = BenchmarkRunner.Run(() =>
+                {
                     if (string.IsNullOrEmpty(opt.FilePath))
                     {
                         Console.WriteLine("must be set filepath");
@@ -119,15 +111,18 @@ while (exitflag == false)
                 Console.WriteLine(ex.Message);
             }
         })
-        .WithParsed<UsageCommnad>(opt => {
+        .WithParsed<UsageCommnad>(opt =>
+        {
             Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}" + "bytes");
             Console.WriteLine("Loaded Char Count:" + biglist1.Count);
         })
-        .WithParsed<InsertCommand>(opt => {
+        .WithParsed<InsertCommand>(opt =>
+        {
             var number = opt.Index;
             if (number >= 0 && number < biglist1.Count)
             {
-                var time = BenchmarkRunner.Run(() => {
+                var time = BenchmarkRunner.Run(() =>
+                {
                     biglist1.InsertRange(number, opt.Text);
                 });
                 Console.WriteLine($"success.elapsed time:{time} ms");
@@ -137,7 +132,8 @@ while (exitflag == false)
                 Console.WriteLine("too large index");
             }
         })
-        .WithParsed<RemoveCommand>(opt => {
+        .WithParsed<RemoveCommand>(opt =>
+        {
             var number = opt.Index;
             if (number >= 0 && number < biglist1.Count)
             {
@@ -146,7 +142,8 @@ while (exitflag == false)
                 {
                     length = biglist1.Count - number;
                 }
-                var time = BenchmarkRunner.Run(() => {
+                var time = BenchmarkRunner.Run(() =>
+                {
                     biglist1.RemoveRange(number, length);
                 });
                 Console.WriteLine($"success.elapsed time:{time} ms");
@@ -156,7 +153,8 @@ while (exitflag == false)
                 Console.WriteLine("too large index");
             }
         })
-        .WithParsed<ShowCommand>(opt => {
+        .WithParsed<ShowCommand>(opt =>
+        {
             Console.WriteLine("");
             var number = opt.Index;
             if (number >= 0 && number < biglist1.Count)
@@ -171,7 +169,8 @@ while (exitflag == false)
                     length = biglist1.Count - number;
                 }
                 string text = string.Empty;
-                var time = BenchmarkRunner.Run(() => {
+                var time = BenchmarkRunner.Run(() =>
+                {
                     text = new string(biglist1.GetRangeEnumerable(number, length).ToArray());
                 });
                 Console.WriteLine(text);
@@ -197,7 +196,8 @@ while (exitflag == false)
                     length = biglist1.Count - number;
                 }
                 long foundIndex = -1;
-                var time = BenchmarkRunner.Run(() => {
+                var time = BenchmarkRunner.Run(() =>
+                {
                     var textSearch = new TextSearch(opt.Text, opt.CaseInsensitive);
                     foundIndex = textSearch.IndexOf(biglist1, number, length);
                 });
@@ -217,7 +217,22 @@ while (exitflag == false)
             }
 
         })
-        .WithParsed<ExitCommnad>(opt => {
+        .WithParsed<ExitCommnad>(opt =>
+        {
             exitflag = true;
+        })
+        .WithParsedAsync<LoadAllCommnad>(async opt =>
+        {
+            var time = await BenchmarkRunner.RunAsync( async () =>
+            {
+                while (true)
+                {
+                    var pinableContainer = await lazyLoadStore.LoadAsync(biglist1.BlockSize);
+                    if (pinableContainer == null)
+                        break;
+                    biglist1.Add(pinableContainer);
+                }
+            });
+            Console.WriteLine($"success to load.elapsed time:{time} ms");
         });
 }

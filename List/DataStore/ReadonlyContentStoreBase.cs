@@ -7,6 +7,28 @@ using System.Threading.Tasks;
 
 namespace FooProject.Collection.DataStore
 {
+    public class OnLoadAsyncResult<T>
+    {
+        /// <summary>
+        /// 読み込まれた内容
+        /// </summary>
+        public T Value { get; }
+        /// <summary>
+        /// 割り当てられたインデックス。専らファイル上のアドレスを指す。
+        /// </summary>
+        public long Index { get; }
+        /// <summary>
+        /// 割り当てられたバイト数。
+        /// </summary>
+        public int ReadBytes { get; }
+        public OnLoadAsyncResult(T value, long index, int read_bytes)
+        {
+            this.Value = value;
+            this.Index = index;
+            this.ReadBytes = read_bytes;
+        }
+    }
+
     /// <summary>
     /// 読み取り専用ストアの基底クラス
     /// </summary>
@@ -67,6 +89,39 @@ namespace FooProject.Collection.DataStore
                     yield return item;
                 }
             }
+        }
+
+        /// <summary>
+        /// 初回、読み込み時に呼び出される
+        /// </summary>
+        /// <param name="count">読み込む要素数</param>
+        /// <returns>読み込んだ要素を返す</returns>
+        /// <remarks>read_bytesが0を返した場合、これ以上読み取るものがないことを表す</remarks>
+        public virtual async Task<OnLoadAsyncResult<T>> OnLoadAsync(int count)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// 初回読み込みを行う
+        /// </summary>
+        /// <param name="count">読み込みたい要素数</param>
+        /// <returns>IPinableContainerを返す。これ以上読み取ることができない場合、nullを返す。</returns>
+        public async Task<IPinableContainer<T>> LoadAsync(int count)
+        {
+            var read_result = await OnLoadAsync(count);
+            var content = read_result.Value;
+            long index = read_result.Index;
+            int read_bytes = read_result.ReadBytes;
+            if (read_bytes == 0)
+                return null;
+            PinableContainer<T> newpin = (PinableContainer<T>)this.CreatePinableContainer(content);
+            //ディスク上に存在するので永遠に保存しておく必要はない
+            newpin.CacheIndex = PinableContainer<T>.NOTCACHED;
+            newpin.Info = new DiskAllocationInfo(index, read_bytes);
+            //まずはプライマリーデーターストアを使用する
+            newpin.ID = DEFAULT_ID;
+            return newpin;
         }
 
         /// <summary>
