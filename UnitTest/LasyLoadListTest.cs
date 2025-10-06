@@ -136,6 +136,23 @@ namespace UnitTest
                 Assert.AreEqual(str[i], list[i]);
             }
         }
+
+        [TestMethod]
+        public void LoadAsyncStringTest()
+        {
+            var str = "日本国民は、正当に選挙された国会における代表者を通じて行動し、われらとわれらの子孫のために、諸国民との協和による成果と、わが国全土にわたって自由のもたらす恵沢を確保し、政府の行為によって再び戦争の惨禍が起ることのないやうにすることを決意し、ここに主権が国民に存することを宣言し、この憲法を確定する。";
+            var memoryStream = new MemoryStream();
+            memoryStream.Write(Encoding.UTF8.GetBytes(str));
+            memoryStream.Position = 0;
+            var result = CreateListAndLoadAsync(memoryStream, str.Length).Result;
+            var list = result.list;
+            Assert.AreEqual(str.Length, list.Count);
+
+            for (int i = 0; i < str.Length; i++)
+            {
+                Assert.AreEqual(str[i], list[i]);
+            }
+        }
 #endif
 
         [TestMethod]
