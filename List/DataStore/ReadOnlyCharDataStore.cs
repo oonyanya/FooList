@@ -103,10 +103,11 @@ namespace FooProject.Collection.DataStore
         }
 
 #if NET6_0_OR_GREATER
-        private ReadOnlySequence<byte> SkipPreaemble(ReadOnlySequence<byte> buffer, ReadOnlySpan<byte> preaemble)
+        private ReadOnlySequence<byte> SkipPreaemble(ReadOnlySequence<byte> buffer, ReadOnlySpan<byte> preaemble, out bool skipped)
         {
-            var skipLengh = 0;
+            var skipLength = 0;
             int preaembleIndex = 0;
+            skipped = false;
             foreach (var mem in buffer)
             {
                 if (preaembleIndex >= preaemble.Length)
@@ -115,12 +116,16 @@ namespace FooProject.Collection.DataStore
                 {
                     if (mem.Span[i] == preaemble[preaembleIndex])
                     {
-                        skipLengh++;
+                        skipLength++;
                     }
                     preaembleIndex++;
                 }
             }
-            return buffer.Slice(skipLengh);
+            if (skipLength > 0)
+            {
+                skipped = true;
+            }
+            return buffer.Slice(skipLength);
         }
 #endif
 
@@ -154,11 +159,15 @@ namespace FooProject.Collection.DataStore
 
                     if (_leastLoadPostion == 0 && _encoding.Preamble.Length > 0)
                     {
-                        skippedReadOnlyBuffer = SkipPreaemble(bufferResult.Buffer, _encoding.Preamble);
-                        var preambleBufferPosition = bufferResult.Buffer.GetPosition(_encoding.Preamble.Length);
-                        _pipeReader.AdvanceTo(preambleBufferPosition);
-                        _leastLoadPostion += _encoding.Preamble.Length;
-                        index += _encoding.Preamble.Length;
+                        bool skipped;
+                        skippedReadOnlyBuffer = SkipPreaemble(bufferResult.Buffer, _encoding.Preamble, out skipped);
+                        if (skipped)
+                        {
+                            var preambleBufferPosition = bufferResult.Buffer.GetPosition(_encoding.Preamble.Length);
+                            _pipeReader.AdvanceTo(preambleBufferPosition);
+                            _leastLoadPostion += _encoding.Preamble.Length;
+                            index += _encoding.Preamble.Length;
+                        }
                     }
 
                     int converted_bytes, converted_chars;
