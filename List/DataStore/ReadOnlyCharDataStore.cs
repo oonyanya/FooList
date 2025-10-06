@@ -263,5 +263,18 @@ namespace FooProject.Collection.DataStore
                 ArrayPool<byte>.Shared.Return(array);
             }
         }
+
+        /// <summary>
+        /// 全ての処理が完了したことを表す。LoadAsyncを使用しない場合は呼び出す必要がない。
+        /// </summary>
+        /// <returns></returns>
+        public async Task CompleteAsync()
+        {
+#if NET6_0_OR_GREATER
+            await this._pipeReader.CompleteAsync();
+#else
+            await Task.Delay(0);
+#endif
+        }
     }
 }

@@ -128,6 +128,7 @@ namespace UnitTest
             memoryStream.Write(Encoding.UTF8.GetBytes(str));
             memoryStream.Position = 0;
             var result = CreateListAndLoadAsync(memoryStream, str.Length).Result;
+            var datastore = (ReadOnlyCharDataStore)result.dataStore;
             var list = result.list;
             Assert.AreEqual(str.Length, list.Count);
 
@@ -135,6 +136,8 @@ namespace UnitTest
             {
                 Assert.AreEqual(str[i], list[i]);
             }
+
+            datastore.CompleteAsync().Wait();
         }
 
         [TestMethod]
@@ -145,6 +148,7 @@ namespace UnitTest
             memoryStream.Write(Encoding.UTF8.GetBytes(str));
             memoryStream.Position = 0;
             var result = CreateListAndLoadAsync(memoryStream, str.Length).Result;
+            var datastore = (ReadOnlyCharDataStore)result.dataStore;
             var list = result.list;
             Assert.AreEqual(str.Length, list.Count);
 
@@ -152,6 +156,8 @@ namespace UnitTest
             {
                 Assert.AreEqual(str[i], list[i]);
             }
+
+            datastore.CompleteAsync().Wait();
         }
 #endif
 
