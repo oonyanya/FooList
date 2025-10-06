@@ -71,7 +71,7 @@ while (exitflag == false)
     string cmd = Console.ReadLine();
 
     string[] cmds = cmd.Split(" ");
-    await Parser.Default.ParseArguments<LoadCommnad, LoadAllCommnad, SaveCommand, UsageCommnad, InsertCommand, RemoveCommand, ShowCommand, ExitCommnad, FindCommand>(cmds)
+    await Parser.Default.ParseArguments<LoadCommnad, LoadAllCommnad, LoadAsyncAllCommnad, SaveCommand, UsageCommnad, InsertCommand, RemoveCommand, ShowCommand, ExitCommnad, FindCommand>(cmds)
         .WithParsed<LoadCommnad>(opt =>
         {
             var time = BenchmarkRunner.Run(() =>
@@ -85,6 +85,18 @@ while (exitflag == false)
                 }
             });
             Console.WriteLine($"success to load. elapsed time:{time} ms");
+        })
+        .WithParsed<LoadAllCommnad>(opt => {
+            var time = BenchmarkRunner.Run(() => {
+                while (true)
+                {
+                    var pinableContainer = lazyLoadStore.Load(biglist1.BlockSize);
+                    if (pinableContainer == null)
+                        break;
+                    biglist1.Add(pinableContainer);
+                }
+            });
+            Console.WriteLine($"success to load.elapsed time:{time} ms");
         })
         .WithParsed<SaveCommand>(opt =>
         {
@@ -234,7 +246,7 @@ while (exitflag == false)
         {
             exitflag = true;
         })
-        .WithParsedAsync<LoadAllCommnad>(async opt =>
+        .WithParsedAsync<LoadAsyncAllCommnad>(async opt =>
         {
             var time = await BenchmarkRunner.RunAsync( async () =>
             {

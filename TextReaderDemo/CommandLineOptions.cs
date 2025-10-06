@@ -21,6 +21,13 @@ namespace TextReaderDemo
         IEnumerable<string> args { get; set; }
     }
 
+    [Verb("loadasyncall", HelpText = "Load entire file asynchronously")]
+    public class LoadAsyncAllCommnad
+    {
+        [Value(0)]
+        IEnumerable<string> args { get; set; }
+    }
+
     [Verb("exit", HelpText = "Exit this progoram")]
     public class ExitCommnad
     {
