@@ -249,12 +249,19 @@ namespace FooProject.Collection.DataStore
 
         public override IComposableList<char> OnRead(long index, int bytes)
         {
-            byte[] array = new byte[bytes];
-            stream.Position = index;
-            stream.Read(array, 0, bytes);
-            var str = _encoding.GetString(array, 0, bytes);
-            var list = new ReadOnlyComposableList<char>(str);
-            return list;
+            byte[] array = ArrayPool<byte>.Shared.Rent(bytes);
+            try
+            {
+                stream.Position = index;
+                stream.Read(array, 0, bytes);
+                var str = _encoding.GetString(array, 0, bytes);
+                var list = new ReadOnlyComposableList<char>(str);
+                return list;
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(array);
+            }
         }
     }
 }
