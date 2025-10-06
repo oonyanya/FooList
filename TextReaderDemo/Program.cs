@@ -40,9 +40,22 @@ catch (UnauthorizedAccessException ex)
     Environment.Exit(1);
 }
 
-var memoryStore = new MemoryPinableContentDataStore<IComposableList<char>>();
+Console.WriteLine("Do you want to use diskbase store for edit file?(yes/no)");
+string usedisk = Console.ReadLine();
+IPinableContainerStore<IComposableList<char>> store;
+if (usedisk == "yes")
+{
+    var serializer = new StringBufferSerializer();
+    //ファイナライザーで消えるので何もしなくてもいい
+    store = new DiskPinableContentDataStore<IComposableList<char>>(serializer);
+}
+else
+{
+    store = new MemoryPinableContentDataStore<IComposableList<char>>();
+}
+
 var lazyLoadStore = new ReadOnlyCharDataStore(stream, Encoding.UTF8);
-lazyLoadStore.SecondaryDataStore = memoryStore;
+lazyLoadStore.SecondaryDataStore = store;
 var customConverter = new DefaultCustomConverter<char>();
 customConverter.DataStore = lazyLoadStore;
 BigList<char> biglist1 = new BigList<char>();

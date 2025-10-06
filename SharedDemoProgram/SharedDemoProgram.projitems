@@ -10,6 +10,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)BenchmarkRunner.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)StringBufferSerializer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TextSerach.cs" />
   </ItemGroup>
 </Project>
