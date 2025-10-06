@@ -54,7 +54,7 @@ namespace UnitTest
         BigList<char> CreateList(MemoryStream memoryStream, int strlen, out ReadonlyContentStoreBase<IComposableList<char>> datastore)
         {
             var memoryStore = new MemoryPinableContentDataStore<IComposableList<char>>();
-            var lazyLoadStore = new ReadOnlyCharDataStore(memoryStream, Encoding.UTF8);
+            var lazyLoadStore = new ReadOnlyCharDataStore(memoryStream, Encoding.UTF8, 8);
             lazyLoadStore.SecondaryDataStore = memoryStore;
             var customConverter = new DefaultCustomConverter<char>();
             customConverter.DataStore = lazyLoadStore;

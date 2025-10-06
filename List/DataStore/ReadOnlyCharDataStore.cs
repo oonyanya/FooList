@@ -69,7 +69,7 @@ namespace FooProject.Collection.DataStore
         /// </summary>
         /// <param name="stream">読み取り対象のストリーム</param>
         /// <param name="enc">エンコーディング</param>
-        public ReadOnlyCharDataStore(Stream stream, Encoding enc,int buffersize = -1) : base(8)
+        public ReadOnlyCharDataStore(Stream stream, Encoding enc,int cachesize = 128) : base(cachesize)
         {
             this.stream = stream;
             _encoding = enc;
