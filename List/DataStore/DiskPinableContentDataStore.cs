@@ -1,5 +1,4 @@
 ﻿//#define KEEP_TEMPORARY_FILE
-//#define USE_TWO_QUEUE_CACHE
 using Slusser.Collections.Generic;
 using System;
 using System.Collections.Generic;
@@ -42,11 +41,8 @@ namespace FooProject.Collection.DataStore
         ISerializeData<T> serializer;
         EmptyList emptyList = new EmptyList();
         bool disposedValue = false;
-#if USE_TWO_QUEUE_CACHE
-        ICacheList<long, PinableContainer<T>> writebackCacheList = new TwoQueueCacheList<long, PinableContainer<T>>();
-#else
+        ICacheList<long, PinableContainer<T>> readCacheList = new TwoQueueCacheList<long, PinableContainer<T>>();
         ICacheList<long, PinableContainer<T>> writebackCacheList = new FIFOCacheList<long, PinableContainer<T>>();
-#endif
         BinaryWriter writer;
         BinaryReader reader;
 
@@ -75,6 +71,22 @@ namespace FooProject.Collection.DataStore
             this.writer = new BinaryWriter(dataStream);
             this.reader = new BinaryReader(dataStream);
             this.serializer = serializer;
+            this.readCacheList.Limit = cache_limit;
+            this.readCacheList.CacheOuted += (ev) => {
+
+                var key = ev.Key;
+                var outed_item = ev.Value;
+                this.OnDispoing(outed_item.Content);
+
+                if (outed_item.IsRemoved == true)
+                    return;
+
+                outed_item.Info = null;
+                outed_item.Content = default(T);
+
+                this.emptyList.ReleaseID(outed_item.CacheIndex);
+                outed_item.CacheIndex = PinableContainer<T>.NOTCACHED;
+            };
             this.writebackCacheList.Limit = cache_limit;
             this.writebackCacheList.CacheOuted += (ev)=>{
 
@@ -123,7 +135,14 @@ namespace FooProject.Collection.DataStore
 
         public IEnumerable<T> ForEachAvailableContent()
         {
-            foreach(var pinableContainer in this.writebackCacheList.ForEachValue())
+            foreach (var pinableContainer in this.readCacheList.ForEachValue())
+            {
+                if (pinableContainer.CacheIndex != PinableContainer<T>.NOTCACHED || pinableContainer.Content?.Equals(default(T)) == false)
+                {
+                    yield return pinableContainer.Content;
+                }
+            }
+            foreach (var pinableContainer in this.writebackCacheList.ForEachValue())
             {
                 if (pinableContainer.CacheIndex != PinableContainer<T>.NOTCACHED || pinableContainer.Content?.Equals(default(T)) == false)
                 {
@@ -144,6 +163,7 @@ namespace FooProject.Collection.DataStore
 
         public void Commit()
         {
+            this.readCacheList.Flush();
             this.writebackCacheList.Flush();
             this.writer.Flush();
         }
@@ -168,7 +188,7 @@ namespace FooProject.Collection.DataStore
 
             PinableContainer<T> _;
             //キャッシュに存在してなかったら、読む
-            if(this.writebackCacheList.TryGet(pinableContainer.Info.Index, out _) && pinableContainer.Content != null)
+            if(this.readCacheList.TryGet(pinableContainer.Info.Index, out _) && pinableContainer.Content != null)
             {
                 result = new PinnedContent<T>(pinableContainer, this);
             }
@@ -178,6 +198,8 @@ namespace FooProject.Collection.DataStore
                 int count = this.reader.ReadInt32();
                 var data = this.reader.ReadBytes(count);
                 pinableContainer.Content = this.serializer.DeSerialize(data);
+                pinableContainer.CacheIndex = this.emptyList.GetID();
+                this.readCacheList.Set(pinableContainer.CacheIndex, pinableContainer);
                 result = new PinnedContent<T>(pinableContainer, this);
             }
 
@@ -187,6 +209,7 @@ namespace FooProject.Collection.DataStore
         public void Set(IPinableContainer<T> ipinableContainer)
         {
             var pinableContainer = (PinableContainer<T>)ipinableContainer;
+
             if (pinableContainer.IsRemoved)
             {
                 if(pinableContainer.Info != null)
