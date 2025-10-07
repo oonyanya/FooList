@@ -191,7 +191,7 @@ namespace FooProject.Collection.DataStore
             if (this.TryGet(ipinableContainer, out result))
                 return result;
             else
-                throw new ArgumentException();
+                throw new ArgumentException();  //TryGetが失敗することはあり得ないので、失敗したら、例外を投げる
         }
 
         public bool TryGet(IPinableContainer<T> ipinableContainer, out IPinnedContent<T> result)
@@ -219,6 +219,7 @@ namespace FooProject.Collection.DataStore
             {
                 pinableContainer.Content = OnRead(pinableContainer.Info.Index, pinableContainer.Info.AlignedLength);
                 result = new PinnedContent<T>(pinableContainer, this);
+                //読み取り専用なので、Setの段階でキャッシュにセットすれば問題はない
             }
 
             return true;
@@ -232,6 +233,7 @@ namespace FooProject.Collection.DataStore
                     this.SecondaryDataStore.Set(ipinableContainer);
                     return;
             }
+            //TryGetのほうでキャッシュにセットしてないのでここでセットする
             PinableContainer<T> pinableContainer = (PinableContainer<T>)ipinableContainer;
             if (pinableContainer.IsRemoved)
             {

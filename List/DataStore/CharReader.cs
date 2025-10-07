@@ -140,7 +140,6 @@ namespace FooProject.Collection.DataStore
                     }
 
                     var skippedReadOnlyBuffer = bufferResult.Buffer;
-                    int skippedLength = 0;
 
                     if (_leastLoadPostion == 0 && _encoding.Preamble.Length > 0)
                     {
