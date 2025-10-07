@@ -41,6 +41,62 @@ namespace UnitTest
     }
 
     [TestClass]
+    public class CharReaderTest
+    {
+#if NET6_0_OR_GREATER
+        [TestMethod]
+        public void LoadAsyncWithBOMTest()
+        {
+            var str = "日本国民は、正当に選挙された国会における代表者を通じて行動し、われらとわれらの子孫のために、諸国民との協和による成果と、わが国全土にわたって自由のもたらす恵沢を確保し、政府の行為によって再び戦争の惨禍が起ることのないやうにすることを決意し、ここに主権が国民に存することを宣言し、この憲法を確定する。";
+            var memoryStream = new MemoryStream();
+            memoryStream.Write(Encoding.UTF8.Preamble);
+            memoryStream.Write(Encoding.UTF8.GetBytes(str));
+            memoryStream.Position = 0;
+            var charReader = new CharReader(memoryStream, Encoding.UTF8);
+            var result = charReader.LoadAsync(str.Length).Result;
+            Assert.AreEqual(str, new string(result.Value.ToArray()));
+        }
+
+        [TestMethod]
+        public void LoadAsyncTest()
+        {
+            var str = "日本国民は、正当に選挙された国会における代表者を通じて行動し、われらとわれらの子孫のために、諸国民との協和による成果と、わが国全土にわたって自由のもたらす恵沢を確保し、政府の行為によって再び戦争の惨禍が起ることのないやうにすることを決意し、ここに主権が国民に存することを宣言し、この憲法を確定する。";
+            var memoryStream = new MemoryStream();
+            memoryStream.Write(Encoding.UTF8.GetBytes(str));
+            memoryStream.Position = 0;
+            var charReader = new CharReader(memoryStream, Encoding.UTF8);
+            var result = charReader.LoadAsync(str.Length).Result;
+            Assert.AreEqual(str, new string(result.Value.ToArray()));
+        }
+#endif
+
+        [TestMethod]
+        public void LoadTest()
+        {
+            var str = "日本国民は、正当に選挙された国会における代表者を通じて行動し、われらとわれらの子孫のために、諸国民との協和による成果と、わが国全土にわたって自由のもたらす恵沢を確保し、政府の行為によって再び戦争の惨禍が起ることのないやうにすることを決意し、ここに主権が国民に存することを宣言し、この憲法を確定する。";
+            var memoryStream = new MemoryStream();
+            memoryStream.Write(Encoding.UTF8.GetBytes(str));
+            memoryStream.Position = 0;
+            var charReader = new CharReader(memoryStream, Encoding.UTF8);
+            var result = charReader.Load(str.Length);
+            Assert.AreEqual(str,new string(result.Value.ToArray()));
+        }
+
+        [TestMethod]
+        public void LoadWithBOMTest()
+        {
+            var str = "日本国民は、正当に選挙された国会における代表者を通じて行動し、われらとわれらの子孫のために、諸国民との協和による成果と、わが国全土にわたって自由のもたらす恵沢を確保し、政府の行為によって再び戦争の惨禍が起ることのないやうにすることを決意し、ここに主権が国民に存することを宣言し、この憲法を確定する。";
+            var memoryStream = new MemoryStream();
+            memoryStream.Write(Encoding.UTF8.Preamble);
+            memoryStream.Write(Encoding.UTF8.GetBytes(str));
+            memoryStream.Position = 0;
+            var charReader = new CharReader(memoryStream, Encoding.UTF8);
+            var result = charReader.Load(str.Length);
+            Assert.AreEqual(str, new string(result.Value.ToArray()));
+        }
+    }
+
+    [TestClass]
     public class LasyLoadListTest
     {
         const int loadLen = 8;
@@ -101,47 +157,7 @@ namespace UnitTest
             return (biglist1,lazyLoadStore);
         }
 
-        [TestMethod]
-        public void LoadStringWithBOMTest()
-        {
-            ReadonlyContentStoreBase<IComposableList<char>> dataStore;
-            var str = "日本国民は、正当に選挙された国会における代表者を通じて行動し、われらとわれらの子孫のために、諸国民との協和による成果と、わが国全土にわたって自由のもたらす恵沢を確保し、政府の行為によって再び戦争の惨禍が起ることのないやうにすることを決意し、ここに主権が国民に存することを宣言し、この憲法を確定する。";
-            var memoryStream = new MemoryStream();
-            memoryStream.Write(Encoding.UTF8.Preamble);
-            memoryStream.Write(Encoding.UTF8.GetBytes(str));
-            memoryStream.Position = 0;
-            var list = CreateListAndLoad(memoryStream, str.Length, out dataStore);
-
-            Assert.AreEqual(str.Length, list.Count);
-
-            for (int i = 0; i < str.Length; i++)
-            {
-                Assert.AreEqual(str[i], list[i]);
-            }
-        }
-
 #if NET6_0_OR_GREATER
-        [TestMethod]
-        public void LoadAsyncStringWithBOMTest()
-        {
-            var str = "日本国民は、正当に選挙された国会における代表者を通じて行動し、われらとわれらの子孫のために、諸国民との協和による成果と、わが国全土にわたって自由のもたらす恵沢を確保し、政府の行為によって再び戦争の惨禍が起ることのないやうにすることを決意し、ここに主権が国民に存することを宣言し、この憲法を確定する。";
-            var memoryStream = new MemoryStream();
-            memoryStream.Write(Encoding.UTF8.Preamble);
-            memoryStream.Write(Encoding.UTF8.GetBytes(str));
-            memoryStream.Position = 0;
-            var result = CreateListAndLoadAsync(memoryStream, str.Length).Result;
-            var datastore = (ReadOnlyCharDataStore)result.dataStore;
-            var list = result.list;
-            Assert.AreEqual(str.Length, list.Count);
-
-            for (int i = 0; i < str.Length; i++)
-            {
-                Assert.AreEqual(str[i], list[i]);
-            }
-
-            datastore.CompleteAsync().Wait();
-        }
-
         [TestMethod]
         public void LoadAsyncStringTest()
         {
