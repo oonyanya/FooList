@@ -54,7 +54,8 @@ else
     store = new MemoryPinableContentDataStore<IComposableList<char>>();
 }
 
-var lazyLoadStore = new ReadOnlyCharDataStore(stream, Encoding.UTF8);
+var charReader = new CharReader(stream, Encoding.UTF8);
+var lazyLoadStore = new ReadOnlyCharDataStore(charReader);
 lazyLoadStore.SecondaryDataStore = store;
 var customConverter = new DefaultCustomConverter<char>();
 customConverter.DataStore = lazyLoadStore;

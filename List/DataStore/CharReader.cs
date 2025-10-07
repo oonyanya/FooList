@@ -14,6 +14,38 @@ using System.IO.Pipelines;
 
 namespace FooProject.Collection.DataStore
 {
+#if NET6_0_OR_GREATER
+    public static class DecoderExtension
+    {
+        public static void Convert(this Decoder decoder, in ReadOnlySequence<byte> bytes, Span<char> writer, int char_count, bool flush, out int totalBytesWritten, out int totalCharsWritten, out bool completed)
+        {
+            totalBytesWritten = 0;
+            totalCharsWritten = 0;
+            completed = false;
+
+            if (bytes.IsSingleSegment)
+            {
+                decoder.Convert(bytes.FirstSpan, writer.Slice(0, char_count), flush, out totalBytesWritten, out totalCharsWritten, out completed);
+            }
+            else
+            {
+                ReadOnlySequence<byte> remainingBytes = bytes;
+                int charsWritten = 0;
+                int bytesWritten = 0;
+
+                foreach (var mem in remainingBytes)
+                {
+                    decoder.Convert(mem.Span, writer, flush, out bytesWritten, out charsWritten, out completed);
+                    totalBytesWritten += bytesWritten;
+                    totalCharsWritten += charsWritten;
+                }
+            }
+        }
+    }
+#endif
+    /// <summary>
+    /// 文字列の読出しを行う
+    /// </summary>
     public class CharReader
     {
         Stream stream;
@@ -24,6 +56,11 @@ namespace FooProject.Collection.DataStore
         PipeReader _pipeReader;
 #endif
 
+        /// <summary>
+        /// コンストラクター
+        /// </summary>
+        /// <param name="stream">読み取り対象のストリーム</param>
+        /// <param name="enc">エンコーディング</param>
         public CharReader(Stream stream, Encoding enc)
         {
             this.stream = stream;
@@ -35,8 +72,14 @@ namespace FooProject.Collection.DataStore
 #endif
         }
 
+        /// <summary>
+        /// 読み取り対象のストリーム
+        /// </summary>
         public Stream Stream { get { return stream; } }
 
+        /// <summary>
+        /// エンコーディング
+        /// </summary>
         public Encoding Encoding { get { return _encoding; } }
 
 #if NET6_0_OR_GREATER
@@ -66,6 +109,11 @@ namespace FooProject.Collection.DataStore
         }
 #endif
 
+        /// <summary>
+        /// 文字を読み取る
+        /// </summary>
+        /// <param name="count">読み取る文字数</param>
+        /// <returns>OnLoadAsyncResultを返す。何も読み取らなかった場合についてはOnLoadAsyncResultを参照すること</returns>
         public async Task<OnLoadAsyncResult<IComposableList<char>>> LoadAsync(int count)
         {
 #if NET6_0_OR_GREATER
@@ -139,6 +187,10 @@ namespace FooProject.Collection.DataStore
 #endif
         }
 
+        /// <summary>
+        /// 読み取りが終了したことを通知する
+        /// </summary>
+        /// <returns></returns>
         public async Task CompleteAsync()
         {
 #if NET6_0_OR_GREATER
@@ -170,6 +222,11 @@ namespace FooProject.Collection.DataStore
             return index;
         }
 
+        /// <summary>
+        /// 文字を読み取る
+        /// </summary>
+        /// <param name="count">読み取る文字数</param>
+        /// <returns>OnLoadAsyncResultを返す。何も読み取らなかった場合についてはOnLoadAsyncResultを参照すること</returns>
         public OnLoadAsyncResult<IComposableList<char>> Load(int count)
         {
             int byte_array_len = _encoding.GetMaxByteCount(count);

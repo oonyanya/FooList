@@ -7,20 +7,30 @@ using System.Threading.Tasks;
 
 namespace FooProject.Collection.DataStore
 {
+    /// <summary>
+    /// 読み込んだ結果を格納する
+    /// </summary>
+    /// <typeparam name="T">読み取り内容の型を表す</typeparam>
     public class OnLoadAsyncResult<T>
     {
         /// <summary>
         /// 読み込まれた内容
         /// </summary>
+        /// <remarks>何も読み込まれなかった場合はnullが設定される</remarks>
         public T Value { get; }
+
         /// <summary>
         /// 割り当てられたインデックス。専らファイル上のアドレスを指す。
         /// </summary>
+        /// <remarks>何も読み込まれなかった場合は0が設定される</remarks>
         public long Index { get; }
+
         /// <summary>
         /// 割り当てられたバイト数。
         /// </summary>
+        /// <remarks>何も読み込まれなかった場合は0が設定される</remarks>
         public int ReadBytes { get; }
+
         public OnLoadAsyncResult(T value, long index, int read_bytes)
         {
             this.Value = value;

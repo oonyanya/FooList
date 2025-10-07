@@ -21,35 +21,6 @@ using System.IO.Pipelines;
 
 namespace FooProject.Collection.DataStore
 {
-#if NET6_0_OR_GREATER
-    public static class DecoderExtension
-    {
-        public static void Convert(this Decoder decoder, in ReadOnlySequence<byte> bytes, Span<char> writer, int char_count, bool flush, out int totalBytesWritten, out int totalCharsWritten, out bool completed)
-        {
-            totalBytesWritten = 0;
-            totalCharsWritten = 0;
-            completed = false;
-
-            if (bytes.IsSingleSegment)
-            {
-                decoder.Convert(bytes.FirstSpan, writer.Slice(0,char_count), flush, out totalBytesWritten, out totalCharsWritten, out completed);
-            }
-            else
-            {
-                ReadOnlySequence<byte> remainingBytes = bytes;
-                int charsWritten = 0;
-                int bytesWritten = 0;
-
-                foreach (var mem in remainingBytes)
-                {
-                    decoder.Convert(mem.Span, writer, flush, out bytesWritten, out charsWritten, out completed);
-                    totalBytesWritten += bytesWritten;
-                    totalCharsWritten += charsWritten;
-                }
-            }
-        }
-    }
-#endif
     /// <summary>
     /// 読み取り専用文字列のためのデーターストア
     /// </summary>
@@ -61,11 +32,11 @@ namespace FooProject.Collection.DataStore
         /// <summary>
         /// コンストラクター
         /// </summary>
-        /// <param name="stream">読み取り対象のストリーム</param>
-        /// <param name="enc">エンコーディング</param>
-        public ReadOnlyCharDataStore(Stream stream, Encoding enc,int cachesize = 128) : base(cachesize)
+        /// <param name="r">読み取り対象のCharReader</param>
+        /// <param name="cachesize">キャッシュサイズ</param>
+        public ReadOnlyCharDataStore(CharReader r,int cachesize = 128) : base(cachesize)
         {
-            this.reader = new CharReader(stream, enc);
+            this.reader = r;
         }
 
         public override async Task<OnLoadAsyncResult<IComposableList<char>>> OnLoadAsync(int count)
