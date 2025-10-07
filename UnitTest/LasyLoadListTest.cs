@@ -43,11 +43,23 @@ namespace UnitTest
     [TestClass]
     public class CharReaderTest
     {
+        const int TEST_SIZE = 32768;
+        private string GetText(int length)
+        {
+            var sb = new StringBuilder();
+            for (int i = 0; i < length; i++)
+            {
+                var value = i % 10;
+                sb.Append(value.ToString());
+            }
+            return sb.ToString();
+        }
+
 #if NET6_0_OR_GREATER
         [TestMethod]
         public void LoadAsyncWithBOMTest()
         {
-            var str = "日本国民は、正当に選挙された国会における代表者を通じて行動し、われらとわれらの子孫のために、諸国民との協和による成果と、わが国全土にわたって自由のもたらす恵沢を確保し、政府の行為によって再び戦争の惨禍が起ることのないやうにすることを決意し、ここに主権が国民に存することを宣言し、この憲法を確定する。";
+            var str = GetText(TEST_SIZE);
             var memoryStream = new MemoryStream();
             memoryStream.Write(Encoding.UTF8.Preamble);
             memoryStream.Write(Encoding.UTF8.GetBytes(str));
@@ -60,7 +72,7 @@ namespace UnitTest
         [TestMethod]
         public void LoadAsyncTest()
         {
-            var str = "日本国民は、正当に選挙された国会における代表者を通じて行動し、われらとわれらの子孫のために、諸国民との協和による成果と、わが国全土にわたって自由のもたらす恵沢を確保し、政府の行為によって再び戦争の惨禍が起ることのないやうにすることを決意し、ここに主権が国民に存することを宣言し、この憲法を確定する。";
+            var str = GetText(TEST_SIZE);
             var memoryStream = new MemoryStream();
             memoryStream.Write(Encoding.UTF8.GetBytes(str));
             memoryStream.Position = 0;
@@ -73,7 +85,7 @@ namespace UnitTest
         [TestMethod]
         public void LoadTest()
         {
-            var str = "日本国民は、正当に選挙された国会における代表者を通じて行動し、われらとわれらの子孫のために、諸国民との協和による成果と、わが国全土にわたって自由のもたらす恵沢を確保し、政府の行為によって再び戦争の惨禍が起ることのないやうにすることを決意し、ここに主権が国民に存することを宣言し、この憲法を確定する。";
+            var str = GetText(TEST_SIZE);
             var memoryStream = new MemoryStream();
             memoryStream.Write(Encoding.UTF8.GetBytes(str));
             memoryStream.Position = 0;
@@ -85,7 +97,7 @@ namespace UnitTest
         [TestMethod]
         public void LoadWithBOMTest()
         {
-            var str = "日本国民は、正当に選挙された国会における代表者を通じて行動し、われらとわれらの子孫のために、諸国民との協和による成果と、わが国全土にわたって自由のもたらす恵沢を確保し、政府の行為によって再び戦争の惨禍が起ることのないやうにすることを決意し、ここに主権が国民に存することを宣言し、この憲法を確定する。";
+            var str = GetText(TEST_SIZE);
             var memoryStream = new MemoryStream();
             memoryStream.Write(Encoding.UTF8.Preamble);
             memoryStream.Write(Encoding.UTF8.GetBytes(str));
