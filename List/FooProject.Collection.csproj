@@ -7,7 +7,20 @@
     <Version>1.0.12$(VersionPrefix)</Version>
     <IncludeSymbols>True</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <Title>FooList</Title>
+    <PackageProjectUrl>https://github.com/oonyanya/FooList</PackageProjectUrl>
+    <Copyright>FooProject(c)</Copyright>
+    <Description>Provides a huge list over 2^32 -1 in memory,disk,memory mapping and lazy loader based on Wintellect.PowerCollections.</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageTags>Wintellect PowerCollections;Rope;BigList</PackageTags>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="System.IO.Pipelines" Version="9.0.9" />
