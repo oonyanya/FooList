@@ -80,6 +80,62 @@ namespace UnitTest
             }
         }
 
+        class TestLeastFetchStore<T> : IStateStore<T>
+        {
+            public bool Result { get; private set; }
+            public ILeastFetch<T> LeastFetch { get; private set; }
+
+            public TestLeastFetchStore()
+            {
+                Result = false;
+                LeastFetch = null;
+            }
+
+            public void ResetState()
+            {
+                this.Result = true;
+                LeastFetch = null;
+            }
+
+            public void SetState(Node<T> current, long totalLeftCountInList)
+            {
+                this.LeastFetch = new LeastFetch<T>(current, totalLeftCountInList);
+            }
+        }
+
+        class TestCustomConverter<T> : DefaultCustomConverter<T>
+        {
+            public TestCustomConverter() : base() { Result = false; }
+            public bool Result { get; private set; }
+            public override IComposableList<T> CreateList(long init_capacity, long maxcapacity, IEnumerable<T> collection = null)
+            {
+                var list = new ReadOnlyComposableList<T>(collection);
+                this.Result = true;
+                return list;
+            }
+        }
+
+        [TestMethod]
+        public void LeastFetchStoreTest()
+        {
+            var testConverter = new TestLeastFetchStore<char>();
+            var buf = new FooProject.Collection.BigList<char>();
+            buf.LeastFetchStore = testConverter;
+            buf.Add('t');
+            Assert.AreEqual(true, testConverter.Result);
+        }
+
+        [TestMethod]
+        public void CustomBuilderTest()
+        {
+            var testConverter = new TestCustomConverter<char>();
+            testConverter.DataStore = new MemoryPinableContentDataStore<IComposableList<char>>();
+            var buf = new FooProject.Collection.BigList<char>();
+            buf.CustomBuilder = testConverter;
+            buf.Add('t');
+            Assert.AreEqual(true, testConverter.Result);
+        }
+
         [TestMethod]
         public void BlockSizeTest()
         {
