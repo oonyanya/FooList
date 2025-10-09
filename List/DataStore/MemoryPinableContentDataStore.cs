@@ -40,7 +40,7 @@ namespace FooProject.Collection.DataStore
 
         public IPinableContainer<T> CreatePinableContainer(T content)
         {
-            return new PinableContainer<T>(content);
+            return new PinableContainer<T>(content) { ID = nameof(MemoryPinableContentDataStore<T>) };
         }
     }
 }

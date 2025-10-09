@@ -46,8 +46,8 @@ namespace FooProject.Collection.DataStore
     public class ReadonlyContentStoreBase<T> : IPinableContainerStore<T>
     {
         //データーストアのID一覧。初期状態はDEFAULT_IDとなる。
-        const int DEFAULT_ID = 0;
-        const int SECONDARY_DATA_STORE_ID = 1;
+        const string DEFAULT_ID = nameof(ReadonlyContentStoreBase<T>);
+        const string SECONDARY_DATA_STORE_ID = nameof(ReadonlyContentStoreBase<T>) + ".SecondaryDataStore";
 
         EmptyList emptyList = new EmptyList();
         TwoQueueCacheList<long, PinableContainer<T>> cacheList = null;

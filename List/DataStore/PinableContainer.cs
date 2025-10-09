@@ -27,7 +27,7 @@ namespace FooProject.Collection.DataStore
         /// <summary>
         /// IDを指定する。IDの使い方はストアごとに違うのでストアのドキュメントを参照すること。
         /// </summary>
-        int ID { get; set; }
+        string ID { get; set; }
     }
 
     public class PinableContainer<T> : IPinableContainer<T>
@@ -42,7 +42,7 @@ namespace FooProject.Collection.DataStore
 
         public bool IsRemoved { get; set; }
 
-        public int ID { get; set; }
+        public string ID { get; set; }
 
         /// <summary>
         /// コンストラクター。IPinableContainerStoreインターフェイスを継承したクラス内以外では使用しないこと。
@@ -54,6 +54,7 @@ namespace FooProject.Collection.DataStore
             Info = null;
             CacheIndex = NOTCACHED;
             IsRemoved = false;
+            ID = null;
         }
 
         public void RemoveContent()
