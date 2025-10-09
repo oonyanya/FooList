@@ -41,7 +41,11 @@ namespace FooProject.Collection.DataStore
 
         public override async Task<OnLoadAsyncResult<IComposableList<char>>> OnLoadAsync(int count)
         {
-            return await this.reader.LoadAsync(count);
+            var r = await this.reader.LoadAsync(count);
+            var result = new OnLoadAsyncResult<IComposableList<char>>(
+                new ReadOnlyComposableList<char>(r.Value),r.Index,r.ReadBytes
+                );
+            return result;
         }
 
         public override IComposableList<char> OnLoad(int count, out long index, out int read_bytes)
@@ -49,7 +53,7 @@ namespace FooProject.Collection.DataStore
             var result = this.reader.Load(count);
             index = result.Index;
             read_bytes = result.ReadBytes;
-            return result.Value;
+            return new ReadOnlyComposableList<char>(result.Value);
         }
 
         public override IComposableList<char> OnRead(long index, int bytes)

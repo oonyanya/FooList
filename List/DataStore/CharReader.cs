@@ -114,7 +114,7 @@ namespace FooProject.Collection.DataStore
         /// </summary>
         /// <param name="count">読み取る文字数</param>
         /// <returns>OnLoadAsyncResultを返す。何も読み取らなかった場合についてはOnLoadAsyncResultを参照すること</returns>
-        public async Task<OnLoadAsyncResult<IComposableList<char>>> LoadAsync(int count)
+        public async Task<OnLoadAsyncResult<IEnumerable<char>>> LoadAsync(int count)
         {
 #if NET6_0_OR_GREATER
             int byte_array_len = _encoding.GetMaxByteCount(count);
@@ -167,15 +167,15 @@ namespace FooProject.Collection.DataStore
                     _leastLoadPostion += converted_bytes;
                 }
 
-                var list = new ReadOnlyComposableList<char>(arrayBufferWriter.WrittenSpan.ToArray());
+                var list = arrayBufferWriter.WrittenSpan.ToArray();
 
-                if (list.Count == 0)
+                if (list.Length == 0)
                 {
-                    return new OnLoadAsyncResult<IComposableList<char>>(null, 0, 0);
+                    return new OnLoadAsyncResult<IEnumerable<char>>(null, 0, 0);
                 }
                 else
                 {
-                    return new OnLoadAsyncResult<IComposableList<char>>(list, index, totalConvertedBytes);
+                    return new OnLoadAsyncResult<IEnumerable<char>>(list, index, totalConvertedBytes);
                 }
             }
             finally
@@ -226,7 +226,7 @@ namespace FooProject.Collection.DataStore
         /// </summary>
         /// <param name="count">読み取る文字数</param>
         /// <returns>OnLoadAsyncResultを返す。何も読み取らなかった場合についてはOnLoadAsyncResultを参照すること</returns>
-        public OnLoadAsyncResult<IComposableList<char>> Load(int count)
+        public OnLoadAsyncResult<IEnumerable<char>> Load(int count)
         {
             int byte_array_len = _encoding.GetMaxByteCount(count);
             byte[] byte_array = ArrayPool<byte>.Shared.Rent(byte_array_len);
@@ -243,7 +243,7 @@ namespace FooProject.Collection.DataStore
                 {
                     _decoder.Reset();
                     //.NET standard 2.0以降だとfinallyに飛ぶので何もしなくていい
-                    return new OnLoadAsyncResult<IComposableList<char>>(null, 0, 0);
+                    return new OnLoadAsyncResult<IEnumerable<char>>(null, 0, 0);
                 }
 
                 int fetch_index = GetFetchIndexWithoutPreamble(byte_array, _encoding);
@@ -260,8 +260,7 @@ namespace FooProject.Collection.DataStore
                 _leastLoadPostion += converted_bytes;
                 read_bytes = converted_bytes;
 
-                var list = new ReadOnlyComposableList<char>(char_array.Take(converted_chars));
-                return new OnLoadAsyncResult<IComposableList<char>>(list, index, read_bytes);
+                return new OnLoadAsyncResult<IEnumerable<char>>(char_array.Take(converted_chars), index, read_bytes);
             }
             finally
             {
