@@ -39,7 +39,7 @@ namespace FooProject.Collection.DataStore
             this.reader = r;
         }
 
-        public override async Task<OnLoadAsyncResult<IComposableList<char>>> OnLoadAsync(int count)
+        protected override async Task<OnLoadAsyncResult<IComposableList<char>>> OnLoadAsync(int count)
         {
             var r = await this.reader.LoadAsync(count);
             var result = new OnLoadAsyncResult<IComposableList<char>>(
@@ -48,7 +48,7 @@ namespace FooProject.Collection.DataStore
             return result;
         }
 
-        public override IComposableList<char> OnLoad(int count, out long index, out int read_bytes)
+        protected override IComposableList<char> OnLoad(int count, out long index, out int read_bytes)
         {
             var result = this.reader.Load(count);
             index = result.Index;
@@ -56,7 +56,7 @@ namespace FooProject.Collection.DataStore
             return new ReadOnlyComposableList<char>(result.Value);
         }
 
-        public override IComposableList<char> OnRead(long index, int bytes)
+        protected override IComposableList<char> OnRead(long index, int bytes)
         {
             byte[] array = ArrayPool<byte>.Shared.Rent(bytes);
             try

@@ -21,7 +21,7 @@ namespace UnitTest
             this.stream = stream;
         }
 
-        public override IComposableList<byte> OnLoad(int count, out long index, out int read_bytes)
+        protected override IComposableList<byte> OnLoad(int count, out long index, out int read_bytes)
         {
             byte[] array = new byte[count];
             index = stream.Position;
@@ -30,7 +30,7 @@ namespace UnitTest
             return list;
         }
 
-        public override IComposableList<byte> OnRead(long index, int count)
+        protected override IComposableList<byte> OnRead(long index, int count)
         {
             byte[] array = new byte[count];
             stream.Position = index;

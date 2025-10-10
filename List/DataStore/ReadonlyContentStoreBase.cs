@@ -107,7 +107,7 @@ namespace FooProject.Collection.DataStore
         /// <param name="count">読み込む要素数</param>
         /// <returns>読み込んだ要素を返す</returns>
         /// <remarks>read_bytesが0を返した場合、これ以上読み取るものがないことを表す</remarks>
-        public virtual async Task<OnLoadAsyncResult<T>> OnLoadAsync(int count)
+        protected virtual async Task<OnLoadAsyncResult<T>> OnLoadAsync(int count)
         {
             throw new NotImplementedException();
         }
@@ -142,7 +142,7 @@ namespace FooProject.Collection.DataStore
         /// <param name="read_bytes">割り当てられたバイト数。</param>
         /// <returns>読み込んだ要素を返す</returns>
         /// <remarks>read_bytesが0を返した場合、これ以上読み取るものがないことを表す</remarks>
-        public virtual T OnLoad(int count,out long index,out int read_bytes)
+        protected virtual T OnLoad(int count,out long index,out int read_bytes)
         {
             throw new NotImplementedException();
         }
@@ -174,7 +174,7 @@ namespace FooProject.Collection.DataStore
         /// <param name="index">読み込むべきインデックス。専らファイル上のアドレスを指す。</param>
         /// <param name="bytes">読み込むべきバイト数</param>
         /// <returns>読み込んだ要素を返す</returns>
-        public virtual T OnRead(long index, int bytes)
+        protected virtual T OnRead(long index, int bytes)
         {
             throw new NotImplementedException();
         }
