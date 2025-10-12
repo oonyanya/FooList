@@ -116,11 +116,21 @@ namespace FooProject.Collection.DataStore
         }
     }
 
+    public ref struct LineEnumratorState
+    {
+        public ReadOnlySpan<char> Current { get; private set; }
+        public bool hasLineFeed { get; private set; }
+        public LineEnumratorState(ReadOnlySpan<char> current, bool hasLineFeed)
+        {
+            this.Current = current;
+            this.hasLineFeed = hasLineFeed;
+        }
+    }
+
     public ref struct LineEnumrator
     {
         bool isActive;
         ReadOnlySpan<char> reamin,newline;
-        public ReadOnlySpan<char> Current { get; set; }
 
         public LineEnumrator(ReadOnlySpan<char> chars,ReadOnlySpan<char> linefeed)
         {
@@ -131,6 +141,8 @@ namespace FooProject.Collection.DataStore
         }
         public LineEnumrator GetEnumerator() => this;
 
+        public LineEnumratorState Current { get; private set; }
+
         public bool MoveNext()
         {
             if(isActive == false)
@@ -140,12 +152,12 @@ namespace FooProject.Collection.DataStore
             int index = reamin.IndexOf(newline);
             if (index == -1)
             {
-                Current = reamin;
+                Current = new LineEnumratorState(reamin, false);
                 isActive = false;
             }
             else
             {
-                Current = reamin.Slice(0, index);
+                Current = new LineEnumratorState(reamin.Slice(0, index),true);
                 reamin = reamin.Slice(index + newline.Length);
             }
             return true;
@@ -263,10 +275,13 @@ namespace FooProject.Collection.DataStore
             var enumrator = new LineEnumrator(chars, lineFeed);
             foreach(var line in enumrator)
             {
-                writer.Write(line);
-                total_written_chars += line.Length;
-                writer.Write(normalized_linefeed);
-                total_written_chars += normalized_linefeed.Length;
+                writer.Write(line.Current);
+                total_written_chars += line.Current.Length;
+                if (line.hasLineFeed)
+                {
+                    writer.Write(normalized_linefeed);
+                    total_written_chars += normalized_linefeed.Length;
+                }
             }
             return total_written_chars;
         }

@@ -23,7 +23,7 @@ namespace UnitTest
             var lineenumrator = new LineEnumrator(str,"\n");
             foreach(var line in lineenumrator)
             {
-                Assert.AreEqual("test", new string(line.ToArray()));
+                Assert.AreEqual("test", new string(line.Current.ToArray()));
             }
         }
     }
@@ -43,7 +43,41 @@ namespace UnitTest
             return sb.ToString();
         }
 
+        private string GetTextWithLineFeed(int length)
+        {
+            var sb = new StringBuilder();
+            for (int i = 0; i < length; i++)
+            {
+                var value = i % 10;
+                sb.Append(value.ToString());
+                if(i % 100 == 0)
+                {
+                    sb.Append("\r\n");
+                }
+            }
+            return sb.ToString();
+        }
+
+
 #if NET6_0_OR_GREATER
+        [TestMethod]
+        public void LoadAsyncWithNormalizeLineFeedTest()
+        {
+            var str = GetTextWithLineFeed(TEST_SIZE);
+            var memoryStream = new MemoryStream();
+            memoryStream.Write(Encoding.UTF8.GetBytes(str));
+            memoryStream.Position = 0;
+            var charReader = new CharReader(memoryStream, Encoding.UTF8);
+            charReader.LineFeed = "\r\n".ToArray();
+            charReader.NormalizedLineFeed = "\n".ToArray();
+            var result = charReader.LoadAsync(str.Length).Result;
+            var normalized_line_feed_str = str.Replace("\r\n", "\n");
+            var actual = result.Value.ToArray();
+            for (int i = 0; i < normalized_line_feed_str.Length; i++) {
+                Assert.AreEqual(normalized_line_feed_str[i], actual[i]);
+            }
+        }
+
         [TestMethod]
         public void LoadAsyncWithBOMTest()
         {
@@ -69,6 +103,25 @@ namespace UnitTest
             Assert.AreEqual(str, new string(result.Value.ToArray()));
         }
 #endif
+
+        [TestMethod]
+        public void LoadWithNormalizeLineFeedTest()
+        {
+            var str = GetTextWithLineFeed(TEST_SIZE);
+            var memoryStream = new MemoryStream();
+            memoryStream.Write(Encoding.UTF8.GetBytes(str));
+            memoryStream.Position = 0;
+            var charReader = new CharReader(memoryStream, Encoding.UTF8);
+            charReader.LineFeed = "\r\n".ToArray();
+            charReader.NormalizedLineFeed = "\n".ToArray();
+            var result = charReader.Load(str.Length);
+            var normalized_line_feed_str = str.Replace("\r\n", "\n");
+            var actual = result.Value.ToArray();
+            for (int i = 0; i < normalized_line_feed_str.Length; i++)
+            {
+                Assert.AreEqual(normalized_line_feed_str[i], actual[i]);
+            }
+        }
 
         [TestMethod]
         public void LoadTest()
@@ -139,8 +192,6 @@ namespace UnitTest
         {
             var memoryStore = new MemoryPinableContentDataStore<IComposableList<char>>();
             charReader = new CharReader(memoryStream, Encoding.UTF8);
-            //charReader.LineFeed = "\r\n".ToArray();
-            //charReader.NormalizedLineFeed = "\n".ToArray();
             var lazyLoadStore = new ReadOnlyCharDataStore(charReader, 8);
             lazyLoadStore.SecondaryDataStore = memoryStore;
             var customConverter = new DefaultCustomConverter<char>();
