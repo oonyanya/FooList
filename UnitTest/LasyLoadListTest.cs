@@ -1,4 +1,8 @@
-﻿using System;
+﻿using FooProject.Collection;
+using FooProject.Collection.DataStore;
+using Microsoft.VisualStudio.TestPlatform.PlatformAbstractions.Interfaces;
+using Microsoft.VisualStudio.TestPlatform.Utilities;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -6,40 +10,9 @@ using System.Drawing;
 using System.IO;
 using System.Reflection;
 using System.Text;
-using FooProject.Collection;
-using FooProject.Collection.DataStore;
-using Microsoft.VisualStudio.TestPlatform.PlatformAbstractions.Interfaces;
-using Microsoft.VisualStudio.TestPlatform.Utilities;
 
 namespace UnitTest
 {
-    class ReadOnlyByteDataStore : ReadonlyContentStoreBase<IComposableList<byte>>
-    {
-        MemoryStream stream;
-        public ReadOnlyByteDataStore(MemoryStream stream) : base(8)
-        {
-            this.stream = stream;
-        }
-
-        protected override IComposableList<byte> OnLoad(int count, out long index, out int read_bytes)
-        {
-            byte[] array = new byte[count];
-            index = stream.Position;
-            read_bytes = stream.Read(array, 0, count);
-            var list = new ReadOnlyComposableList<byte>(array.Take(read_bytes));
-            return list;
-        }
-
-        protected override IComposableList<byte> OnRead(long index, int count)
-        {
-            byte[] array = new byte[count];
-            stream.Position = index;
-            stream.Read(array, 0, count);
-            var list = new ReadOnlyComposableList<byte>(array);
-            return list;
-        }
-    }
-
     [TestClass]
     public class SpanLineEnumratorTest()
     {
@@ -47,7 +20,7 @@ namespace UnitTest
         public void EnumrateLines()
         {
             var str = "test\ntest\ntest";
-            var lineenumrator = new SpanLineEnumrator(str,"\n");
+            var lineenumrator = new LineEnumrator(str,"\n");
             foreach(var line in lineenumrator)
             {
                 Assert.AreEqual("test", new string(line.ToArray()));
@@ -126,6 +99,33 @@ namespace UnitTest
     [TestClass]
     public class LasyLoadListTest
     {
+        class ReadOnlyByteDataStore : ReadonlyContentStoreBase<IComposableList<byte>>
+        {
+            MemoryStream stream;
+            public ReadOnlyByteDataStore(MemoryStream stream) : base(8)
+            {
+                this.stream = stream;
+            }
+
+            public OnLoadAsyncResult<IComposableList<byte>> Load(int count)
+            {
+                byte[] array = new byte[count];
+                long index = stream.Position;
+                int read_bytes = stream.Read(array, 0, count);
+                var list = new ReadOnlyComposableList<byte>(array.Take(read_bytes));
+                return new OnLoadAsyncResult<IComposableList<byte>>(list, index, read_bytes);
+            }
+
+            protected override IComposableList<byte> OnRead(long index, int count)
+            {
+                byte[] array = new byte[count];
+                stream.Position = index;
+                stream.Read(array, 0, count);
+                var list = new ReadOnlyComposableList<byte>(array);
+                return list;
+            }
+        }
+
         const int loadLen = 8;
         BigList<char> CreateListAndLoad(string str, out ReadonlyContentStoreBase<IComposableList<char>> datastore,Action<BigList<char>> fn = null)
         {
@@ -135,10 +135,12 @@ namespace UnitTest
             return CreateListAndLoad(memoryStream, str.Length, out datastore, fn);
         }
 
-        BigList<char> CreateList(MemoryStream memoryStream, int strlen, out ReadonlyContentStoreBase<IComposableList<char>> datastore)
+        BigList<char> CreateList(MemoryStream memoryStream, int strlen, out ReadonlyContentStoreBase<IComposableList<char>> datastore,out CharReader charReader)
         {
             var memoryStore = new MemoryPinableContentDataStore<IComposableList<char>>();
-            var charReader = new CharReader(memoryStream, Encoding.UTF8);
+            charReader = new CharReader(memoryStream, Encoding.UTF8);
+            //charReader.LineFeed = "\r\n".ToArray();
+            //charReader.NormalizedLineFeed = "\n".ToArray();
             var lazyLoadStore = new ReadOnlyCharDataStore(charReader, 8);
             lazyLoadStore.SecondaryDataStore = memoryStore;
             var customConverter = new DefaultCustomConverter<char>();
@@ -152,11 +154,14 @@ namespace UnitTest
 
         BigList<char> CreateListAndLoad(MemoryStream memoryStream,int strlen, out ReadonlyContentStoreBase<IComposableList<char>> datastore, Action<BigList<char>> fn = null)
         {
+            CharReader charReader;
             ReadonlyContentStoreBase<IComposableList<char>> lazyLoadStore;
-            var biglist1 = CreateList(memoryStream, strlen, out lazyLoadStore);
+            var biglist1 = CreateList(memoryStream, strlen, out lazyLoadStore,out charReader);
             datastore = lazyLoadStore;
             while (true){
-                var pinableContainer = lazyLoadStore.Load(loadLen);
+                var result = charReader.Load(loadLen);
+                var newResult = OnLoadAsyncResult<IComposableList<char>>.Create(new ReadOnlyComposableList<char>(result.Value), result);
+                var pinableContainer = lazyLoadStore.Load(newResult);
                 if (pinableContainer == null)
                     break;
                 biglist1.Add(pinableContainer);
@@ -169,16 +174,21 @@ namespace UnitTest
 
         async Task< (BigList<char> list, ReadonlyContentStoreBase<IComposableList<char>> dataStore)> CreateListAndLoadAsync(MemoryStream memoryStream, int strlen, Action<BigList<char>> fn = null)
         {
+            CharReader charReader;
             ReadonlyContentStoreBase<IComposableList<char>> lazyLoadStore;
-            var biglist1 = CreateList(memoryStream, strlen, out lazyLoadStore);
+            var biglist1 = CreateList(memoryStream, strlen, out lazyLoadStore, out charReader);
+            int i = 0;
             while (true)
             {
-                var pinableContainer = await lazyLoadStore.LoadAsync(loadLen);
+                var result = await charReader.LoadAsync(loadLen);
+                var newResult = OnLoadAsyncResult<IComposableList<char>>.Create(new ReadOnlyComposableList<char>(result.Value), result);
+                var pinableContainer = lazyLoadStore.Load(newResult);
                 if (pinableContainer == null)
                     break;
                 biglist1.Add(pinableContainer);
                 if (fn != null)
                     fn(biglist1);
+                i++;
             }
 
             return (biglist1,lazyLoadStore);
@@ -266,6 +276,8 @@ namespace UnitTest
             var str_builder = new StringBuilder(str);
             var list = CreateListAndLoad(str, out dataStore);
 
+            Assert.AreEqual(str_builder.Length, list.Count);
+
             str_builder.Append("neko");
             list.AddRange("neko");
 
@@ -304,6 +316,8 @@ namespace UnitTest
             var str_builder = new StringBuilder(str);
             var list = CreateListAndLoad(str, out dataStore);
 
+            Assert.AreEqual(str_builder.Length, list.Count);
+
             str_builder.Insert(0, "neko");
             list.InsertRange(0, "neko");
 
@@ -332,6 +346,8 @@ namespace UnitTest
             var str_builder = new StringBuilder(str);
             var list = CreateListAndLoad(str, out dataStore);
 
+            Assert.AreEqual(str_builder.Length, list.Count);
+
             str_builder.Remove(0,2);
             list.RemoveRange(0,2);
 
@@ -352,12 +368,12 @@ namespace UnitTest
             }
         }
 
-        BigList<byte> CreateListAndLoad(IEnumerable<int> collection,out ReadonlyContentStoreBase<IComposableList<byte>> datastore)
+        BigList<byte> CreateListAndLoad(IEnumerable<int> collection, out ReadonlyContentStoreBase<IComposableList<byte>> datastore)
         {
             var memoryStream = new MemoryStream();
             int collection_count = collection.Count();
             //面倒なのでオーバーフロー対策のために256のあまりを突っ込んでる
-            foreach(var i in collection)
+            foreach (var i in collection)
             {
                 memoryStream.WriteByte((byte)(i % byte.MaxValue));
 
@@ -370,12 +386,13 @@ namespace UnitTest
             biglist1.CustomBuilder = customConverter;
             biglist1.LeastFetchStore = customConverter;
             datastore = lazyLoadStore;
- 
+
             const int loadLen = 8;
             int loopCount = (collection_count + 1) / loadLen;
             for (int i = 0; i < loopCount; i++)
             {
-                biglist1.Add(lazyLoadStore.Load(loadLen));
+                var result = lazyLoadStore.Load(loadLen);
+                biglist1.Add(lazyLoadStore.Load(result));
             }
             return biglist1;
         }
@@ -384,7 +401,7 @@ namespace UnitTest
         public void Load()
         {
             ReadonlyContentStoreBase<IComposableList<byte>> dataStore;
-            var list = CreateListAndLoad(Enumerable.Range(0,byte.MaxValue),out dataStore);
+            var list = CreateListAndLoad(Enumerable.Range(0, byte.MaxValue), out dataStore);
 
             Assert.AreEqual(byte.MaxValue, list.Count);
 
@@ -451,9 +468,9 @@ namespace UnitTest
 
             Assert.AreEqual(expected.Count, list.Count);
 
-            for(int i = 0; i < expected.Count;i++)
+            for (int i = 0; i < expected.Count; i++)
             {
-                Assert.AreEqual(expected[i],list[i]);
+                Assert.AreEqual(expected[i], list[i]);
             }
         }
 
@@ -483,5 +500,6 @@ namespace UnitTest
                 Assert.AreEqual(expected[i], list[i]);
             }
         }
+
     }
 }

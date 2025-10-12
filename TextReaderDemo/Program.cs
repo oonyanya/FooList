@@ -79,7 +79,9 @@ while (exitflag == false)
             {
                 for (int i = 0; i < opt.Count; i++)
                 {
-                    var pinableContainer = lazyLoadStore.Load(biglist1.BlockSize);
+                    var result = charReader.Load(biglist1.BlockSize);
+                    var newResult = OnLoadAsyncResult<IComposableList<char>>.Create(new ReadOnlyComposableList<char>(result.Value), result);
+                    var pinableContainer = lazyLoadStore.Load(newResult);
                     if (pinableContainer == null)
                         break;
                     biglist1.Add(pinableContainer);
@@ -91,7 +93,9 @@ while (exitflag == false)
             var time = BenchmarkRunner.Run(() => {
                 while (true)
                 {
-                    var pinableContainer = lazyLoadStore.Load(biglist1.BlockSize);
+                    var result = charReader.Load(biglist1.BlockSize);
+                    var newResult = OnLoadAsyncResult<IComposableList<char>>.Create(new ReadOnlyComposableList<char>(result.Value), result);
+                    var pinableContainer = lazyLoadStore.Load(newResult);
                     if (pinableContainer == null)
                         break;
                     biglist1.Add(pinableContainer);
@@ -253,7 +257,9 @@ while (exitflag == false)
             {
                 while (true)
                 {
-                    var pinableContainer = await lazyLoadStore.LoadAsync(biglist1.BlockSize);
+                    var result = await charReader.LoadAsync(biglist1.BlockSize);
+                    var newResult = OnLoadAsyncResult<IComposableList<char>>.Create(new ReadOnlyComposableList<char>(result.Value), result);
+                    var pinableContainer = lazyLoadStore.Load(newResult);
                     if (pinableContainer == null)
                         break;
                     biglist1.Add(pinableContainer);

@@ -17,7 +17,7 @@ namespace FooProject.Collection.DataStore
         /// 読み込まれた内容
         /// </summary>
         /// <remarks>何も読み込まれなかった場合はnullが設定される</remarks>
-        public T Value { get; }
+        public T Value { get; set; }
 
         /// <summary>
         /// 割り当てられたインデックス。専らファイル上のアドレスを指す。
@@ -36,6 +36,11 @@ namespace FooProject.Collection.DataStore
             this.Value = value;
             this.Index = index;
             this.ReadBytes = read_bytes;
+        }
+
+        public static OnLoadAsyncResult<T> Create<J>(T  value, OnLoadAsyncResult<J> old)
+        {
+            return new OnLoadAsyncResult<T>(value,old.Index,old.ReadBytes);
         }
     }
 
@@ -102,61 +107,15 @@ namespace FooProject.Collection.DataStore
         }
 
         /// <summary>
-        /// 初回、読み込み時に呼び出される
-        /// </summary>
-        /// <param name="count">読み込む要素数</param>
-        /// <returns>読み込んだ要素を返す</returns>
-        /// <remarks>read_bytesが0を返した場合、これ以上読み取るものがないことを表す</remarks>
-        protected virtual async Task<OnLoadAsyncResult<T>> OnLoadAsync(int count)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
         /// 初回読み込みを行う
         /// </summary>
         /// <param name="count">読み込みたい要素数</param>
         /// <returns>IPinableContainerを返す。これ以上読み取ることができない場合、nullを返す。</returns>
-        public async Task<IPinableContainer<T>> LoadAsync(int count)
+        public IPinableContainer<T> Load(OnLoadAsyncResult<T> read_result)
         {
-            var read_result = await OnLoadAsync(count);
             var content = read_result.Value;
             long index = read_result.Index;
             int read_bytes = read_result.ReadBytes;
-            if (read_bytes == 0)
-                return null;
-            PinableContainer<T> newpin = (PinableContainer<T>)this.CreatePinableContainer(content);
-            //ディスク上に存在するので永遠に保存しておく必要はない
-            newpin.CacheIndex = PinableContainer<T>.NOTCACHED;
-            newpin.Info = new DiskAllocationInfo(index, read_bytes);
-            //まずはプライマリーデーターストアを使用する
-            newpin.ID = DEFAULT_ID;
-            return newpin;
-        }
-
-        /// <summary>
-        /// 初回、読み込み時に呼び出される
-        /// </summary>
-        /// <param name="count">読み込む要素数</param>
-        /// <param name="index">割り当てられたインデックス。専らファイル上のアドレスを指す。</param>
-        /// <param name="read_bytes">割り当てられたバイト数。</param>
-        /// <returns>読み込んだ要素を返す</returns>
-        /// <remarks>read_bytesが0を返した場合、これ以上読み取るものがないことを表す</remarks>
-        protected virtual T OnLoad(int count,out long index,out int read_bytes)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// 初回読み込みを行う
-        /// </summary>
-        /// <param name="count">読み込みたい要素数</param>
-        /// <returns>IPinableContainerを返す。これ以上読み取ることができない場合、nullを返す。</returns>
-        public IPinableContainer<T> Load(int count)
-        {
-            int read_bytes;
-            long index;
-            var content = OnLoad(count, out index, out read_bytes);
             if (read_bytes == 0)
                 return null;
             PinableContainer<T> newpin = (PinableContainer<T>)this.CreatePinableContainer(content);

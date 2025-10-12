@@ -5,14 +5,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Buffers;
-using System.Reflection;
-using System.ComponentModel.Design;
-using Microsoft.VisualBasic;
-using System.Runtime.InteropServices;
-
-
-
-
 
 #if NET6_0_OR_GREATER
 using System.IO.Pipelines;
@@ -20,20 +12,124 @@ using System.IO.Pipelines;
 
 namespace FooProject.Collection.DataStore
 {
-    public ref struct SpanLineEnumrator
+    public sealed class PooledArrayBufferWriter<T> : IBufferWriter<T>, IDisposable
+    {
+        private const int DefaultInitialBufferSize = 4096 * 2;
+
+        private T[] _buffer;
+        private int _index;
+        private bool _disposed;
+
+        public PooledArrayBufferWriter()
+        {
+            _buffer = ArrayPool<T>.Shared.Rent(DefaultInitialBufferSize);
+            _index = 0;
+            _disposed = false;
+        }
+
+        public PooledArrayBufferWriter(int count)
+        {
+            _buffer = ArrayPool<T>.Shared.Rent(count);
+            _index = 0;
+            _disposed = false;
+        }
+
+        public ReadOnlyMemory<T> WrittenMemory => _buffer.AsMemory(0, _index);
+
+        public ReadOnlySpan<T> WrittenSpan => _buffer.AsSpan(0, _index);
+
+        public int WrittenCount => _index;
+
+        public int Capacity => _buffer.Length;
+
+        public int FreeCapacity => _buffer.Length - _index;
+
+        public void Clear()
+        {
+            if (_disposed) throw new InvalidOperationException("");
+            ArrayPool<T>.Shared.Return(_buffer);
+            _buffer = ArrayPool<T>.Shared.Rent(DefaultInitialBufferSize);
+            _index = 0;
+        }
+
+        public void Advance(int count)
+        {
+            if (_disposed) throw new InvalidOperationException("");
+            if (count < 0)
+                throw new ArgumentException(null, nameof(count));
+
+            if (_index > _buffer.Length - count)
+                ThrowInvalidOperationException_AdvancedTooFar();
+
+            _index += count;
+        }
+
+        public Memory<T> GetMemory(int sizeHint = 0)
+        {
+            if (_disposed) throw new InvalidOperationException("");
+            CheckAndResizeBuffer(sizeHint);
+            return _buffer.AsMemory(_index);
+        }
+
+        public Span<T> GetSpan(int sizeHint = 0)
+        {
+            if (_disposed) throw new InvalidOperationException("");
+            CheckAndResizeBuffer(sizeHint);
+            return _buffer.AsSpan(_index);
+        }
+
+        private void CheckAndResizeBuffer(int sizeHint)
+        {
+            if (sizeHint < 0)
+                throw new ArgumentException(nameof(sizeHint));
+
+            if (sizeHint == 0)
+            {
+                sizeHint = 1;
+            }
+
+            if (sizeHint > FreeCapacity)
+            {
+                int currentLength = _buffer.Length;
+
+                int growBy = Math.Max(sizeHint, currentLength);
+
+                int newSize = currentLength + growBy;
+
+                var temp = ArrayPool<T>.Shared.Rent(newSize);
+                Array.Copy(_buffer, temp, _index);
+                ArrayPool<T>.Shared.Return(_buffer);
+                _buffer = temp;
+            }
+        }
+
+        private static void ThrowInvalidOperationException_AdvancedTooFar() => throw new InvalidOperationException();
+
+        public void Dispose()
+        {
+            if(_disposed == false)
+            {
+                ArrayPool<T>.Shared.Return(_buffer);
+                _buffer = null;
+                _disposed = true;
+            }
+        }
+    }
+
+    public ref struct LineEnumrator
     {
         bool isActive;
         ReadOnlySpan<char> reamin,newline;
         public ReadOnlySpan<char> Current { get; set; }
 
-        public SpanLineEnumrator(ReadOnlySpan<char> chars,ReadOnlySpan<char> linefeed)
+        public LineEnumrator(ReadOnlySpan<char> chars,ReadOnlySpan<char> linefeed)
         {
             reamin = chars;
             newline = linefeed;
             Current = default;
             isActive = true;
         }
-        public SpanLineEnumrator GetEnumerator() => this;
+        public LineEnumrator GetEnumerator() => this;
 
         public bool MoveNext()
         {
@@ -124,6 +220,16 @@ namespace FooProject.Collection.DataStore
         /// </summary>
         public Encoding Encoding { get { return _encoding; } }
 
+        /// <summary>
+        /// 変換対象の改行コード
+        /// </summary>
+        public char[] LineFeed { get; set; }
+
+        /// <summary>
+        /// 変換元の改行コード
+        /// </summary>
+        public char[] NormalizedLineFeed {  get; set; }
+
 #if NET6_0_OR_GREATER
         private ReadOnlySequence<byte> SkipPreaemble(ReadOnlySequence<byte> buffer, ReadOnlySpan<byte> preaemble, out bool skipped)
         {
@@ -151,6 +257,20 @@ namespace FooProject.Collection.DataStore
         }
 #endif
 
+        private int NormalizeLineFeed(Span<char> chars, IBufferWriter<char> writer, ReadOnlySpan<char> lineFeed,ReadOnlySpan<char> normalized_linefeed)
+        {
+            int total_written_chars = 0;
+            var enumrator = new LineEnumrator(chars, lineFeed);
+            foreach(var line in enumrator)
+            {
+                writer.Write(line);
+                total_written_chars += line.Length;
+                writer.Write(normalized_linefeed);
+                total_written_chars += normalized_linefeed.Length;
+            }
+            return total_written_chars;
+        }
+
         /// <summary>
         /// 文字を読み取る
         /// </summary>
@@ -161,6 +281,7 @@ namespace FooProject.Collection.DataStore
 #if NET6_0_OR_GREATER
             int byte_array_len = _encoding.GetMaxByteCount(count);
             ArrayBufferWriter<char> arrayBufferWriter = new ArrayBufferWriter<char>(count);
+            char[] temp_buffer_writer = ArrayPool<char>.Shared.Rent(count);
             int leftCount = count;
 
             try
@@ -197,9 +318,20 @@ namespace FooProject.Collection.DataStore
                     }
 
                     int converted_bytes, converted_chars;
+                    int temp_converted_chars;
                     bool completed;
-                    _decoder.Convert(skippedReadOnlyBuffer.Slice(0, Math.Min(byte_array_len, skippedReadOnlyBuffer.Length)), arrayBufferWriter.GetSpan(), Math.Min(count, leftCount), false, out converted_bytes, out converted_chars, out completed);
-                    arrayBufferWriter.Advance(converted_chars);
+                    _decoder.Convert(skippedReadOnlyBuffer.Slice(0, Math.Min(byte_array_len, skippedReadOnlyBuffer.Length)), temp_buffer_writer.AsSpan(), Math.Min(count, leftCount), false, out converted_bytes, out temp_converted_chars, out completed);
+
+                    if (LineFeed != null && NormalizeLineFeed != null)
+                    {
+                        converted_chars = NormalizeLineFeed(temp_buffer_writer.AsSpan().Slice(0, temp_converted_chars), arrayBufferWriter, LineFeed.AsSpan(), NormalizedLineFeed.AsSpan());
+                    }
+                    else
+                    {
+                        arrayBufferWriter.Write(temp_buffer_writer.AsSpan().Slice(0,temp_converted_chars));
+                        converted_chars = temp_converted_chars;
+                    }
+
                     _pipeReader.AdvanceTo(skippedReadOnlyBuffer.Slice(0, converted_bytes).End);
                     leftCount -= converted_chars;
 
@@ -209,9 +341,9 @@ namespace FooProject.Collection.DataStore
                     _leastLoadPostion += converted_bytes;
                 }
 
-                var list = arrayBufferWriter.WrittenSpan.ToArray();
+                var list = arrayBufferWriter.WrittenSpan.ToArray().Take(totalConvertedChars);
 
-                if (list.Length == 0)
+                if (totalConvertedChars == 0)
                 {
                     return new OnLoadAsyncResult<IEnumerable<char>>(null, 0, 0);
                 }
@@ -222,6 +354,7 @@ namespace FooProject.Collection.DataStore
             }
             finally
             {
+                ArrayPool<char>.Shared.Return(temp_buffer_writer);
             }
 #else
             throw new NotSupportedException(".net 6.0以降を使用してください");
@@ -272,7 +405,8 @@ namespace FooProject.Collection.DataStore
         {
             int byte_array_len = _encoding.GetMaxByteCount(count);
             byte[] byte_array = ArrayPool<byte>.Shared.Rent(byte_array_len);
-            var char_array = ArrayPool<char>.Shared.Rent(count);
+            var arrayBufferWriter = new PooledArrayBufferWriter<char>(count);
+            char[] temp_buffer_writer = ArrayPool<char>.Shared.Rent(count);
             int read_bytes = 0;
 
             try
@@ -297,18 +431,31 @@ namespace FooProject.Collection.DataStore
 
                 int converted_bytes, converted_chars;
                 bool completed;
-                _decoder.Convert(byte_array, fetch_index, stream_read_bytes - fetch_index, char_array, 0, count, false, out converted_bytes, out converted_chars, out completed);
+
+                int temp_converted_chars;
+                _decoder.Convert(byte_array, fetch_index, stream_read_bytes - fetch_index, temp_buffer_writer, 0, count, false, out converted_bytes, out temp_converted_chars, out completed);
+
+                if (LineFeed != null && NormalizedLineFeed != null)
+                {
+                    converted_chars = NormalizeLineFeed(temp_buffer_writer.AsSpan(), arrayBufferWriter, LineFeed.AsSpan(), NormalizedLineFeed.AsSpan());
+                }
+                else
+                {
+                    arrayBufferWriter.Write(temp_buffer_writer.AsSpan());
+                    converted_chars = temp_converted_chars;
+                }
 
                 _leastLoadPostion += converted_bytes;
                 read_bytes = converted_bytes;
 
-                return new OnLoadAsyncResult<IEnumerable<char>>(char_array.Take(converted_chars), index, read_bytes);
+                return new OnLoadAsyncResult<IEnumerable<char>>(arrayBufferWriter.WrittenSpan.ToArray().Take(converted_chars), index, read_bytes);
             }
             finally
             {
                 //返却しないとメモリーリークする
                 ArrayPool<byte>.Shared.Return(byte_array);
-                ArrayPool<char>.Shared.Return(char_array);
+                ArrayPool<char>.Shared.Return(temp_buffer_writer);
+                arrayBufferWriter.Dispose();
             }
         }
     }
