@@ -41,6 +41,21 @@ namespace UnitTest
     }
 
     [TestClass]
+    public class SpanLineEnumratorTest()
+    {
+        [TestMethod]
+        public void EnumrateLines()
+        {
+            var str = "test\ntest\ntest";
+            var lineenumrator = new SpanLineEnumrator(str,"\n");
+            foreach(var line in lineenumrator)
+            {
+                Assert.AreEqual("test", new string(line.ToArray()));
+            }
+        }
+    }
+
+    [TestClass]
     public class CharReaderTest
     {
         const int TEST_SIZE = 32768;

@@ -6,6 +6,12 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Buffers;
 using System.Reflection;
+using System.ComponentModel.Design;
+using Microsoft.VisualBasic;
+using System.Runtime.InteropServices;
+
+
+
 
 
 #if NET6_0_OR_GREATER
@@ -14,6 +20,42 @@ using System.IO.Pipelines;
 
 namespace FooProject.Collection.DataStore
 {
+    public ref struct SpanLineEnumrator
+    {
+        bool isActive;
+        ReadOnlySpan<char> reamin,newline;
+        public ReadOnlySpan<char> Current { get; set; }
+
+        public SpanLineEnumrator(ReadOnlySpan<char> chars,ReadOnlySpan<char> linefeed)
+        {
+            reamin = chars;
+            newline = linefeed;
+            Current = default;
+            isActive = true;
+        }
+        public SpanLineEnumrator GetEnumerator() => this;
+
+        public bool MoveNext()
+        {
+            if(isActive == false)
+            {
+                return false;
+            }
+            int index = reamin.IndexOf(newline);
+            if (index == -1)
+            {
+                Current = reamin;
+                isActive = false;
+            }
+            else
+            {
+                Current = reamin.Slice(0, index);
+                reamin = reamin.Slice(index + newline.Length);
+            }
+            return true;
+        }
+    }
+
 #if NET6_0_OR_GREATER
     public static class DecoderExtension
     {
