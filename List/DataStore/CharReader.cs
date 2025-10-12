@@ -12,6 +12,7 @@ using System.IO.Pipelines;
 
 namespace FooProject.Collection.DataStore
 {
+    //コピー元：https://gist.github.com/ladeak/71b0b4c59bdd4eb548535dc641729682#file-pooledarraybufferwriter-cs
     public sealed class PooledArrayBufferWriter<T> : IBufferWriter<T>, IDisposable
     {
         private const int DefaultInitialBufferSize = 4096 * 2;
@@ -116,22 +117,39 @@ namespace FooProject.Collection.DataStore
         }
     }
 
+    /// <summary>
+    /// 現在行の状態を表すクラス
+    /// </summary>
     public ref struct LineEnumratorState
     {
-        public ReadOnlySpan<char> Current { get; private set; }
+        /// <summary>
+        /// 現在行の表す文字列
+        /// </summary>
+        public ReadOnlySpan<char> Chars { get; private set; }
+        /// <summary>
+        /// 改行が存在するかどうか
+        /// </summary>
         public bool hasLineFeed { get; private set; }
         public LineEnumratorState(ReadOnlySpan<char> current, bool hasLineFeed)
         {
-            this.Current = current;
+            this.Chars = current;
             this.hasLineFeed = hasLineFeed;
         }
     }
 
+    /// <summary>
+    /// 改行ごとに区切ったやつを列挙する
+    /// </summary>
     public ref struct LineEnumrator
     {
         bool isActive;
         ReadOnlySpan<char> reamin,newline;
 
+        /// <summary>
+        /// コンストラクター
+        /// </summary>
+        /// <param name="chars">文字列</param>
+        /// <param name="linefeed">改行を表す奴</param>
         public LineEnumrator(ReadOnlySpan<char> chars,ReadOnlySpan<char> linefeed)
         {
             reamin = chars;
@@ -141,6 +159,9 @@ namespace FooProject.Collection.DataStore
         }
         public LineEnumrator GetEnumerator() => this;
 
+        /// <summary>
+        /// 現在の行
+        /// </summary>
         public LineEnumratorState Current { get; private set; }
 
         public bool MoveNext()
@@ -275,8 +296,8 @@ namespace FooProject.Collection.DataStore
             var enumrator = new LineEnumrator(chars, lineFeed);
             foreach(var line in enumrator)
             {
-                writer.Write(line.Current);
-                total_written_chars += line.Current.Length;
+                writer.Write(line.Chars);
+                total_written_chars += line.Chars.Length;
                 if (line.hasLineFeed)
                 {
                     writer.Write(normalized_linefeed);

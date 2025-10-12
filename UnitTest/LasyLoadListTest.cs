@@ -23,7 +23,7 @@ namespace UnitTest
             var lineenumrator = new LineEnumrator(str,"\n");
             foreach(var line in lineenumrator)
             {
-                Assert.AreEqual("test", new string(line.Current.ToArray()));
+                Assert.AreEqual("test", new string(line.Chars.ToArray()));
             }
         }
     }
