@@ -232,14 +232,23 @@ namespace FooProject.Collection.DataStore
         /// </summary>
         /// <param name="stream">読み取り対象のストリーム</param>
         /// <param name="enc">エンコーディング</param>
-        public CharReader(Stream stream, Encoding enc)
+        public CharReader(Stream stream, Encoding enc, char[] lineFeed = null, char[] normalizedLineFeed = null, int buffer_size = -1)
         {
             this.stream = stream;
             _encoding = enc;
             _decoder = enc.GetDecoder();
             _leastLoadPostion = 0;
+            this.LineFeed = lineFeed;
+            this.NormalizedLineFeed = normalizedLineFeed;
 #if NET6_0_OR_GREATER
-            this._pipeReader = PipeReader.Create(stream);
+            if (buffer_size > 0) {
+                var pipeReaderOptions = new StreamPipeReaderOptions(bufferSize: buffer_size);
+                this._pipeReader = PipeReader.Create(stream, pipeReaderOptions);
+            }
+            else
+            {
+                this._pipeReader = PipeReader.Create(stream);
+            }
 #endif
         }
 
@@ -256,12 +265,12 @@ namespace FooProject.Collection.DataStore
         /// <summary>
         /// 変換対象の改行コード
         /// </summary>
-        public char[] LineFeed { get; set; }
+        public char[] LineFeed { get; private set; }
 
         /// <summary>
         /// 変換元の改行コード
         /// </summary>
-        public char[] NormalizedLineFeed {  get; set; }
+        public char[] NormalizedLineFeed {  get; private set; }
 
 #if NET6_0_OR_GREATER
         private ReadOnlySequence<byte> SkipPreaemble(ReadOnlySequence<byte> buffer, ReadOnlySpan<byte> preaemble, out bool skipped)

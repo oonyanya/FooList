@@ -43,17 +43,17 @@ namespace UnitTest
             return sb.ToString();
         }
 
-        private string GetTextWithLineFeed(int length)
+        private string GetTextWithLineFeed(int length,int linefeed_interval = 100)
         {
             var sb = new StringBuilder();
             for (int i = 0; i < length; i++)
             {
                 var value = i % 10;
-                sb.Append(value.ToString());
-                if(i % 100 == 0)
+                if (i > 0 && i % linefeed_interval == 0)
                 {
                     sb.Append("\r\n");
                 }
+                sb.Append(value.ToString());
             }
             return sb.ToString();
         }
@@ -67,15 +67,35 @@ namespace UnitTest
             var memoryStream = new MemoryStream();
             memoryStream.Write(Encoding.UTF8.GetBytes(str));
             memoryStream.Position = 0;
-            var charReader = new CharReader(memoryStream, Encoding.UTF8);
-            charReader.LineFeed = "\r\n".ToArray();
-            charReader.NormalizedLineFeed = "\n".ToArray();
+            var charReader = new CharReader(memoryStream, Encoding.UTF8, "\r\n".ToArray(), "\n".ToArray());
             var result = charReader.LoadAsync(str.Length).Result;
             var normalized_line_feed_str = str.Replace("\r\n", "\n");
             var actual = result.Value.ToArray();
             for (int i = 0; i < normalized_line_feed_str.Length; i++) {
                 Assert.AreEqual(normalized_line_feed_str[i], actual[i]);
             }
+
+            /*
+            const int buffer_size = 1024;
+            str = GetTextWithLineFeed(TEST_SIZE, buffer_size - 1);
+            memoryStream = new MemoryStream();
+            memoryStream.Write(Encoding.UTF8.GetBytes(str));
+            memoryStream.Position = 0;
+            charReader = new CharReader(memoryStream, Encoding.UTF8, "\r\n".ToArray(), "\n".ToArray(), buffer_size);
+            var actual_list = new List<char>();
+            while (true)
+            {
+                result = charReader.LoadAsync(buffer_size).Result;
+                if (result.Value == null)
+                    break;
+                actual_list.AddRange(result.Value);
+            }
+            normalized_line_feed_str = str.Replace("\r\n", "\n");
+            for (int i = 0; i < normalized_line_feed_str.Length; i++)
+            {
+                Assert.AreEqual(normalized_line_feed_str[i], actual_list[i]);
+            }
+            */
         }
 
         [TestMethod]
@@ -111,9 +131,7 @@ namespace UnitTest
             var memoryStream = new MemoryStream();
             memoryStream.Write(Encoding.UTF8.GetBytes(str));
             memoryStream.Position = 0;
-            var charReader = new CharReader(memoryStream, Encoding.UTF8);
-            charReader.LineFeed = "\r\n".ToArray();
-            charReader.NormalizedLineFeed = "\n".ToArray();
+            var charReader = new CharReader(memoryStream, Encoding.UTF8, "\r\n".ToArray(), "\n".ToArray());
             var result = charReader.Load(str.Length);
             var normalized_line_feed_str = str.Replace("\r\n", "\n");
             var actual = result.Value.ToArray();
