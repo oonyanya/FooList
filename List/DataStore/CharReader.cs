@@ -299,7 +299,7 @@ namespace FooProject.Collection.DataStore
         }
 #endif
 
-        private int NormalizeLineFeed(Span<char> chars, IBufferWriter<char> writer, ReadOnlySpan<char> lineFeed,ReadOnlySpan<char> normalized_linefeed)
+        private int NormalizeLineFeed(ReadOnlySpan<char> chars, IBufferWriter<char> writer, ReadOnlySpan<char> lineFeed,ReadOnlySpan<char> normalized_linefeed)
         {
             int total_written_chars = 0;
             var enumrator = new LineEnumrator(chars, lineFeed);
@@ -326,7 +326,7 @@ namespace FooProject.Collection.DataStore
 #if NET6_0_OR_GREATER
             int byte_array_len = _encoding.GetMaxByteCount(count);
             ArrayBufferWriter<char> arrayBufferWriter = new ArrayBufferWriter<char>(count);
-            char[] temp_buffer_writer = ArrayPool<char>.Shared.Rent(count);
+            ArrayBufferWriter<char> temp_buffer_writer = new ArrayBufferWriter<char>(count);
             int leftCount = count;
 
             try
@@ -363,19 +363,9 @@ namespace FooProject.Collection.DataStore
                     }
 
                     int converted_bytes, converted_chars;
-                    int temp_converted_chars;
                     bool completed;
-                    _decoder.Convert(skippedReadOnlyBuffer.Slice(0, Math.Min(byte_array_len, skippedReadOnlyBuffer.Length)), temp_buffer_writer.AsSpan(), Math.Min(count, leftCount), false, out converted_bytes, out temp_converted_chars, out completed);
-
-                    if (LineFeed != null && NormalizeLineFeed != null)
-                    {
-                        converted_chars = NormalizeLineFeed(temp_buffer_writer.AsSpan().Slice(0, temp_converted_chars), arrayBufferWriter, LineFeed.AsSpan(), NormalizedLineFeed.AsSpan());
-                    }
-                    else
-                    {
-                        arrayBufferWriter.Write(temp_buffer_writer.AsSpan().Slice(0,temp_converted_chars));
-                        converted_chars = temp_converted_chars;
-                    }
+                    _decoder.Convert(skippedReadOnlyBuffer.Slice(0, Math.Min(byte_array_len, skippedReadOnlyBuffer.Length)), temp_buffer_writer.GetSpan(), Math.Min(count, leftCount), false, out converted_bytes, out converted_chars, out completed);
+                    temp_buffer_writer.Advance(converted_chars);
 
                     _pipeReader.AdvanceTo(skippedReadOnlyBuffer.Slice(0, converted_bytes).End);
                     leftCount -= converted_chars;
@@ -386,7 +376,16 @@ namespace FooProject.Collection.DataStore
                     _leastLoadPostion += converted_bytes;
                 }
 
-                var list = arrayBufferWriter.WrittenSpan.ToArray().Take(totalConvertedChars);
+                IEnumerable<char> list;
+                if (LineFeed != null && NormalizeLineFeed != null)
+                {
+                    var converted_char_count = NormalizeLineFeed(temp_buffer_writer.WrittenSpan.Slice(0, totalConvertedChars), arrayBufferWriter, LineFeed.AsSpan(), NormalizedLineFeed.AsSpan());
+                    list = arrayBufferWriter.WrittenSpan.ToArray().Take(converted_char_count);
+                }
+                else
+                {
+                    list = temp_buffer_writer.WrittenSpan.ToArray().Take(totalConvertedChars);
+                }
 
                 if (totalConvertedChars == 0)
                 {
@@ -399,7 +398,6 @@ namespace FooProject.Collection.DataStore
             }
             finally
             {
-                ArrayPool<char>.Shared.Return(temp_buffer_writer);
             }
 #else
             throw new NotSupportedException(".net 6.0以降を使用してください");
