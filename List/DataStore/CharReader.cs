@@ -201,14 +201,20 @@ namespace FooProject.Collection.DataStore
             else
             {
                 ReadOnlySequence<byte> remainingBytes = bytes;
+                Span<char> reaminWriter = writer;
                 int charsWritten = 0;
                 int bytesWritten = 0;
+                int index = 0;
 
                 foreach (var mem in remainingBytes)
                 {
-                    decoder.Convert(mem.Span, writer, flush, out bytesWritten, out charsWritten, out completed);
+                    decoder.Convert(mem.Span, reaminWriter, flush, out bytesWritten, out charsWritten, out completed);
                     totalBytesWritten += bytesWritten;
                     totalCharsWritten += charsWritten;
+                    if (totalCharsWritten >= char_count)
+                        break;
+                    index += charsWritten;
+                    reaminWriter = reaminWriter.Slice(index, char_count - index);
                 }
             }
         }
