@@ -214,7 +214,7 @@ namespace FooProject.Collection.DataStore
                     if (totalCharsWritten >= char_count)
                         break;
                     index += charsWritten;
-                    reaminWriter = reaminWriter.Slice(index, char_count - index);
+                    reaminWriter = writer.Slice(index, char_count - index);
                 }
             }
         }

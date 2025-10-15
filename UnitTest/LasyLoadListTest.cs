@@ -3,6 +3,7 @@ using FooProject.Collection.DataStore;
 using Microsoft.VisualStudio.TestPlatform.PlatformAbstractions.Interfaces;
 using Microsoft.VisualStudio.TestPlatform.Utilities;
 using System;
+using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -13,6 +14,77 @@ using System.Text;
 
 namespace UnitTest
 {
+#if NET8_0_OR_GREATER
+    [TestClass]
+    public class DecoderExtensionTest()
+    {
+        class MyReadOnlySegment<T> : ReadOnlySequenceSegment<T>
+        {
+            public MyReadOnlySegment(T[] bytes)
+            {
+                this.Memory = new ReadOnlyMemory<T>(bytes);
+                this.RunningIndex = 0;
+            }
+
+            public MyReadOnlySegment<T> CreateNext(T[] bytes)
+            {
+                var new_seg = new MyReadOnlySegment<T>(bytes);
+                new_seg.RunningIndex = this.Memory.Length;
+                this.Next = new_seg;
+                return new_seg;
+            }
+        }
+
+        private ReadOnlySequence<byte> CreateSeq(string str,int chunk_len)
+        {
+            MyReadOnlySegment<byte> first_seg = new MyReadOnlySegment<byte>(UTF8Encoding.UTF8.GetBytes(str));
+            MyReadOnlySegment<byte> current_seg = first_seg;
+            foreach(var sub_str in str.Chunk(chunk_len))
+            {
+                MyReadOnlySegment<byte> new_seg = current_seg.CreateNext(Encoding.UTF8.GetBytes(sub_str));
+                current_seg = new_seg;
+            }
+            var seq = new ReadOnlySequence<byte>(first_seg,0,current_seg,current_seg.Memory.Length);
+            return seq;
+        }
+
+        [TestMethod]
+        public void ConvertMultiSeqTest()
+        {
+            int TEST_SIZE = 1024;
+            var str = CharReaderTest.GetText(TEST_SIZE);
+            var seq = CreateSeq(str, 256);
+            var decoder = Encoding.UTF8.GetDecoder();
+            ArrayBufferWriter<char> result = new ArrayBufferWriter<char>(1024);
+            int converted_bytes, converted_chars;
+            bool completed;
+            decoder.Convert(seq, result.GetSpan(), TEST_SIZE,false, out converted_bytes, out converted_chars, out completed);
+            result.Advance(converted_chars);
+            for(int i = 0; i < TEST_SIZE; i++)
+            {
+                Assert.AreEqual(str[i], result.WrittenSpan[i]);
+            }
+        }
+
+        [TestMethod]
+        public void ConvertSingleSeqTest()
+        {
+            int TEST_SIZE = 256;
+            var str = CharReaderTest.GetText(TEST_SIZE);
+            var seq = CreateSeq(str, 256);
+            var decoder = Encoding.UTF8.GetDecoder();
+            ArrayBufferWriter<char> result = new ArrayBufferWriter<char>();
+            int converted_bytes, converted_chars;
+            bool completed;
+            decoder.Convert(seq, result.GetSpan(), TEST_SIZE, false, out converted_bytes, out converted_chars, out completed);
+            result.Advance(converted_chars);
+            for (int i = 0; i < TEST_SIZE; i++)
+            {
+                Assert.AreEqual(str[i], result.WrittenSpan[i]);
+            }
+        }
+    }
+#endif
     [TestClass]
     public class SpanLineEnumratorTest()
     {
@@ -32,7 +104,7 @@ namespace UnitTest
     public class CharReaderTest
     {
         const int TEST_SIZE = 32768;
-        private string GetText(int length)
+        public static string GetText(int length)
         {
             var sb = new StringBuilder();
             for (int i = 0; i < length; i++)
