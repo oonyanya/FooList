@@ -5,6 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Buffers;
+using System.Reflection;
+
 
 #if NET6_0_OR_GREATER
 using System.IO.Pipelines;
@@ -225,11 +227,15 @@ namespace FooProject.Collection.DataStore
     /// </summary>
     public class CharReader
     {
+        const int REFECTH_BUFFER_SIZE_RAITO = 2;
+
         Stream stream;
         Encoding _encoding;
         Decoder _decoder;
         long _leastLoadPostion;
 #if NET6_0_OR_GREATER
+        int buffer_size;
+        byte[] _lineFeedBinary;
         PipeReader _pipeReader;
 #endif
 
@@ -247,14 +253,20 @@ namespace FooProject.Collection.DataStore
             this.LineFeed = lineFeed;
             this.NormalizedLineFeed = normalizedLineFeed;
 #if NET6_0_OR_GREATER
+            if (this.LineFeed != null)
+            {
+                this._lineFeedBinary = _encoding.GetBytes(this.LineFeed);
+            }
+
             if (buffer_size > 0) {
-                var pipeReaderOptions = new StreamPipeReaderOptions(bufferSize: buffer_size);
-                this._pipeReader = PipeReader.Create(stream, pipeReaderOptions);
+                this.buffer_size = buffer_size;
             }
             else
             {
-                this._pipeReader = PipeReader.Create(stream);
+                this.buffer_size = 4096;
             }
+            var pipeReaderOptions = new StreamPipeReaderOptions(bufferSize: this.buffer_size);
+            this._pipeReader = PipeReader.Create(stream, pipeReaderOptions);
 #endif
         }
 
@@ -303,6 +315,34 @@ namespace FooProject.Collection.DataStore
             }
             return buffer.Slice(skipLength);
         }
+        private int GetLastInvaildLineFeedLength(ReadOnlySequence<byte> seq, ReadOnlySpan<byte> line_feed_binary)
+        {
+            ReadOnlySpan<byte> array;
+            if (seq.IsSingleSegment)
+            {
+                array = seq.FirstSpan;
+            }
+            else
+            {
+                array = seq.Slice(0, seq.End).FirstSpan;
+            }
+            int invaild_length = 0;
+            int start_index = array.Length - line_feed_binary.Length - 1;
+            if (start_index < 0)
+                start_index = 0;
+            for (int i = start_index; i < array.Length; i++)
+            {
+                if (array[i] == line_feed_binary[invaild_length])
+                {
+                    invaild_length++;
+                }
+            }
+            //一致している場合は全部存在することを意味する
+            if (invaild_length == line_feed_binary.Length)
+                return 0;
+            else
+                return invaild_length;
+        }
 #endif
 
         private int NormalizeLineFeed(ReadOnlySpan<char> chars, IBufferWriter<char> writer, ReadOnlySpan<char> lineFeed,ReadOnlySpan<char> normalized_linefeed)
@@ -332,25 +372,36 @@ namespace FooProject.Collection.DataStore
 #if NET6_0_OR_GREATER
             int byte_array_len = _encoding.GetMaxByteCount(count);
             ArrayBufferWriter<char> arrayBufferWriter = new ArrayBufferWriter<char>(count);
-            ArrayBufferWriter<char> temp_buffer_writer = new ArrayBufferWriter<char>(count);
             int leftCount = count;
+            int fetch_failed_buffer_size = this.buffer_size * REFECTH_BUFFER_SIZE_RAITO;
 
             try
             {
                 long index = _leastLoadPostion;
                 int totalConvertedBytes = 0;
                 int totalConvertedChars = 0;
+                int invaild_length = 0;
+
+                stream.Position = _leastLoadPostion;
 
                 while (leftCount > 0)
                 {
-                    stream.Position = _leastLoadPostion;
-
                     var bufferResult = await _pipeReader.ReadAsync().ConfigureAwait(false);
 
                     if (bufferResult.IsCompleted && bufferResult.Buffer.Length == 0)
                     {
                         _decoder.Reset();
                         break;
+                    }
+
+                    if(this.LineFeed != null)
+                    {
+                        invaild_length = GetLastInvaildLineFeedLength(bufferResult.Buffer, _lineFeedBinary);
+                        if (bufferResult.IsCompleted == false && invaild_length > 0 && bufferResult.Buffer.Length < fetch_failed_buffer_size)
+                        {
+                            _pipeReader.AdvanceTo(bufferResult.Buffer.Start, bufferResult.Buffer.End);
+                            continue;
+                        }
                     }
 
                     var skippedReadOnlyBuffer = bufferResult.Buffer;
@@ -368,30 +419,36 @@ namespace FooProject.Collection.DataStore
                         }
                     }
 
+                    ArrayBufferWriter<char> temp_buffer_writer = new ArrayBufferWriter<char>(fetch_failed_buffer_size);
                     int converted_bytes, converted_chars;
                     bool completed;
-                    _decoder.Convert(skippedReadOnlyBuffer.Slice(0, Math.Min(byte_array_len, skippedReadOnlyBuffer.Length)), temp_buffer_writer.GetSpan(), Math.Min(count, leftCount), false, out converted_bytes, out converted_chars, out completed);
+                    _decoder.Convert(skippedReadOnlyBuffer.Slice(0, Math.Min(byte_array_len, skippedReadOnlyBuffer.Length)), temp_buffer_writer.GetSpan(), temp_buffer_writer.FreeCapacity, false, out converted_bytes, out converted_chars, out completed);
                     temp_buffer_writer.Advance(converted_chars);
 
+                    if (LineFeed != null && NormalizeLineFeed != null)
+                    {
+                        var actual_converted_char_count = NormalizeLineFeed(temp_buffer_writer.WrittenSpan.Slice(0, converted_chars), arrayBufferWriter, LineFeed.AsSpan(), NormalizedLineFeed.AsSpan());
+                        totalConvertedChars += actual_converted_char_count;
+                        leftCount -= actual_converted_char_count;
+                    }
+                    else
+                    {
+                        arrayBufferWriter.Write(temp_buffer_writer.WrittenSpan.Slice(0, converted_chars));
+                        totalConvertedChars += converted_chars;
+                        leftCount -= converted_chars;
+                    }
+
                     _pipeReader.AdvanceTo(skippedReadOnlyBuffer.Slice(0, converted_bytes).End);
-                    leftCount -= converted_chars;
 
                     totalConvertedBytes += converted_bytes;
-                    totalConvertedChars += converted_chars;
 
                     _leastLoadPostion += converted_bytes;
+
+                    stream.Position = _leastLoadPostion;
                 }
 
                 IEnumerable<char> list;
-                if (LineFeed != null && NormalizeLineFeed != null)
-                {
-                    var converted_char_count = NormalizeLineFeed(temp_buffer_writer.WrittenSpan.Slice(0, totalConvertedChars), arrayBufferWriter, LineFeed.AsSpan(), NormalizedLineFeed.AsSpan());
-                    list = arrayBufferWriter.WrittenSpan.ToArray().Take(converted_char_count);
-                }
-                else
-                {
-                    list = temp_buffer_writer.WrittenSpan.ToArray().Take(totalConvertedChars);
-                }
+                list = arrayBufferWriter.WrittenSpan.ToArray().Take(totalConvertedChars);
 
                 if (totalConvertedChars == 0)
                 {
