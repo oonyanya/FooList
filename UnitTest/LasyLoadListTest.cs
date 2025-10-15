@@ -148,6 +148,24 @@ namespace UnitTest
             {
                 Assert.AreEqual(normalized_line_feed_str[i], actual[i]);
             }
+
+            memoryStream = new MemoryStream();
+            memoryStream.Write(Encoding.UTF8.GetBytes(str));
+            memoryStream.Position = 0;
+            charReader = new CharReader(memoryStream, Encoding.UTF8, "\r\n".ToArray(), "\n".ToArray(), buffer_size);
+            StringBuilder sb = new StringBuilder();
+            while (true)
+            {
+                result = charReader.LoadAsync(buffer_size).Result;
+                if(result.Value == null)
+                    break;
+                sb.Append(result.Value.ToArray());
+            }
+            normalized_line_feed_str = str.Replace("\r\n", "\n");
+            for (int i = 0; i < normalized_line_feed_str.Length; i++)
+            {
+                Assert.AreEqual(normalized_line_feed_str[i], sb[i]);
+            }
         }
 
         [TestMethod]

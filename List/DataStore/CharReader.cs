@@ -422,7 +422,8 @@ namespace FooProject.Collection.DataStore
                     ArrayBufferWriter<char> temp_buffer_writer = new ArrayBufferWriter<char>(fetch_failed_buffer_size);
                     int converted_bytes, converted_chars;
                     bool completed;
-                    _decoder.Convert(skippedReadOnlyBuffer.Slice(0, Math.Min(byte_array_len, skippedReadOnlyBuffer.Length)), temp_buffer_writer.GetSpan(), temp_buffer_writer.FreeCapacity, false, out converted_bytes, out converted_chars, out completed);
+                    int fetch_count = Math.Min(count + invaild_length,fetch_failed_buffer_size);
+                    _decoder.Convert(skippedReadOnlyBuffer.Slice(0, Math.Min(byte_array_len, skippedReadOnlyBuffer.Length)), temp_buffer_writer.GetSpan(), fetch_count, false, out converted_bytes, out converted_chars, out completed);
                     temp_buffer_writer.Advance(converted_chars);
 
                     if (LineFeed != null && NormalizeLineFeed != null)
