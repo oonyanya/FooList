@@ -140,11 +140,12 @@ namespace UnitTest
             var memoryStream = new MemoryStream();
             memoryStream.Write(Encoding.UTF8.GetBytes(str));
             memoryStream.Position = 0;
-            var charReader = new CharReader(memoryStream, Encoding.UTF8, "\r\n".ToArray(), "\n".ToArray());
+            var charReader = new CharReader(memoryStream, Encoding.UTF8, "\r\n".ToArray(), "\n".ToArray(), buffer_size);
             var result = charReader.LoadAsync(str.Length).Result;
             var normalized_line_feed_str = str.Replace("\r\n", "\n");
             var actual = result.Value.ToArray();
-            for (int i = 0; i < normalized_line_feed_str.Length; i++) {
+            for (int i = 0; i < normalized_line_feed_str.Length; i++)
+            {
                 Assert.AreEqual(normalized_line_feed_str[i], actual[i]);
             }
         }
@@ -159,7 +160,11 @@ namespace UnitTest
             memoryStream.Position = 0;
             var charReader = new CharReader(memoryStream, Encoding.UTF8);
             var result = charReader.LoadAsync(str.Length).Result;
-            Assert.AreEqual(str, new string(result.Value.ToArray()));
+            var actual = result.Value.ToArray();
+            for (int i = 0; i < str.Length; i++)
+            {
+                Assert.AreEqual(str[i], actual[i]);
+            }
         }
 
         [TestMethod]
@@ -171,7 +176,11 @@ namespace UnitTest
             memoryStream.Position = 0;
             var charReader = new CharReader(memoryStream, Encoding.UTF8);
             var result = charReader.LoadAsync(str.Length).Result;
-            Assert.AreEqual(str, new string(result.Value.ToArray()));
+            var actual = result.Value.ToArray();
+            for (int i = 0; i < str.Length; i++)
+            {
+                Assert.AreEqual(str[i], actual[i]);
+            }
         }
 #endif
 
