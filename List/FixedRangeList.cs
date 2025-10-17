@@ -182,6 +182,9 @@ namespace FooProject.Collection
             //DebugLog.WriteLine("Clear");
         }
 
+        /*
+         * 差分更新ができるが、当面の間は実装しない。
+         * 
         public void UpdateStartIndex(int deltaLength, int startRow)
         {
             if (this.collection.Count == 0)
@@ -243,6 +246,7 @@ namespace FooProject.Collection
             else
                 return this.collection[row].start;
         }
+        */
     }
 
 }
