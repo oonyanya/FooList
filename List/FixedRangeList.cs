@@ -43,16 +43,30 @@ namespace FooProject.Collection
             }
         }
 
+        /// <summary>
+        /// コレクション内部の長さの合計
+        /// </summary>
         public long TotalCount
         {
             get; private set;
         }
 
+        /// <summary>
+        /// 追加する
+        /// </summary>
+        /// <param name="item">追加対象のアイテム</param>
+        /// <remarks>コレクション内部の値は相対的な値に変換される</remarks>
         public override void Add(T item)
         {
             this.AddRange(new T[1] { item }, 1);
         }
 
+        /// <summary>
+        /// コレクションを追加する
+        /// </summary>
+        /// <param name="collection">追加対象のコレクション</param>
+        /// <param name="collection_length">長さ</param>
+        /// <remarks>コレクション内部の値は相対的な値に変換される</remarks>
         public override void AddRange(IEnumerable<T> collection, int collection_length = -1)
         {
             long deltaLength = 0;
@@ -76,11 +90,24 @@ namespace FooProject.Collection
             }
         }
 
+        /// <summary>
+        /// 挿入する
+        /// </summary>
+        /// <param name="index">開始インデックス</param>
+        /// <param name="item">挿入対象のアイテム</param>
+        /// <remarks>コレクション内部の値は相対的な値に変換される</remarks>
         public override void Insert(int index, T item)
         {
             this.InsertRange(index, new T[1] { item }, 1);
         }
 
+        /// <summary>
+        /// 挿入する
+        /// </summary>
+        /// <param name="index">開始インデックス</param>
+        /// <param name="collection">挿入対象のコレクション</param>
+        /// <param name="collection_length">長さ。何も指定しなくていいが、指定しないと遅くなることがある</param>
+        /// <remarks>コレクション内部の値は相対的な値に変換される</remarks>
         public override void InsertRange(int index, IEnumerable<T> collection, int collection_length = -1)
         {
             long deltaLength = 0;
@@ -122,6 +149,11 @@ namespace FooProject.Collection
             }
         }
 
+        /// <summary>
+        /// 削除する
+        /// </summary>
+        /// <param name="index">開始インデックス</param>
+        /// <param name="count">長さ</param>
         public override void RemoveRange(int index,int count)
         {
             long deltaLength = 0;

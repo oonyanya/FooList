@@ -70,6 +70,7 @@ namespace FooProject.Collection
         /// </summary>
         /// <param name="index">0から始まる数値</param>
         /// <param name="value">設定したいT</param>
+        /// <remarks>valueの値は内部で相対的インデックスに変換されるので、変換する必要はない</remarks>
         public override void Set(long index, T value)
         {
             var args = new BigListArgs<T>(CustomBuilder, LeastFetchStore, this.BlockSize, UpdateType.Overwrite);
