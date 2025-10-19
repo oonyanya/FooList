@@ -119,74 +119,6 @@ namespace FooProject.Collection.DataStore
         }
     }
 
-    /// <summary>
-    /// 現在行の状態を表すクラス
-    /// </summary>
-    public ref struct LineEnumratorState
-    {
-        /// <summary>
-        /// 現在行の表す文字列
-        /// </summary>
-        public ReadOnlySpan<char> Chars { get; private set; }
-        /// <summary>
-        /// 改行が存在するかどうか
-        /// </summary>
-        public bool hasLineFeed { get; private set; }
-        public LineEnumratorState(ReadOnlySpan<char> current, bool hasLineFeed)
-        {
-            this.Chars = current;
-            this.hasLineFeed = hasLineFeed;
-        }
-    }
-
-    /// <summary>
-    /// 改行ごとに区切ったやつを列挙する
-    /// </summary>
-    public ref struct LineEnumrator
-    {
-        bool isActive;
-        ReadOnlySpan<char> reamin,newline;
-
-        /// <summary>
-        /// コンストラクター
-        /// </summary>
-        /// <param name="chars">文字列</param>
-        /// <param name="linefeed">改行を表す奴</param>
-        public LineEnumrator(ReadOnlySpan<char> chars,ReadOnlySpan<char> linefeed)
-        {
-            reamin = chars;
-            newline = linefeed;
-            Current = default;
-            isActive = true;
-        }
-        public LineEnumrator GetEnumerator() => this;
-
-        /// <summary>
-        /// 現在の行
-        /// </summary>
-        public LineEnumratorState Current { get; private set; }
-
-        public bool MoveNext()
-        {
-            if(isActive == false)
-            {
-                return false;
-            }
-            int index = reamin.IndexOf(newline);
-            if (index == -1)
-            {
-                Current = new LineEnumratorState(reamin, false);
-                isActive = false;
-            }
-            else
-            {
-                Current = new LineEnumratorState(reamin.Slice(0, index),true);
-                reamin = reamin.Slice(index + newline.Length);
-            }
-            return true;
-        }
-    }
-
 #if NET6_0_OR_GREATER
     public static class DecoderExtension
     {
@@ -250,14 +182,7 @@ namespace FooProject.Collection.DataStore
             _encoding = enc;
             _decoder = enc.GetDecoder();
             _leastLoadPostion = 0;
-            this.LineFeed = lineFeed;
-            this.NormalizedLineFeed = normalizedLineFeed;
 #if NET6_0_OR_GREATER
-            if (this.LineFeed != null)
-            {
-                this._lineFeedBinary = _encoding.GetBytes(this.LineFeed);
-            }
-
             if (buffer_size > 0) {
                 this.buffer_size = buffer_size;
             }
@@ -279,16 +204,6 @@ namespace FooProject.Collection.DataStore
         /// エンコーディング
         /// </summary>
         public Encoding Encoding { get { return _encoding; } }
-
-        /// <summary>
-        /// 変換対象の改行コード
-        /// </summary>
-        public char[] LineFeed { get; private set; }
-
-        /// <summary>
-        /// 変換元の改行コード
-        /// </summary>
-        public char[] NormalizedLineFeed {  get; private set; }
 
 #if NET6_0_OR_GREATER
         private ReadOnlySequence<byte> SkipPreaemble(ReadOnlySequence<byte> buffer, ReadOnlySpan<byte> preaemble, out bool skipped)
@@ -315,52 +230,7 @@ namespace FooProject.Collection.DataStore
             }
             return buffer.Slice(skipLength);
         }
-        private int GetLastInvaildLineFeedLength(ReadOnlySequence<byte> seq, ReadOnlySpan<byte> line_feed_binary)
-        {
-            ReadOnlySpan<byte> array;
-            if (seq.IsSingleSegment)
-            {
-                array = seq.FirstSpan;
-            }
-            else
-            {
-                array = seq.Slice(0, seq.End).FirstSpan;
-            }
-            int invaild_length = 0;
-            int start_index = array.Length - line_feed_binary.Length - 1;
-            if (start_index < 0)
-                start_index = 0;
-            for (int i = start_index; i < array.Length; i++)
-            {
-                if (array[i] == line_feed_binary[invaild_length])
-                {
-                    invaild_length++;
-                }
-            }
-            //一致している場合は全部存在することを意味する
-            if (invaild_length == line_feed_binary.Length)
-                return 0;
-            else
-                return invaild_length;
-        }
 #endif
-
-        private int NormalizeLineFeed(ReadOnlySpan<char> chars, IBufferWriter<char> writer, ReadOnlySpan<char> lineFeed,ReadOnlySpan<char> normalized_linefeed)
-        {
-            int total_written_chars = 0;
-            var enumrator = new LineEnumrator(chars, lineFeed);
-            foreach(var line in enumrator)
-            {
-                writer.Write(line.Chars);
-                total_written_chars += line.Chars.Length;
-                if (line.hasLineFeed)
-                {
-                    writer.Write(normalized_linefeed);
-                    total_written_chars += normalized_linefeed.Length;
-                }
-            }
-            return total_written_chars;
-        }
 
         /// <summary>
         /// 文字を読み取る
@@ -373,14 +243,12 @@ namespace FooProject.Collection.DataStore
             int byte_array_len = _encoding.GetMaxByteCount(count);
             ArrayBufferWriter<char> arrayBufferWriter = new ArrayBufferWriter<char>(count);
             int leftCount = count;
-            int fetch_failed_buffer_size = this.buffer_size * REFECTH_BUFFER_SIZE_RAITO;
 
             try
             {
                 long index = _leastLoadPostion;
                 int totalConvertedBytes = 0;
                 int totalConvertedChars = 0;
-                int invaild_length = 0;
 
                 stream.Position = _leastLoadPostion;
 
@@ -392,16 +260,6 @@ namespace FooProject.Collection.DataStore
                     {
                         _decoder.Reset();
                         break;
-                    }
-
-                    if(this.LineFeed != null)
-                    {
-                        invaild_length = GetLastInvaildLineFeedLength(bufferResult.Buffer, _lineFeedBinary);
-                        if (bufferResult.IsCompleted == false && invaild_length > 0 && bufferResult.Buffer.Length < fetch_failed_buffer_size)
-                        {
-                            _pipeReader.AdvanceTo(bufferResult.Buffer.Start, bufferResult.Buffer.End);
-                            continue;
-                        }
                     }
 
                     var skippedReadOnlyBuffer = bufferResult.Buffer;
@@ -419,26 +277,13 @@ namespace FooProject.Collection.DataStore
                         }
                     }
 
-                    ArrayBufferWriter<char> temp_buffer_writer = new ArrayBufferWriter<char>(fetch_failed_buffer_size);
                     int converted_bytes, converted_chars;
                     bool completed;
-                    //面倒なのでCRLFなど一バイト文字前提で計算している
-                    int fetch_count = Math.Min(count + invaild_length,fetch_failed_buffer_size);
-                    _decoder.Convert(skippedReadOnlyBuffer.Slice(0, Math.Min(byte_array_len, skippedReadOnlyBuffer.Length)), temp_buffer_writer.GetSpan(), fetch_count, false, out converted_bytes, out converted_chars, out completed);
-                    temp_buffer_writer.Advance(converted_chars);
+                    _decoder.Convert(skippedReadOnlyBuffer.Slice(0, Math.Min(byte_array_len, skippedReadOnlyBuffer.Length)), arrayBufferWriter.GetSpan(), Math.Min(leftCount, count), false, out converted_bytes, out converted_chars, out completed);
+                    arrayBufferWriter.Advance(converted_chars);
 
-                    if (LineFeed != null && NormalizeLineFeed != null)
-                    {
-                        var actual_converted_char_count = NormalizeLineFeed(temp_buffer_writer.WrittenSpan.Slice(0, converted_chars), arrayBufferWriter, LineFeed.AsSpan(), NormalizedLineFeed.AsSpan());
-                        totalConvertedChars += actual_converted_char_count;
-                        leftCount -= actual_converted_char_count;
-                    }
-                    else
-                    {
-                        arrayBufferWriter.Write(temp_buffer_writer.WrittenSpan.Slice(0, converted_chars));
-                        totalConvertedChars += converted_chars;
-                        leftCount -= converted_chars;
-                    }
+                    totalConvertedChars += converted_chars;
+                    leftCount -= converted_chars;
 
                     _pipeReader.AdvanceTo(skippedReadOnlyBuffer.Slice(0, converted_bytes).End);
 
@@ -513,7 +358,6 @@ namespace FooProject.Collection.DataStore
         {
             int byte_array_len = _encoding.GetMaxByteCount(count);
             byte[] byte_array = ArrayPool<byte>.Shared.Rent(byte_array_len);
-            var arrayBufferWriter = new PooledArrayBufferWriter<char>(count);
             char[] temp_buffer_writer = ArrayPool<char>.Shared.Rent(count);
             int read_bytes = 0;
 
@@ -540,30 +384,18 @@ namespace FooProject.Collection.DataStore
                 int converted_bytes, converted_chars;
                 bool completed;
 
-                int temp_converted_chars;
-                _decoder.Convert(byte_array, fetch_index, stream_read_bytes - fetch_index, temp_buffer_writer, 0, count, false, out converted_bytes, out temp_converted_chars, out completed);
-
-                if (LineFeed != null && NormalizedLineFeed != null)
-                {
-                    converted_chars = NormalizeLineFeed(temp_buffer_writer.AsSpan(), arrayBufferWriter, LineFeed.AsSpan(), NormalizedLineFeed.AsSpan());
-                }
-                else
-                {
-                    arrayBufferWriter.Write(temp_buffer_writer.AsSpan());
-                    converted_chars = temp_converted_chars;
-                }
+                _decoder.Convert(byte_array, fetch_index, stream_read_bytes - fetch_index, temp_buffer_writer, 0, count, false, out converted_bytes, out converted_chars, out completed);
 
                 _leastLoadPostion += converted_bytes;
                 read_bytes = converted_bytes;
 
-                return new OnLoadAsyncResult<IEnumerable<char>>(arrayBufferWriter.WrittenSpan.ToArray().Take(converted_chars), index, read_bytes);
+                return new OnLoadAsyncResult<IEnumerable<char>>(temp_buffer_writer.ToArray().Take(converted_chars), index, read_bytes);
             }
             finally
             {
                 //返却しないとメモリーリークする
                 ArrayPool<byte>.Shared.Return(byte_array);
                 ArrayPool<char>.Shared.Return(temp_buffer_writer);
-                arrayBufferWriter.Dispose();
             }
         }
     }
