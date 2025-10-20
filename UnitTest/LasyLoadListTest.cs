@@ -1,16 +1,17 @@
-﻿using FooProject.Collection;
-using FooProject.Collection.DataStore;
-using Microsoft.VisualStudio.TestPlatform.PlatformAbstractions.Interfaces;
-using Microsoft.VisualStudio.TestPlatform.Utilities;
-using System;
+﻿using System;
 using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
+using System.Formats.Tar;
 using System.IO;
 using System.Reflection;
 using System.Text;
+using FooProject.Collection;
+using FooProject.Collection.DataStore;
+using Microsoft.VisualStudio.TestPlatform.PlatformAbstractions.Interfaces;
+using Microsoft.VisualStudio.TestPlatform.Utilities;
 
 namespace UnitTest
 {
@@ -294,6 +295,58 @@ namespace UnitTest
             datastore.CompleteAsync().Wait();
         }
 #endif
+
+        [TestMethod]
+        public void EmptyListAddAndInsertAndRemoveTest()
+        {
+            const int TEST_SIZE = 512;
+
+            var memoryStream = new MemoryStream();
+            var memoryStore = new MemoryPinableContentDataStore<IComposableList<char>>();
+            var charReader = new CharReader(memoryStream, Encoding.UTF8);
+            var lazyLoadStore = new ReadOnlyCharDataStore(charReader, 8);
+            lazyLoadStore.SecondaryDataStore = memoryStore;
+            var customConverter = new DefaultCustomConverter<char>();
+            customConverter.DataStore = lazyLoadStore;
+            BigList<char> biglist = new BigList<char>();
+            biglist.CustomBuilder = customConverter;
+            biglist.LeastFetchStore = customConverter;
+
+            var str = "日本国民は、正当に選挙された国会における代表者を通じて行動し、われらとわれらの子孫のために、諸国民との協和による成果と、わが国全土にわたって自由のもたらす恵沢を確保し、政府の行為によって再び戦争の惨禍が起ることのないやうにすることを決意し、ここに主権が国民に存することを宣言し、この憲法を確定する。";
+            var str_builder = new StringBuilder(str);
+            biglist.AddRange(str);
+
+            for(int i = 0; i < TEST_SIZE; i++)
+            {
+                switch (i % 4)
+                {
+                    case 1:
+                        str_builder.Insert(biglist.Count, "test");
+                        biglist.AddRange("test");
+                        break;
+                    case 2:
+                        str_builder.Insert(biglist.Count - loadLen, "test");
+                        biglist.InsertRange(biglist.Count - loadLen, "test");
+                        break;
+                    case 3:
+                        str_builder.Insert(biglist.Count - loadLen / 2, "test");
+                        biglist.InsertRange(biglist.Count - loadLen / 2, "test");
+                        break;
+                    case 4:
+                        str_builder.Remove(biglist.Count - loadLen, 2);
+                        biglist.RemoveRange(biglist.Count - loadLen, 2);
+                        break;
+                }
+
+            }
+
+            Assert.AreEqual(str_builder.Length, biglist.Count);
+
+            for (int i = 0; i < str_builder.Length; i++)
+            {
+                Assert.AreEqual(str_builder[i], biglist[i]);
+            }
+        }
 
         [TestMethod]
         public void LoadStringWithAddAndInsertAndRemoveTest()
