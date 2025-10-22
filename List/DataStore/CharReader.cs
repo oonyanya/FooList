@@ -161,7 +161,7 @@ namespace FooProject.Collection.DataStore
     {
         const int REFECTH_BUFFER_SIZE_RAITO = 2;
 
-        Stream _stream;
+        Stream stream;
         Encoding _encoding;
         Decoder _decoder;
         long _leastLoadPostion;
@@ -176,34 +176,9 @@ namespace FooProject.Collection.DataStore
         /// </summary>
         /// <param name="stream">読み取り対象のストリーム</param>
         /// <param name="enc">エンコーディング</param>
-        public CharReader(Stream stream, Encoding enc, int buffer_size = -1)
+        public CharReader(Stream stream, Encoding enc, char[] lineFeed = null, char[] normalizedLineFeed = null, int buffer_size = -1)
         {
-            this.Init(stream, enc, buffer_size);
-        }
-
-        /// <summary>
-        /// コンストラクター
-        /// </summary>
-        /// <remarks>使用するにはInit()を呼ぶ必要がある</remarks>
-        public CharReader()
-        {
-        }
-
-        /// <summary>
-        /// 読み取り対象のストリーム
-        /// </summary>
-        public Stream Stream { get { return _stream; } }
-
-        /// <summary>
-        /// エンコーディング
-        /// </summary>
-        public Encoding Encoding { get { return _encoding; } }
-
-        public void Init(Stream stream, Encoding enc, int buffer_size = -1)
-        {
-            if (this.IsInited)
-                throw new InvalidOperationException("already called Init()");
-            this._stream = stream;
+            this.stream = stream;
             _encoding = enc;
             _decoder = enc.GetDecoder();
             _leastLoadPostion = 0;
@@ -218,10 +193,17 @@ namespace FooProject.Collection.DataStore
             var pipeReaderOptions = new StreamPipeReaderOptions(bufferSize: this.buffer_size);
             this._pipeReader = PipeReader.Create(stream, pipeReaderOptions);
 #endif
-            this.IsInited = true;
         }
 
-        public bool IsInited { get; private set; }
+        /// <summary>
+        /// 読み取り対象のストリーム
+        /// </summary>
+        public Stream Stream { get { return stream; } }
+
+        /// <summary>
+        /// エンコーディング
+        /// </summary>
+        public Encoding Encoding { get { return _encoding; } }
 
 #if NET6_0_OR_GREATER
         private ReadOnlySequence<byte> SkipPreaemble(ReadOnlySequence<byte> buffer, ReadOnlySpan<byte> preaemble, out bool skipped)
@@ -257,8 +239,6 @@ namespace FooProject.Collection.DataStore
         /// <returns>OnLoadAsyncResultを返す。何も読み取らなかった場合についてはOnLoadAsyncResultを参照すること</returns>
         public async Task<OnLoadAsyncResult<IEnumerable<char>>> LoadAsync(int count)
         {
-            if (this.IsInited == false)
-                throw new InvalidOperationException("must be call Init()");
 #if NET6_0_OR_GREATER
             int byte_array_len = _encoding.GetMaxByteCount(count);
             ArrayBufferWriter<char> arrayBufferWriter = new ArrayBufferWriter<char>(count);
@@ -270,7 +250,7 @@ namespace FooProject.Collection.DataStore
                 int totalConvertedBytes = 0;
                 int totalConvertedChars = 0;
 
-                _stream.Position = _leastLoadPostion;
+                stream.Position = _leastLoadPostion;
 
                 while (leftCount > 0)
                 {
@@ -311,7 +291,7 @@ namespace FooProject.Collection.DataStore
 
                     _leastLoadPostion += converted_bytes;
 
-                    _stream.Position = _leastLoadPostion;
+                    stream.Position = _leastLoadPostion;
                 }
 
                 IEnumerable<char> list;
@@ -340,8 +320,6 @@ namespace FooProject.Collection.DataStore
         /// <returns></returns>
         public async Task CompleteAsync()
         {
-            if (this.IsInited == false)
-                throw new InvalidOperationException("must be call Init()");
 #if NET6_0_OR_GREATER
             await this._pipeReader.CompleteAsync();
 #else
@@ -378,9 +356,6 @@ namespace FooProject.Collection.DataStore
         /// <returns>OnLoadAsyncResultを返す。何も読み取らなかった場合についてはOnLoadAsyncResultを参照すること</returns>
         public OnLoadAsyncResult<IEnumerable<char>> Load(int count)
         {
-            if (this.IsInited == false)
-                throw new InvalidOperationException("must be call Init()");
-
             int byte_array_len = _encoding.GetMaxByteCount(count);
             byte[] byte_array = ArrayPool<byte>.Shared.Rent(byte_array_len);
             char[] temp_buffer_writer = ArrayPool<char>.Shared.Rent(count);
@@ -388,10 +363,10 @@ namespace FooProject.Collection.DataStore
 
             try
             {
-                _stream.Position = _leastLoadPostion;
+                stream.Position = _leastLoadPostion;
 
                 long index = _leastLoadPostion;
-                var stream_read_bytes = _stream.Read(byte_array, 0, byte_array.Length);
+                var stream_read_bytes = stream.Read(byte_array, 0, byte_array.Length);
                 if (stream_read_bytes == 0)
                 {
                     _decoder.Reset();

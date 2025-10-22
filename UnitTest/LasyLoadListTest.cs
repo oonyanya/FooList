@@ -1,12 +1,9 @@
-﻿using System;
-using System.Buffers;
+﻿using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Drawing;
 using System.IO;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Text;
 using FooProject.Collection;
 using FooProject.Collection.DataStore;
@@ -116,95 +113,6 @@ namespace UnitTest
             return sb.ToString();
         }
 
-        [TestMethod]
-        public async Task NonThrowAfterInitTest()
-        {
-            var str = GetText(128);
-            var memoryStream = new MemoryStream();
-            memoryStream.Write(Encoding.UTF8.Preamble);
-            memoryStream.Write(Encoding.UTF8.GetBytes(str));
-            memoryStream.Position = 0;
-            var reader = new CharReader();
-            reader.Init(memoryStream, Encoding.UTF8);
-
-            try
-            {
-                reader.Load(10);
-                Assert.IsTrue(true);
-            }
-            catch (Exception)
-            {
-                Assert.Fail();
-            }
-
-#if NET6_0_OR_GREATER
-            try
-            {
-                await reader.LoadAsync(10);
-                Assert.IsTrue(true);
-            }
-            catch (Exception)
-            {
-                Assert.Fail();
-            }
-
-            try
-            {
-                await reader.CompleteAsync();
-                Assert.IsTrue(true);
-            }
-            catch (Exception)
-            {
-                Assert.Fail();
-            }
-#endif
-            try
-            {
-                reader.Init(memoryStream, Encoding.UTF8);
-                Assert.Fail();
-            }
-            catch (Exception ex)
-            {
-                Assert.IsTrue(ex is InvalidOperationException);
-            }
-        }
-
-        [TestMethod]
-        public async Task  ThrowWithoutInitTest()
-        {
-            var reader = new CharReader();
-            try
-            {
-                reader.Load(10);
-                Assert.Fail();
-            }
-            catch(Exception ex)
-            {
-                    Assert.IsTrue(ex is InvalidOperationException);
-            }
-
-#if NET6_0_OR_GREATER
-            try
-            {
-                await reader.LoadAsync(10);
-                Assert.Fail();
-            }
-            catch (Exception ex)
-            {
-                Assert.IsTrue(ex is InvalidOperationException);
-            }
-
-            try
-            {
-                await reader.CompleteAsync();
-                Assert.Fail();
-            }
-            catch (Exception ex)
-            {
-                Assert.IsTrue(ex is InvalidOperationException);
-            }
-#endif
-        }
 
 #if NET6_0_OR_GREATER
         [TestMethod]
