@@ -176,7 +176,7 @@ namespace FooProject.Collection.DataStore
         /// </summary>
         /// <param name="stream">読み取り対象のストリーム</param>
         /// <param name="enc">エンコーディング</param>
-        public CharReader(Stream stream, Encoding enc, char[] lineFeed = null, char[] normalizedLineFeed = null, int buffer_size = -1)
+        public CharReader(Stream stream, Encoding enc, int buffer_size = -1)
         {
             this.stream = stream;
             _encoding = enc;
