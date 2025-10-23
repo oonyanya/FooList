@@ -20,8 +20,17 @@ namespace FooProject.Collection.DataStore
         {
             this.writebackCacheList = new TwoQueueCacheList<long, PinableContainer<T>>();
             this.writebackCacheList.Limit = cache_limit;
-            this.writebackCacheList.CacheOuted += (e) => {
-                this.OnDispoing(e.Value.Content);
+            this.writebackCacheList.CacheOuted += (ev) => {
+                var key = ev.Key;
+                var outed_item = ev.Value;
+
+                this.OnDispoing(outed_item.Content);
+
+                if (outed_item.IsRemoved == true)
+                    return;
+
+                this.emptyList.ReleaseID(outed_item.CacheIndex);
+                outed_item.CacheIndex = PinableContainer<T>.NOTCACHED;
             };
         }
 
