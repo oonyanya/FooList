@@ -27,7 +27,10 @@ namespace FooProject.Collection.DataStore
     /// <example>使い方はLasyLoadListTestを参照してください</example>
     public class ReadOnlyCharDataStore : ReadonlyContentStoreBase<IComposableList<char>>
     {
-        CharReader reader;
+        /// <summary>
+        /// CharReaderのインスタンス。設定しないと一切動かないので注意
+        /// </summary>
+        public CharReader Reader { get; set; }
 
         /// <summary>
         /// コンストラクター
@@ -36,17 +39,20 @@ namespace FooProject.Collection.DataStore
         /// <param name="cachesize">キャッシュサイズ</param>
         public ReadOnlyCharDataStore(CharReader r,int cachesize = 128) : base(cachesize)
         {
-            this.reader = r;
+            this.Reader = r;
         }
 
         protected override IComposableList<char> OnRead(long index, int bytes)
         {
+            if (this.Reader == null)
+                throw new InvalidOperationException("Reader must be set");
+
             byte[] array = ArrayPool<byte>.Shared.Rent(bytes);
             try
             {
-                this.reader.Stream.Position = index;
-                this.reader.Stream.Read(array, 0, bytes);
-                var str = this.reader.Encoding.GetString(array, 0, bytes);
+                this.Reader.Stream.Position = index;
+                this.Reader.Stream.Read(array, 0, bytes);
+                var str = this.Reader.Encoding.GetString(array, 0, bytes);
                 var list = new ReadOnlyComposableList<char>(str);
                 return list;
             }
@@ -62,7 +68,10 @@ namespace FooProject.Collection.DataStore
         /// <returns></returns>
         public async Task CompleteAsync()
         {
-            await this.reader.CompleteAsync();
+            if (this.Reader == null)
+                throw new InvalidOperationException("Reader must be set");
+
+            await this.Reader.CompleteAsync();
         }
     }
 }
