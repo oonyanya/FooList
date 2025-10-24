@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace FooProject.Collection.DataStore
 {
-    public class MemoryPinableContentDataStoreWithAutoDisposer<T> : PinableContentDataStoreBase<T>,IPinableContainerStoreWithAutoDisposer<T>, IDisposable
+    public class MemoryPinableContentDataStoreWithAutoDisposer<T> : PinableContentDataStoreWithAutoDisposerBase<T>
     {
         EmptyList emptyList = new EmptyList();
         bool disposedValue = false;
@@ -34,15 +34,8 @@ namespace FooProject.Collection.DataStore
             };
         }
 
-        public event Action<T> Disposeing;
-
-        public void OnDispoing(T item)
-        {
-            if (this.Disposeing != null)
-                this.Disposeing(item);
-        }
-
-        public IEnumerable<T> ForEachAvailableContent()
+        /// <inheritdoc/>
+        public override IEnumerable<T> ForEachAvailableContent()
         {
             foreach (var pinableContainer in this.writebackCacheList.ForEachValue())
             {
@@ -53,12 +46,14 @@ namespace FooProject.Collection.DataStore
             }
         }
 
+        /// <inheritdoc/>
         public override bool TryGet(IPinableContainer<T> pinableContainer, out IPinnedContent<T> result)
         {
             result = new PinnedContent<T>(pinableContainer,this);
             return true;
         }
 
+        /// <inheritdoc/>
         public override void Set(IPinableContainer<T> ipinableContainer)
         {
             PinableContainer<T> pinableContainer = (PinableContainer<T>)ipinableContainer;
@@ -78,46 +73,17 @@ namespace FooProject.Collection.DataStore
             return;
         }
 
+        /// <inheritdoc/>
         public override void Commit()
         {
             this.writebackCacheList.Flush();
         }
 
+        /// <inheritdoc/>
         public override IPinableContainer<T> CreatePinableContainer(T content)
         {
             return new PinableContainer<T>(content) { ID = nameof(MemoryPinableContentDataStoreWithAutoDisposer<T>) };
         }
 
-        public void Dispose()
-        {
-            //GC前にプログラム的にリソースを破棄するので
-            //管理,非管理リソース両方が破棄されるようにする
-            Dispose(true);
-            GC.SuppressFinalize(this);//破棄処理は完了しているのでGC不要の合図
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (disposedValue)
-            {
-                return;
-            }
-
-            if (disposing)
-            {
-                //管理リソースの破棄処理
-                this.writebackCacheList.Flush();
-            }
-
-            //非管理リソースの破棄処理
-
-            disposedValue = true;
-        }
-
-        ~MemoryPinableContentDataStoreWithAutoDisposer()
-        {
-            //GC時に実行されるデストラクタでは非管理リソースの削除のみ
-            Dispose(false);
-        }
     }
 }

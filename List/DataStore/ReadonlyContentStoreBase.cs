@@ -139,6 +139,7 @@ namespace FooProject.Collection.DataStore
             throw new NotImplementedException();
         }
 
+        /// <inheritdoc/>
         public override IPinnedContent<T> Get(IPinableContainer<T> ipinableContainer)
         {
             switch (ipinableContainer.ID)
@@ -154,6 +155,7 @@ namespace FooProject.Collection.DataStore
                 throw new ArgumentException();  //TryGetが失敗することはあり得ないので、失敗したら、例外を投げる
         }
 
+        /// <inheritdoc/>
         public override bool TryGet(IPinableContainer<T> ipinableContainer, out IPinnedContent<T> result)
         {
             switch (ipinableContainer.ID)
@@ -185,6 +187,7 @@ namespace FooProject.Collection.DataStore
             return true;
         }
 
+        /// <inheritdoc/>
         public override void Set(IPinableContainer<T> ipinableContainer)
         {
             switch (ipinableContainer.ID)
@@ -217,6 +220,7 @@ namespace FooProject.Collection.DataStore
             return;
         }
 
+        /// <inheritdoc/>
         public override void Commit()
         {
             this.cacheList.Flush();
@@ -224,6 +228,7 @@ namespace FooProject.Collection.DataStore
             this.SecondaryDataStore.Commit();
         }
 
+        /// <inheritdoc/>
         public override IPinableContainer<T> Update(IPinableContainer<T> pinableContainer, T newcontent, long oldstart, long oldcount, long newstart, long newcount)
         {
             //TODO:本当はコピーしないほうがいいが、面倒なので全部コピーする
@@ -232,6 +237,7 @@ namespace FooProject.Collection.DataStore
             return updatedPinableContainer;
         }
 
+        /// <inheritdoc/>
         public override bool IsCanCloneContent(IPinableContainer<IComposableList<char>> pin)
         {
             switch (pin.ID)
@@ -243,6 +249,8 @@ namespace FooProject.Collection.DataStore
             return true;
         }
 
+        /// <inheritdoc/>
+        /// <remarks>呼び出し前にCommit()を実行すること</remarks>
         public override IPinableContainer<T> Clone(IPinableContainer<T> pin, T cloned_content)
         {
             PinableContainer<T> newpin;
@@ -266,6 +274,7 @@ namespace FooProject.Collection.DataStore
             return newpin;
         }
 
+        /// <inheritdoc/>
         public override IPinableContainer<T> CreatePinableContainer(T content)
         {
             var newPinableContainer = new PinableContainer<T>(content);

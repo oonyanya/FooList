@@ -30,7 +30,7 @@ namespace FooProject.Collection.DataStore
     /// ディスクに格納するタイプのデーターストアです
     /// </summary>
     /// <typeparam name="T">データーストアに納める型を指定する</typeparam>
-    public class DiskPinableContentDataStore<T> : PinableContentDataStoreBase<T>,IPinableContainerStoreWithAutoDisposer<T>, IDisposable
+    public class DiskPinableContentDataStore<T> : PinableContentDataStoreWithAutoDisposerBase<T>
     {
         //ファイル内部の割り当ての最小単位
         const int PAGESIZE = 16384;
@@ -125,15 +125,8 @@ namespace FooProject.Collection.DataStore
             };
         }
 
-        public event Action<T> Disposeing;
-
-        public void OnDispoing(T item)
-        {
-            if (this.Disposeing != null)
-                this.Disposeing(item);
-        }
-
-        public IEnumerable<T> ForEachAvailableContent()
+        /// <inheritdoc/>
+        public override IEnumerable<T> ForEachAvailableContent()
         {
             foreach (var pinableContainer in this.readCacheList.ForEachValue())
             {
@@ -151,12 +144,15 @@ namespace FooProject.Collection.DataStore
             }
         }
 
+        /// <inheritdoc/>
         public override IPinableContainer<T> CreatePinableContainer(T content)
         {
             return new PinableContainer<T>(content) { ID = nameof(DiskPinableContentDataStore<T>) };
         }
 
 
+        /// <inheritdoc/>
+        /// <remarks>呼び出し前にCommit()を実行すること</remarks>
         public override IPinableContainer<T> Clone(IPinableContainer<T> pin, T cloned_content)
         {
             PinableContainer<T> newpin;
@@ -164,13 +160,27 @@ namespace FooProject.Collection.DataStore
 
             PinableContainer<T> oldpin = (PinableContainer<T>)pin;
             newpin.CacheIndex = oldpin.CacheIndex;
-            newpin.Info = new DiskAllocationInfo(oldpin.Info.Index, oldpin.Info.AlignedLength);
+            if(oldpin.Info != null)
+            {
+                newpin.Info = new DiskAllocationInfo(oldpin.Info.Index, oldpin.Info.AlignedLength);
+            }
+            else
+            {
+                newpin.Info = null;
+            }
             newpin.ID = oldpin.ID;
             newpin.IsRemoved = oldpin.IsRemoved;
+
+            System.Diagnostics.Debug.Assert(newpin.CacheIndex == oldpin.CacheIndex);
+            System.Diagnostics.Debug.Assert(newpin.Info.Index == oldpin.Info.Index);
+            System.Diagnostics.Debug.Assert(newpin.Info.AlignedLength == oldpin.Info.AlignedLength);
+            System.Diagnostics.Debug.Assert(newpin.ID == oldpin.ID);
+            System.Diagnostics.Debug.Assert(newpin.IsRemoved == oldpin.IsRemoved);
 
             return newpin;
         }
 
+        /// <inheritdoc/>
         public override void Commit()
         {
             this.readCacheList.Flush();
@@ -178,6 +188,7 @@ namespace FooProject.Collection.DataStore
             this.writer.Flush();
         }
 
+        /// <inheritdoc/>
         public override bool TryGet(IPinableContainer<T> ipinableContainer, out IPinnedContent<T> result)
         {
             var pinableContainer = (PinableContainer<T>)ipinableContainer;
@@ -207,6 +218,7 @@ namespace FooProject.Collection.DataStore
             return true;
         }
 
+        /// <inheritdoc/>
         public override void Set(IPinableContainer<T> ipinableContainer)
         {
             if (EqualityComparer<T>.Default.Equals(ipinableContainer.Content, default(T)))
@@ -234,27 +246,9 @@ namespace FooProject.Collection.DataStore
             return;
         }
 
-        public void Dispose()
+        /// <inheritdoc/>
+        protected override void OnDispose(bool disposing)
         {
-            //GC前にプログラム的にリソースを破棄するので
-            //管理,非管理リソース両方が破棄されるようにする
-            Dispose(true);
-            GC.SuppressFinalize(this);//破棄処理は完了しているのでGC不要の合図
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (disposedValue)
-            {
-                return;
-            }
-
-            if (disposing)
-            {
-                //管理リソースの破棄処理
-            }
-
-            //非管理リソースの破棄処理
             try
             {
                 this.writer.Dispose();
@@ -267,14 +261,7 @@ namespace FooProject.Collection.DataStore
             {
                 throw;
             }
-
-            disposedValue = true;
         }
 
-        ~DiskPinableContentDataStore()
-        {
-            //GC時に実行されるデストラクタでは非管理リソースの削除のみ
-            Dispose(false);
-        }
     }
 }
