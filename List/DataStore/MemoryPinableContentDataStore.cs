@@ -7,48 +7,20 @@ using Microsoft.VisualBasic;
 
 namespace FooProject.Collection.DataStore
 {
-    public class MemoryPinableContentDataStore<T> : IPinableContainerStore<T>
+    public class MemoryPinableContentDataStore<T> : PinableContentDataStoreBase<T>
     {
-        public IPinnedContent<T> Get(IPinableContainer<T> pinableContainer)
-        {
-            IPinnedContent<T> result;
-            if (TryGet(pinableContainer, out result))
-                return result;
-            else
-                throw new ArgumentException();            
-        }
-
-        public bool TryGet(IPinableContainer<T> pinableContainer, out IPinnedContent<T> result)
+        public override bool TryGet(IPinableContainer<T> pinableContainer, out IPinnedContent<T> result)
         {
             result = new PinnedContent<T>(pinableContainer,this);
             return true;
         }
 
-        public void Set(IPinableContainer<T> pinableContainer)
+        public override void Set(IPinableContainer<T> pinableContainer)
         {
             return;
         }
 
-        public void Commit()
-        {
-        }
-
-        public IPinableContainer<T> Update(IPinableContainer<T> pinableContainer, T newcontent, long oldstart, long oldcount, long newstart, long newcount)
-        {
-            return this.CreatePinableContainer(newcontent);
-        }
-
-        public bool IsCanCloneContent(IPinableContainer<IComposableList<char>> pin)
-        {
-            return false;
-        }
-
-        public IPinableContainer<T> Clone(IPinableContainer<T> pin, T cloned_content = default(T))
-        {
-            return this.CreatePinableContainer(cloned_content);
-        }
-
-        public IPinableContainer<T> CreatePinableContainer(T content)
+        public override IPinableContainer<T> CreatePinableContainer(T content)
         {
             return new PinableContainer<T>(content) { ID = nameof(MemoryPinableContentDataStore<T>) };
         }

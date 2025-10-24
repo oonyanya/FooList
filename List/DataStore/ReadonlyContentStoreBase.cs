@@ -49,7 +49,7 @@ namespace FooProject.Collection.DataStore
     /// 読み取り専用ストアの基底クラス
     /// </summary>
     /// <typeparam name="T">格納対象の型</typeparam>
-    public class ReadonlyContentStoreBase<T> : IPinableContainerStore<T>
+    public class ReadonlyContentStoreBase<T> : PinableContentDataStoreBase<T>
     {
         //データーストアのID一覧。初期状態はDEFAULT_IDとなる。
         protected const string DEFAULT_ID = nameof(ReadonlyContentStoreBase<T>);
@@ -139,7 +139,7 @@ namespace FooProject.Collection.DataStore
             throw new NotImplementedException();
         }
 
-        public IPinnedContent<T> Get(IPinableContainer<T> ipinableContainer)
+        public override IPinnedContent<T> Get(IPinableContainer<T> ipinableContainer)
         {
             switch (ipinableContainer.ID)
             {
@@ -154,7 +154,7 @@ namespace FooProject.Collection.DataStore
                 throw new ArgumentException();  //TryGetが失敗することはあり得ないので、失敗したら、例外を投げる
         }
 
-        public bool TryGet(IPinableContainer<T> ipinableContainer, out IPinnedContent<T> result)
+        public override bool TryGet(IPinableContainer<T> ipinableContainer, out IPinnedContent<T> result)
         {
             switch (ipinableContainer.ID)
             {
@@ -185,7 +185,7 @@ namespace FooProject.Collection.DataStore
             return true;
         }
 
-        public void Set(IPinableContainer<T> ipinableContainer)
+        public override void Set(IPinableContainer<T> ipinableContainer)
         {
             switch (ipinableContainer.ID)
             {
@@ -217,14 +217,14 @@ namespace FooProject.Collection.DataStore
             return;
         }
 
-        public void Commit()
+        public override void Commit()
         {
             this.cacheList.Flush();
 
             this.SecondaryDataStore.Commit();
         }
 
-        public IPinableContainer<T> Update(IPinableContainer<T> pinableContainer, T newcontent, long oldstart, long oldcount, long newstart, long newcount)
+        public override IPinableContainer<T> Update(IPinableContainer<T> pinableContainer, T newcontent, long oldstart, long oldcount, long newstart, long newcount)
         {
             //TODO:本当はコピーしないほうがいいが、面倒なので全部コピーする
             var updatedPinableContainer = this.SecondaryDataStore.Update(pinableContainer, newcontent, oldstart, oldcount, newstart, newcount);
@@ -232,7 +232,7 @@ namespace FooProject.Collection.DataStore
             return updatedPinableContainer;
         }
 
-        public virtual bool IsCanCloneContent(IPinableContainer<IComposableList<char>> pin)
+        public override bool IsCanCloneContent(IPinableContainer<IComposableList<char>> pin)
         {
             switch (pin.ID)
             {
@@ -243,7 +243,7 @@ namespace FooProject.Collection.DataStore
             return true;
         }
 
-        public virtual IPinableContainer<T> Clone(IPinableContainer<T> pin, T cloned_content)
+        public override IPinableContainer<T> Clone(IPinableContainer<T> pin, T cloned_content)
         {
             PinableContainer<T> newpin;
             switch (pin.ID)
@@ -266,7 +266,7 @@ namespace FooProject.Collection.DataStore
             return newpin;
         }
 
-        public IPinableContainer<T> CreatePinableContainer(T content)
+        public override IPinableContainer<T> CreatePinableContainer(T content)
         {
             var newPinableContainer = new PinableContainer<T>(content);
             newPinableContainer.ID = SECONDARY_DATA_STORE_ID;

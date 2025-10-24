@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace FooProject.Collection.DataStore
 {
-    public class MemoryPinableContentDataStoreWithAutoDisposer<T> : IPinableContainerStoreWithAutoDisposer<T>, IDisposable
+    public class MemoryPinableContentDataStoreWithAutoDisposer<T> : PinableContentDataStoreBase<T>,IPinableContainerStoreWithAutoDisposer<T>, IDisposable
     {
         EmptyList emptyList = new EmptyList();
         bool disposedValue = false;
@@ -53,22 +53,13 @@ namespace FooProject.Collection.DataStore
             }
         }
 
-        public IPinnedContent<T> Get(IPinableContainer<T> pinableContainer)
-        {
-            IPinnedContent<T> result;
-            if (TryGet(pinableContainer, out result))
-                return result;
-            else
-                throw new ArgumentException();            
-        }
-
-        public bool TryGet(IPinableContainer<T> pinableContainer, out IPinnedContent<T> result)
+        public override bool TryGet(IPinableContainer<T> pinableContainer, out IPinnedContent<T> result)
         {
             result = new PinnedContent<T>(pinableContainer,this);
             return true;
         }
 
-        public void Set(IPinableContainer<T> ipinableContainer)
+        public override void Set(IPinableContainer<T> ipinableContainer)
         {
             PinableContainer<T> pinableContainer = (PinableContainer<T>)ipinableContainer;
             if (pinableContainer.IsRemoved)
@@ -87,29 +78,14 @@ namespace FooProject.Collection.DataStore
             return;
         }
 
-        public void Commit()
+        public override void Commit()
         {
             this.writebackCacheList.Flush();
         }
 
-        public IPinableContainer<T> Update(IPinableContainer<T> pinableContainer, T newcontent, long oldstart, long oldcount, long newstart, long newcount)
-        {
-            return this.CreatePinableContainer(newcontent);
-        }
-
-        public IPinableContainer<T> CreatePinableContainer(T content)
+        public override IPinableContainer<T> CreatePinableContainer(T content)
         {
             return new PinableContainer<T>(content) { ID = nameof(MemoryPinableContentDataStoreWithAutoDisposer<T>) };
-        }
-
-        public bool IsCanCloneContent(IPinableContainer<IComposableList<char>> pin)
-        {
-            return false;
-        }
-
-        public IPinableContainer<T> Clone(IPinableContainer<T> pin, T cloned_content = default(T))
-        {
-            return this.CreatePinableContainer(cloned_content);
         }
 
         public void Dispose()

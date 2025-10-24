@@ -62,7 +62,7 @@ namespace FooProject.Collection.DataStore
             }
         }
 
-        public bool IsCanCloneContent(IPinableContainer<IComposableList<char>> pin)
+        public override bool IsCanCloneContent(IPinableContainer<IComposableList<char>> pin)
         {
             if (pin.ID == ReadonlyContentStoreBase<char>.DEFAULT_ID)
             {

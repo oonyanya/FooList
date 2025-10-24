@@ -65,9 +65,9 @@ namespace FooProject.Collection
         /// 複製する
         /// </summary>
         /// <param name="pin">複製対象</param>
-        /// <param name="cloned_content">コンテンツ自体も複製したい場合は複製済みのコンテンツを渡す。nullの場合はTによって動作が変わる。</param>
+        /// <param name="cloned_content">コンテンツ自体も複製したい場合は複製済みのコンテンツを渡す。</param>
         /// <returns></returns>
-        IPinableContainer<T> Clone(IPinableContainer<T> pin, T cloned_content = default(T));
+        IPinableContainer<T> Clone(IPinableContainer<T> pin, T cloned_content);
 
         /// <summary>
         /// ストア内部でキャッシュされているものをストアに書き出す

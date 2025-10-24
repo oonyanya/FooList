@@ -30,7 +30,7 @@ namespace FooProject.Collection.DataStore
     /// ディスクに格納するタイプのデーターストアです
     /// </summary>
     /// <typeparam name="T">データーストアに納める型を指定する</typeparam>
-    public class DiskPinableContentDataStore<T> : IPinableContainerStoreWithAutoDisposer<T>, IDisposable
+    public class DiskPinableContentDataStore<T> : PinableContentDataStoreBase<T>,IPinableContainerStoreWithAutoDisposer<T>, IDisposable
     {
         //ファイル内部の割り当ての最小単位
         const int PAGESIZE = 16384;
@@ -151,22 +151,13 @@ namespace FooProject.Collection.DataStore
             }
         }
 
-        public IPinableContainer<T> Update(IPinableContainer<T> pinableContainer, T newcontent, long oldstart, long oldcount, long newstart, long newcount)
-        {
-            return this.CreatePinableContainer(newcontent);
-        }
-
-        public IPinableContainer<T> CreatePinableContainer(T content)
+        public override IPinableContainer<T> CreatePinableContainer(T content)
         {
             return new PinableContainer<T>(content) { ID = nameof(DiskPinableContentDataStore<T>) };
         }
 
-        public bool IsCanCloneContent(IPinableContainer<IComposableList<char>> pin)
-        {
-            return false;
-        }
 
-        public IPinableContainer<T> Clone(IPinableContainer<T> pin, T cloned_content)
+        public override IPinableContainer<T> Clone(IPinableContainer<T> pin, T cloned_content)
         {
             PinableContainer<T> newpin;
             newpin = (PinableContainer<T>)this.CreatePinableContainer(cloned_content);
@@ -180,23 +171,14 @@ namespace FooProject.Collection.DataStore
             return newpin;
         }
 
-        public void Commit()
+        public override void Commit()
         {
             this.readCacheList.Flush();
             this.writebackCacheList.Flush();
             this.writer.Flush();
         }
 
-        public IPinnedContent<T> Get(IPinableContainer<T> pinableContainer)
-        {
-            IPinnedContent<T> result;
-            if (this.TryGet(pinableContainer, out result))
-                return result;
-            else
-                throw new ArgumentException();
-        }
-
-        public bool TryGet(IPinableContainer<T> ipinableContainer, out IPinnedContent<T> result)
+        public override bool TryGet(IPinableContainer<T> ipinableContainer, out IPinnedContent<T> result)
         {
             var pinableContainer = (PinableContainer<T>)ipinableContainer;
             if (pinableContainer.CacheIndex != PinableContainer<T>.NOTCACHED || pinableContainer.Content?.Equals(default(T)) == false)
@@ -225,7 +207,7 @@ namespace FooProject.Collection.DataStore
             return true;
         }
 
-        public void Set(IPinableContainer<T> ipinableContainer)
+        public override void Set(IPinableContainer<T> ipinableContainer)
         {
             if (EqualityComparer<T>.Default.Equals(ipinableContainer.Content, default(T)))
                 return;
