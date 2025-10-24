@@ -55,6 +55,13 @@ namespace FooProject.Collection
         IPinableContainer<T> CreatePinableContainer(T content);
 
         /// <summary>
+        /// コンテンツを複製可能かどうか
+        /// </summary>
+        /// <param name="pin">複製対象のコンテンツが格納されているIPinableContainer</param>
+        /// <returns>データーストア自身でコンテンツの複製ができるなら、真を返す。そうでなければ、偽を返す。この場合、ユーザー自身の手でコンテンツを複製する必要がある。</returns>
+        bool IsCanCloneContent(IPinableContainer<IComposableList<char>> pin);
+
+        /// <summary>
         /// 複製する
         /// </summary>
         /// <param name="pin">複製対象</param>

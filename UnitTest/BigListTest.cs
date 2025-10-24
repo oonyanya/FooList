@@ -71,6 +71,11 @@ namespace UnitTest
                 return this.CreatePinableContainer(newcontent);
             }
 
+            public bool IsCanCloneContent(IPinableContainer<IComposableList<char>> pin)
+            {
+                return false;
+            }
+
             public IPinableContainer<T> CreatePinableContainer(T content)
             {
                 return new PinableContainer<T>(content);
@@ -78,10 +83,7 @@ namespace UnitTest
 
             public IPinableContainer<T> Clone(IPinableContainer<T> pin, T cloned_content = default(T))
             {
-                if (cloned_content.Equals(default(T)))
-                    return this.CreatePinableContainer(pin.Content);
-                else
-                    return this.CreatePinableContainer(cloned_content);
+                return this.CreatePinableContainer(cloned_content);
             }
 
             public void Commit()

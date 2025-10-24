@@ -102,12 +102,14 @@ namespace FooProject.Collection.DataStore
             return new PinableContainer<T>(content) { ID = nameof(MemoryPinableContentDataStoreWithAutoDisposer<T>) };
         }
 
+        public bool IsCanCloneContent(IPinableContainer<IComposableList<char>> pin)
+        {
+            return false;
+        }
+
         public IPinableContainer<T> Clone(IPinableContainer<T> pin, T cloned_content = default(T))
         {
-            if (cloned_content.Equals(default(T)))
-                return this.CreatePinableContainer(pin.Content);
-            else
-                return this.CreatePinableContainer(cloned_content);
+            return this.CreatePinableContainer(cloned_content);
         }
 
         public void Dispose()

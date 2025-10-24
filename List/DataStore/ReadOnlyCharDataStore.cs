@@ -62,10 +62,24 @@ namespace FooProject.Collection.DataStore
             }
         }
 
-        public override IPinableContainer<IComposableList<char>> Clone(IPinableContainer<IComposableList<char>> pin, IComposableList<char> cloned_content = null)
+        public bool IsCanCloneContent(IPinableContainer<IComposableList<char>> pin)
         {
             if (pin.ID == ReadonlyContentStoreBase<char>.DEFAULT_ID)
             {
+                return true;
+            }
+            else
+            {
+                return base.IsCanCloneContent(pin);
+            }
+        }
+
+        public override IPinableContainer<IComposableList<char>> Clone(IPinableContainer<IComposableList<char>> pin, IComposableList<char> cloned_content)
+        {
+            if (pin.ID == ReadonlyContentStoreBase<char>.DEFAULT_ID)
+            {
+                if(pin.Content == null)
+                    return base.Clone(pin, cloned_content);
                 var list = new ReadOnlyComposableList<char>(cloned_content);
                 return base.Clone(pin, list);
             }

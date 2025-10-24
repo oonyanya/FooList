@@ -408,11 +408,8 @@ namespace UnitTest
             var list = CreateListAndLoad(memoryStream, str.Length, out dataStore);
             var str_builder = new StringBuilder(str);
 
-            /*
-             * 本来であればテストをしないといけないが、うまい設計方法が見つからないので保留とする
             str_builder.Insert(0, "test");
             list.InsertRange(0, "test");
-            */
 
             dataStore.Commit();
 
@@ -428,7 +425,15 @@ namespace UnitTest
 
             foreach (var item in list.GetContainer())
             {
-                newlist.Add(dataStore.Clone(item.pin),item.count);
+                if (dataStore.IsCanCloneContent(item.pin))
+                {
+                    newlist.Add(dataStore.Clone(item.pin,item.pin.Content), item.count);
+                }
+                else
+                {
+                    var clonedContent = customConverter.CreateList(newlist.BlockSize,newlist.BlockSize,item.pin.Content);
+                    newlist.Add(dataStore.Clone(item.pin, clonedContent), item.count);
+                }
             }
 
             Assert.AreEqual(str_builder.Length, newlist.Count);

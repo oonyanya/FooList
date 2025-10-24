@@ -161,12 +161,23 @@ namespace FooProject.Collection.DataStore
             return new PinableContainer<T>(content) { ID = nameof(DiskPinableContentDataStore<T>) };
         }
 
-        public IPinableContainer<T> Clone(IPinableContainer<T> pin, T cloned_content = default(T))
+        public bool IsCanCloneContent(IPinableContainer<IComposableList<char>> pin)
         {
-            if (cloned_content.Equals(default(T)))
-                return this.CreatePinableContainer(pin.Content);
-            else
-                return this.CreatePinableContainer(cloned_content);
+            return false;
+        }
+
+        public IPinableContainer<T> Clone(IPinableContainer<T> pin, T cloned_content)
+        {
+            PinableContainer<T> newpin;
+            newpin = (PinableContainer<T>)this.CreatePinableContainer(cloned_content);
+
+            PinableContainer<T> oldpin = (PinableContainer<T>)pin;
+            newpin.CacheIndex = oldpin.CacheIndex;
+            newpin.Info = new DiskAllocationInfo(oldpin.Info.Index, oldpin.Info.AlignedLength);
+            newpin.ID = oldpin.ID;
+            newpin.IsRemoved = oldpin.IsRemoved;
+
+            return newpin;
         }
 
         public void Commit()
@@ -216,6 +227,9 @@ namespace FooProject.Collection.DataStore
 
         public void Set(IPinableContainer<T> ipinableContainer)
         {
+            if (EqualityComparer<T>.Default.Equals(ipinableContainer.Content, default(T)))
+                return;
+
             var pinableContainer = (PinableContainer<T>)ipinableContainer;
 
             if (pinableContainer.IsRemoved)

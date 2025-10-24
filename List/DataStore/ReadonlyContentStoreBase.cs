@@ -193,6 +193,10 @@ namespace FooProject.Collection.DataStore
                     this.SecondaryDataStore.Set(ipinableContainer);
                     return;
             }
+
+            if (EqualityComparer<T>.Default.Equals(ipinableContainer.Content, default(T)))
+                return;
+
             //TryGetのほうでキャッシュにセットしてないのでここでセットする
             PinableContainer<T> pinableContainer = (PinableContainer<T>)ipinableContainer;
             if (pinableContainer.IsRemoved)
@@ -228,24 +232,32 @@ namespace FooProject.Collection.DataStore
             return updatedPinableContainer;
         }
 
-        public virtual IPinableContainer<T> Clone(IPinableContainer<T> pin, T cloned_content = default(T))
+        public virtual bool IsCanCloneContent(IPinableContainer<IComposableList<char>> pin)
         {
             switch (pin.ID)
             {
                 case SECONDARY_DATA_STORE_ID:
-                    return this.SecondaryDataStore.Clone(pin, cloned_content);
+                    return this.SecondaryDataStore.IsCanCloneContent(pin);
+            }
+
+            return true;
+        }
+
+        public virtual IPinableContainer<T> Clone(IPinableContainer<T> pin, T cloned_content)
+        {
+            PinableContainer<T> newpin;
+            switch (pin.ID)
+            {
+                case SECONDARY_DATA_STORE_ID:
+                    {
+                        newpin = (PinableContainer<T>)this.SecondaryDataStore.Clone(pin, cloned_content);
+                        newpin.ID = SECONDARY_DATA_STORE_ID;
+                        return newpin;
+                    }
             }
 
             PinableContainer<T> oldpin = (PinableContainer<T>) pin;
-            PinableContainer<T> newpin;
-            if (cloned_content.Equals(default(T)) == true)
-            {
-                newpin = (PinableContainer<T>)this.CreatePinableContainer(oldpin.Content);
-            }
-            else
-            {
-                newpin = (PinableContainer<T>)this.CreatePinableContainer(cloned_content);
-            }
+            newpin = (PinableContainer<T>)this.CreatePinableContainer(cloned_content);
             newpin.CacheIndex = oldpin.CacheIndex;
             newpin.Info = new DiskAllocationInfo(oldpin.Info.Index,oldpin.Info.AlignedLength);
             newpin.ID = oldpin.ID;
