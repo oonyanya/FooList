@@ -38,10 +38,13 @@ namespace FooProject.Collection.DataStore
 
         internal long CacheIndex { get; set; }
 
+        /// <inheritdoc/>
         public T Content { get; internal set; }
 
+        /// <inheritdoc/>
         public bool IsRemoved { get; set; }
 
+        /// <inheritdoc/>
         public string ID { get; set; }
 
         /// <summary>
@@ -57,6 +60,7 @@ namespace FooProject.Collection.DataStore
             ID = null;
         }
 
+        /// <inheritdoc/>
         public void RemoveContent()
         {
             this.IsRemoved = true;

@@ -19,6 +19,7 @@ namespace FooProject.Collection.DataStore
 
     public class PinnedContent<T> : IPinnedContent<T>
     {
+        /// <inheritdoc/>
         public T Content
         {
             get
@@ -37,6 +38,7 @@ namespace FooProject.Collection.DataStore
             DataStore = dataStore;
         }
 
+        /// <inheritdoc/>
         public void RemoveContent()
         {
             container.RemoveContent();

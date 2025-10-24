@@ -18,6 +18,7 @@ namespace FooProject.Collection
 
         public FixedRangeList(int init,int max):base(init,max) { }
 
+        /// <inheritdoc/>
         public override T this[int index]
         {
             get
@@ -173,6 +174,7 @@ namespace FooProject.Collection
             base.RemoveRange(index, count);
         }
 
+        /// <inheritdoc/>
         public override void Clear()
         {
             base.Clear();
