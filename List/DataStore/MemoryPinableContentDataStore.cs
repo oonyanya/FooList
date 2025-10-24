@@ -38,6 +38,14 @@ namespace FooProject.Collection.DataStore
             return this.CreatePinableContainer(newcontent);
         }
 
+        public IPinableContainer<T> Clone(IPinableContainer<T> pin, T cloned_content = default(T))
+        {
+            if (cloned_content.Equals(default(T)))
+                return this.CreatePinableContainer(pin.Content);
+            else
+                return this.CreatePinableContainer(cloned_content);
+        }
+
         public IPinableContainer<T> CreatePinableContainer(T content)
         {
             return new PinableContainer<T>(content) { ID = nameof(MemoryPinableContentDataStore<T>) };

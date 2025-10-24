@@ -623,10 +623,20 @@ namespace FooProject.Collection
         /// 末尾に追加する
         /// </summary>
         /// <param name="pinableContainer"></param>
+        /// <param name="count"></param>
         /// <exception cref="InvalidOperationException"></exception>
-        public virtual void Add(IPinableContainer<IComposableList<T>> pinableContainer)
+        public virtual void Add(IPinableContainer<IComposableList<T>> pinableContainer, long count = -1)
         {
-            var newItemCount = pinableContainer.Content.Count;
+            long newItemCount = 0;
+            if(count != -1)
+            {
+                newItemCount = count;
+            }
+            else
+            {
+                newItemCount = pinableContainer.Content.Count;
+            }
+
             if (LongCount + newItemCount > MaxCapacity)
                 throw new InvalidOperationException("too large");
 
@@ -917,6 +927,22 @@ namespace FooProject.Collection
             newList.AddRange(GetRangeEnumerable(index, count));
 
             return newList;
+        }
+
+        /// <summary>
+        /// コンテナ―を全て列挙して返す
+        /// </summary>
+        /// <returns>IPinableContainerのインスタンスが列挙される</returns>
+        /// <exception cref="InvalidOperationException"></exception>
+        public IEnumerable<(IPinableContainer<IComposableList<T>> pin,long count)> GetContainer()
+        {
+            if (LongCount + 1 > MaxCapacity)
+                throw new InvalidOperationException("too large");
+
+            foreach (var node in _leafNodeEnumrator)
+            {
+                yield return (node.container,node.Count);
+            }
         }
 
         /// <summary>

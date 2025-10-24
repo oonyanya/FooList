@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -51,8 +52,8 @@ namespace FooProject.Collection.DataStore
     public class ReadonlyContentStoreBase<T> : IPinableContainerStore<T>
     {
         //データーストアのID一覧。初期状態はDEFAULT_IDとなる。
-        const string DEFAULT_ID = nameof(ReadonlyContentStoreBase<T>);
-        const string SECONDARY_DATA_STORE_ID = nameof(ReadonlyContentStoreBase<T>) + ".SecondaryDataStore";
+        protected const string DEFAULT_ID = nameof(ReadonlyContentStoreBase<T>);
+        protected const string SECONDARY_DATA_STORE_ID = nameof(ReadonlyContentStoreBase<T>) + ".SecondaryDataStore";
 
         EmptyList emptyList = new EmptyList();
         TwoQueueCacheList<long, PinableContainer<T>> cacheList = null;
@@ -214,6 +215,8 @@ namespace FooProject.Collection.DataStore
 
         public void Commit()
         {
+            this.cacheList.Flush();
+
             this.SecondaryDataStore.Commit();
         }
 
@@ -223,6 +226,32 @@ namespace FooProject.Collection.DataStore
             var updatedPinableContainer = this.SecondaryDataStore.Update(pinableContainer, newcontent, oldstart, oldcount, newstart, newcount);
             updatedPinableContainer.ID = SECONDARY_DATA_STORE_ID;
             return updatedPinableContainer;
+        }
+
+        public virtual IPinableContainer<T> Clone(IPinableContainer<T> pin, T cloned_content = default(T))
+        {
+            switch (pin.ID)
+            {
+                case SECONDARY_DATA_STORE_ID:
+                    return this.SecondaryDataStore.Clone(pin, cloned_content);
+            }
+
+            PinableContainer<T> oldpin = (PinableContainer<T>) pin;
+            PinableContainer<T> newpin;
+            if (cloned_content.Equals(default(T)) == true)
+            {
+                newpin = (PinableContainer<T>)this.CreatePinableContainer(oldpin.Content);
+            }
+            else
+            {
+                newpin = (PinableContainer<T>)this.CreatePinableContainer(cloned_content);
+            }
+            newpin.CacheIndex = oldpin.CacheIndex;
+            newpin.Info = new DiskAllocationInfo(oldpin.Info.Index,oldpin.Info.AlignedLength);
+            newpin.ID = oldpin.ID;
+            newpin.IsRemoved = oldpin.IsRemoved;
+
+            return newpin;
         }
 
         public IPinableContainer<T> CreatePinableContainer(T content)

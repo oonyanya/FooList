@@ -8,6 +8,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
+using System.Net.NetworkInformation;
 using System.Reflection;
 using FooProject.Collection;
 using FooProject.Collection.DataStore;
@@ -73,6 +74,14 @@ namespace UnitTest
             public IPinableContainer<T> CreatePinableContainer(T content)
             {
                 return new PinableContainer<T>(content);
+            }
+
+            public IPinableContainer<T> Clone(IPinableContainer<T> pin, T cloned_content = default(T))
+            {
+                if (cloned_content.Equals(default(T)))
+                    return this.CreatePinableContainer(pin.Content);
+                else
+                    return this.CreatePinableContainer(cloned_content);
             }
 
             public void Commit()
@@ -152,6 +161,18 @@ namespace UnitTest
                 buf.Add('-');
             foreach (char c in buf)
                 Assert.AreEqual('-',c);
+        }
+
+        [TestMethod]
+        public void GetEnumratorPinTest()
+        {
+            const int TEST_SIZE = 3000;
+            var list = this.CreateList(0, TEST_SIZE);
+            foreach(var item in list.GetContainer())
+            {
+                Assert.IsTrue(item.count > 0);
+                Assert.AreEqual(nameof(MemoryPinableContentDataStore<IComposableList<int>>),item.pin.ID);
+            }
         }
 
         [TestMethod]

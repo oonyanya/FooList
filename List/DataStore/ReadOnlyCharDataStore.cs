@@ -62,6 +62,19 @@ namespace FooProject.Collection.DataStore
             }
         }
 
+        public override IPinableContainer<IComposableList<char>> Clone(IPinableContainer<IComposableList<char>> pin, IComposableList<char> cloned_content = null)
+        {
+            if (pin.ID == ReadonlyContentStoreBase<char>.DEFAULT_ID)
+            {
+                var list = new ReadOnlyComposableList<char>(cloned_content);
+                return base.Clone(pin, list);
+            }
+            else
+            {
+                return base.Clone(pin, cloned_content);
+            }
+        }
+
         /// <summary>
         /// 全ての処理が完了したことを表す。LoadAsyncを使用しない場合は呼び出す必要がない。
         /// </summary>

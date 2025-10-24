@@ -398,6 +398,48 @@ namespace UnitTest
         }
 
         [TestMethod]
+        public void ClonePinTest()
+        {
+            ReadonlyContentStoreBase<IComposableList<char>> dataStore;
+            var str = "日本国民は、正当に選挙された国会における代表者を通じて行動し、われらとわれらの子孫のために、諸国民との協和による成果と、わが国全土にわたって自由のもたらす恵沢を確保し、政府の行為によって再び戦争の惨禍が起ることのないやうにすることを決意し、ここに主権が国民に存することを宣言し、この憲法を確定する。";
+            var memoryStream = new MemoryStream();
+            memoryStream.Write(Encoding.UTF8.GetBytes(str));
+            memoryStream.Position = 0;
+            var list = CreateListAndLoad(memoryStream, str.Length, out dataStore);
+            var str_builder = new StringBuilder(str);
+
+            /*
+             * 本来であればテストをしないといけないが、うまい設計方法が見つからないので保留とする
+            str_builder.Insert(0, "test");
+            list.InsertRange(0, "test");
+            */
+
+            dataStore.Commit();
+
+            var newlist = new BigList<char>();
+            var memoryStore = new MemoryPinableContentDataStore<IComposableList<char>>();
+            var charReader = new CharReader(memoryStream, Encoding.UTF8);
+            var lazyLoadStore = new ReadOnlyCharDataStore(charReader, 8);
+            lazyLoadStore.SecondaryDataStore = memoryStore;
+            var customConverter = new DefaultCustomConverter<char>();
+            customConverter.DataStore = lazyLoadStore;
+            newlist.CustomBuilder = customConverter;
+            newlist.LeastFetchStore = customConverter;
+
+            foreach (var item in list.GetContainer())
+            {
+                newlist.Add(dataStore.Clone(item.pin),item.count);
+            }
+
+            Assert.AreEqual(str_builder.Length, newlist.Count);
+
+            for (int i = 0; i < str_builder.Length; i++)
+            {
+                Assert.AreEqual(str_builder[i], newlist[i]);
+            }
+        }
+
+        [TestMethod]
         public void AddRangeStringTest()
         {
             ReadonlyContentStoreBase<IComposableList<char>> dataStore;
