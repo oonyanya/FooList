@@ -51,8 +51,14 @@ namespace FooProject.Collection.DataStore
             try
             {
                 this.Reader.Stream.Position = index;
+                string str = string.Empty;
+#if NET6_0_OR_GREATER
+                this.Reader.Stream.Read(array.AsSpan());
+                str = this.Reader.Encoding.GetString(array.AsSpan());
+#else
                 this.Reader.Stream.Read(array, 0, bytes);
-                var str = this.Reader.Encoding.GetString(array, 0, bytes);
+                str = this.Reader.Encoding.GetString(array, 0, bytes);
+#endif
                 var list = new ReadOnlyComposableList<char>(str);
                 return list;
             }

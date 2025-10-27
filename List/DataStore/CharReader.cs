@@ -366,7 +366,12 @@ namespace FooProject.Collection.DataStore
                 stream.Position = _leastLoadPostion;
 
                 long index = _leastLoadPostion;
-                var stream_read_bytes = stream.Read(byte_array, 0, byte_array.Length);
+                int stream_read_bytes;
+#if NET6_0_OR_GREATER
+                stream_read_bytes = stream.Read(byte_array.AsSpan());
+#else
+                stream_read_bytes = stream.Read(byte_array, 0, byte_array.Length);
+#endif
                 if (stream_read_bytes == 0)
                 {
                     _decoder.Reset();
@@ -384,7 +389,11 @@ namespace FooProject.Collection.DataStore
                 int converted_bytes, converted_chars;
                 bool completed;
 
+#if NET6_0_OR_GREATER
+                _decoder.Convert(byte_array.AsSpan().Slice(fetch_index, stream_read_bytes - fetch_index), temp_buffer_writer.AsSpan().Slice(0, count), false, out converted_bytes, out converted_chars, out completed);
+#else
                 _decoder.Convert(byte_array, fetch_index, stream_read_bytes - fetch_index, temp_buffer_writer, 0, count, false, out converted_bytes, out converted_chars, out completed);
+#endif
 
                 _leastLoadPostion += converted_bytes;
                 read_bytes = converted_bytes;
