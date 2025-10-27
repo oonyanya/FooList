@@ -79,6 +79,14 @@ namespace FooProject.Collection.DataStore
             this.writebackCacheList.Flush();
         }
 
+        protected override void OnDispose(bool disposing)
+        {
+            if (disposing)
+            {
+                this.writebackCacheList.Flush();
+            }
+        }
+
         /// <inheritdoc/>
         public override IPinableContainer<T> CreatePinableContainer(T content)
         {
