@@ -241,7 +241,7 @@ namespace FooProject.Collection.DataStore
         {
 #if NET6_0_OR_GREATER
             int byte_array_len = _encoding.GetMaxByteCount(count);
-            ArrayBufferWriter<char> arrayBufferWriter = new ArrayBufferWriter<char>(count);
+            PooledArrayBufferWriter<char> arrayBufferWriter = new PooledArrayBufferWriter<char>(count);
             int leftCount = count;
 
             try
@@ -308,6 +308,7 @@ namespace FooProject.Collection.DataStore
             }
             finally
             {
+                arrayBufferWriter.Dispose();
             }
 #else
             throw new NotSupportedException(".net 6.0以降を使用してください");
