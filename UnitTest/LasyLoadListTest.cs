@@ -114,7 +114,6 @@ namespace UnitTest
         }
 
 
-#if NET6_0_OR_GREATER
         [TestMethod]
         public void LoadAsyncWithBOMTest()
         {
@@ -124,12 +123,15 @@ namespace UnitTest
             memoryStream.Write(Encoding.UTF8.GetBytes(str));
             memoryStream.Position = 0;
             var charReader = new CharReader(memoryStream, Encoding.UTF8);
+            Assert.AreEqual(false, charReader.IsEOF);
             var result = charReader.LoadAsync(str.Length).Result;
             var actual = result.Value.ToArray();
             for (int i = 0; i < str.Length; i++)
             {
                 Assert.AreEqual(str[i], actual[i]);
             }
+            charReader.LoadAsync(10).Wait();
+            Assert.AreEqual(true, charReader.IsEOF);
         }
 
         [TestMethod]
@@ -140,14 +142,16 @@ namespace UnitTest
             memoryStream.Write(Encoding.UTF8.GetBytes(str));
             memoryStream.Position = 0;
             var charReader = new CharReader(memoryStream, Encoding.UTF8);
+            Assert.AreEqual(false, charReader.IsEOF);
             var result = charReader.LoadAsync(str.Length).Result;
             var actual = result.Value.ToArray();
             for (int i = 0; i < str.Length; i++)
             {
                 Assert.AreEqual(str[i], actual[i]);
             }
+            charReader.LoadAsync(10).Wait();
+            Assert.AreEqual(true, charReader.IsEOF);
         }
-#endif
 
         [TestMethod]
         public void LoadTest()
@@ -157,8 +161,11 @@ namespace UnitTest
             memoryStream.Write(Encoding.UTF8.GetBytes(str));
             memoryStream.Position = 0;
             var charReader = new CharReader(memoryStream, Encoding.UTF8);
+            Assert.AreEqual(false, charReader.IsEOF);
             var result = charReader.Load(str.Length);
             Assert.AreEqual(str,new string(result.Value.ToArray()));
+            charReader.Load(10);
+            Assert.AreEqual(true, charReader.IsEOF);
         }
 
         [TestMethod]
@@ -170,8 +177,11 @@ namespace UnitTest
             memoryStream.Write(Encoding.UTF8.GetBytes(str));
             memoryStream.Position = 0;
             var charReader = new CharReader(memoryStream, Encoding.UTF8);
+            Assert.AreEqual(false, charReader.IsEOF);
             var result = charReader.Load(str.Length);
             Assert.AreEqual(str, new string(result.Value.ToArray()));
+            charReader.Load(10);
+            Assert.AreEqual(true, charReader.IsEOF);
         }
     }
 
@@ -271,7 +281,6 @@ namespace UnitTest
             return (biglist1,lazyLoadStore);
         }
 
-#if NET6_0_OR_GREATER
         [TestMethod]
         public void LoadAsyncStringTest()
         {
@@ -291,7 +300,6 @@ namespace UnitTest
 
             datastore.CompleteAsync().Wait();
         }
-#endif
 
         [TestMethod]
         public void EmptyListAddAndInsertAndRemoveTest()

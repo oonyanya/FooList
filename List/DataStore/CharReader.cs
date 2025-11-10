@@ -182,6 +182,7 @@ namespace FooProject.Collection.DataStore
             _encoding = enc;
             _decoder = enc.GetDecoder();
             _leastLoadPostion = 0;
+            this.IsEOF = false;
 #if NET6_0_OR_GREATER
             if (buffer_size > 0) {
                 this.buffer_size = buffer_size;
@@ -204,6 +205,11 @@ namespace FooProject.Collection.DataStore
         /// エンコーディング
         /// </summary>
         public Encoding Encoding { get { return _encoding; } }
+
+        /// <summary>
+        /// ファイルの終端に達したかどうか。ファイルの終端に達したなら、真を返す。
+        /// </summary>
+        public bool IsEOF { get; private set; }
 
 #if NET6_0_OR_GREATER
         private ReadOnlySequence<byte> SkipPreaemble(ReadOnlySequence<byte> buffer, ReadOnlySpan<byte> preaemble, out bool skipped)
@@ -237,6 +243,7 @@ namespace FooProject.Collection.DataStore
         /// </summary>
         /// <param name="count">読み取る文字数</param>
         /// <returns>OnLoadAsyncResultを返す。何も読み取らなかった場合についてはOnLoadAsyncResultを参照すること</returns>
+        /// <remarks>ファイルの終端に達したために何も読み取らなかった場合、IsEOFが真に設定される</remarks>
         public async Task<OnLoadAsyncResult<IEnumerable<char>>> LoadAsync(int count)
         {
 #if NET6_0_OR_GREATER
@@ -259,6 +266,7 @@ namespace FooProject.Collection.DataStore
                     if (bufferResult.IsCompleted && bufferResult.Buffer.Length == 0)
                     {
                         _decoder.Reset();
+                        this.IsEOF = true;
                         break;
                     }
 
@@ -311,7 +319,49 @@ namespace FooProject.Collection.DataStore
                 arrayBufferWriter.Dispose();
             }
 #else
-            throw new NotSupportedException(".net 6.0以降を使用してください");
+            int byte_array_len = _encoding.GetMaxByteCount(count);
+            byte[] byte_array = ArrayPool<byte>.Shared.Rent(byte_array_len);
+            char[] temp_buffer_writer = ArrayPool<char>.Shared.Rent(count);
+            int read_bytes = 0;
+
+            try
+            {
+                stream.Position = _leastLoadPostion;
+
+                long index = _leastLoadPostion;
+                int stream_read_bytes;
+                stream_read_bytes = await stream.ReadAsync(byte_array, 0, byte_array.Length);
+                if (stream_read_bytes == 0)
+                {
+                    _decoder.Reset();
+                    this.IsEOF = true;
+                    //.NET standard 2.0以降だとfinallyに飛ぶので何もしなくていい
+                    return new OnLoadAsyncResult<IEnumerable<char>>(null, 0, 0);
+                }
+
+                int fetch_index = GetFetchIndexWithoutPreamble(byte_array, _encoding);
+                if (fetch_index > 0)
+                {
+                    index += fetch_index;
+                    _leastLoadPostion += fetch_index;
+                }
+
+                int converted_bytes, converted_chars;
+                bool completed;
+
+                _decoder.Convert(byte_array, fetch_index, stream_read_bytes - fetch_index, temp_buffer_writer, 0, count, false, out converted_bytes, out converted_chars, out completed);
+
+                _leastLoadPostion += converted_bytes;
+                read_bytes = converted_bytes;
+
+                return new OnLoadAsyncResult<IEnumerable<char>>(temp_buffer_writer.ToArray().Take(converted_chars), index, read_bytes);
+            }
+            finally
+            {
+                //返却しないとメモリーリークする
+                ArrayPool<byte>.Shared.Return(byte_array);
+                ArrayPool<char>.Shared.Return(temp_buffer_writer);
+            }
 #endif
         }
 
@@ -355,6 +405,7 @@ namespace FooProject.Collection.DataStore
         /// </summary>
         /// <param name="count">読み取る文字数</param>
         /// <returns>OnLoadAsyncResultを返す。何も読み取らなかった場合についてはOnLoadAsyncResultを参照すること</returns>
+        /// <remarks>ファイルの終端に達したために何も読み取らなかった場合、IsEOFが真に設定される</remarks>
         public OnLoadAsyncResult<IEnumerable<char>> Load(int count)
         {
             int byte_array_len = _encoding.GetMaxByteCount(count);
@@ -376,6 +427,7 @@ namespace FooProject.Collection.DataStore
                 if (stream_read_bytes == 0)
                 {
                     _decoder.Reset();
+                    this.IsEOF = true;
                     //.NET standard 2.0以降だとfinallyに飛ぶので何もしなくていい
                     return new OnLoadAsyncResult<IEnumerable<char>>(null, 0, 0);
                 }
