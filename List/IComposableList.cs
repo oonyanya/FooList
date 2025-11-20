@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,7 +11,7 @@ namespace FooProject.Collection
     /// BigList内部で使用するコレクションを表す。
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    /// <remarks>今のバージョンだとLeafNodeに格納するために使用している。リードオンリーの場合、CopyTo、GetEnumerator、GetRangeだけは実装する必要があります</remarks>
+    /// <remarks>今のバージョンだとLeafNodeに格納するために使用している。リードオンリーの場合、CopyTo、GetEnumerator、GetRange、Sliceだけは実装する必要があります</remarks>
     public interface IComposableList<T> : IEnumerable<T>, IList<T>
     {
         /// <summary>
@@ -68,5 +69,12 @@ namespace FooProject.Collection
         /// <param name="count"></param>
         /// <returns></returns>
         IEnumerable<T> GetRange(int index, int count);
+        /// <summary>
+        /// 特定の範囲のスライスを作成する
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="count"></param>
+        /// <returns></returns>
+        ReadOnlySequence<T> Slice(int index, int count);
     }
 }

@@ -1,11 +1,12 @@
-﻿using Slusser.Collections.Generic;
-using System;
+﻿using System;
+using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using Slusser.Collections.Generic;
 
 namespace FooProject.Collection
 {
@@ -97,6 +98,10 @@ namespace FooProject.Collection
             return collection.GetRage(index, count);
         }
 
+        public ReadOnlySequence<T> Slice(int index, int count)
+        {
+            return collection.Slice(index, count);
+        }
         /// <inheritdoc/>
         public virtual IEnumerator<T> GetEnumerator()
         {

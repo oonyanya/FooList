@@ -1,11 +1,12 @@
-﻿using FooProject.Collection;
-using System;
+﻿using System;
+using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using FooProject.Collection;
 
 namespace UnitTest
 {
@@ -20,6 +21,33 @@ namespace UnitTest
             list.InsertRange(1, "ab");
             var sublist = list.GetRange(1, 3);
             Assert.AreEqual("ab2", string.Concat(sublist));
+        }
+
+        [TestMethod]
+        public void SliceTest()
+        {
+            var list = new FixedList<char>(20);
+            list.AddRange("123456789");
+            list.InsertRange(1, "ab");
+
+            AreEuqalSeqence("1ab", list.Slice(0, 3));
+            AreEuqalSeqence("1ab23456789", list.Slice(0, 11));
+            AreEuqalSeqence("23456789", list.Slice(3, 8));
+            AreEuqalSeqence("ab23", list.Slice(1, 4));
+        }
+
+        private void AreEuqalSeqence(string expected, ReadOnlySequence<char> actual)
+        {
+            int i = 0;
+            foreach (var seq in actual)
+            {
+                foreach (var c in seq.Span)
+                {
+                    Assert.AreEqual(expected[i], c);
+                    i++;
+                }
+            }
+            Assert.IsTrue(expected.Length == i);
         }
 
         [TestMethod]

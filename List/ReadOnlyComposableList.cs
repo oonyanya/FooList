@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -9,13 +11,13 @@ namespace FooProject.Collection
 {
     public class ReadOnlyComposableList<T> : IComposableList<T>
     {
-        List<T> items;
+        T[] items;
 
         /// <inheritdoc/>
         public T this[int index] { get => items[index]; set => throw new NotImplementedException(); }
 
         /// <inheritdoc/>
-        public int Count => this.items.Count;
+        public int Count => this.items.Length;
 
         /// <inheritdoc/>
         public bool IsReadOnly => true;
@@ -24,11 +26,11 @@ namespace FooProject.Collection
         {
             if (collection != null)
             {
-                items = new List<T>(collection);
+                items = new List<T>(collection).ToArray();
             }
             else
             {
-                items = new List<T>();
+                items = new List<T>().ToArray();
             }
         }
 
@@ -66,7 +68,7 @@ namespace FooProject.Collection
         /// <inheritdoc/>
         public IEnumerator<T> GetEnumerator()
         {
-            for (int i = 0; i < items.Count; i++)
+            for (int i = 0; i < items.Length; i++)
             {
                 yield return items[i];
             }
@@ -79,6 +81,12 @@ namespace FooProject.Collection
             {
                 yield return items[i];
             }
+        }
+
+        /// <inheritdoc/>
+        public ReadOnlySequence<T> Slice(int index, int count)
+        {
+            return new ReadOnlySequence<T>(items.AsMemory());
         }
 
         /// <inheritdoc/>

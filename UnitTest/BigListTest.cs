@@ -4,6 +4,7 @@
  *  Fooproject modify
  */
 using System;
+using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -193,6 +194,37 @@ namespace UnitTest
             list5 = list3.GetRange(0, 3);
             InterfaceTests.TestEnumerableElements(list5, new int[] { 1, 2, 3 });
         }
+
+#if NET6_0_OR_GREATER
+        [TestMethod]
+        public void GetEnumratorPinTest2()
+        {
+            BigList<int> list3;
+
+            list3 = new BigList<int>(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 });
+            var list4 = list3.GetContainer(2, 3);
+            AreEuqalSeqence(list4, new int[] { 3, 4, 5 });
+            var list5 = list3.GetContainer(0, 3);
+            AreEuqalSeqence(list5, new int[] { 1, 2, 3 });
+            var list6 = list3.GetContainer(0, 9);
+            AreEuqalSeqence(list6, new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 });
+        }
+
+        private void AreEuqalSeqence<T>(IEnumerable<(IPinableContainer<IComposableList<T>> pin, long index, long count)> actual, IList<T> expected)
+        {
+            int i = 0;
+            foreach (var seq in actual)
+            {
+                var pinable = seq.pin;
+                foreach (var c in pinable.Content.Slice((int)seq.index, (int)seq.count).ToArray())
+                {
+                    Assert.AreEqual(expected[i], c);
+                    i++;
+                }
+            }
+            Assert.IsTrue(expected.Count == i);
+        }
+#endif
 
         [TestMethod]
         public void GetRange()

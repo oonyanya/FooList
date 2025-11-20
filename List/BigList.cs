@@ -19,6 +19,7 @@ using System.Xml.Linq;
 using Microsoft.VisualBasic;
 using FooProject.Collection.DataStore;
 using System.Buffers;
+using Slusser.Collections.Generic;
 
 namespace FooProject.Collection
 {
@@ -943,6 +944,54 @@ namespace FooProject.Collection
             {
                 yield return (node.container,node.Count);
             }
+        }
+
+        /// <summary>
+        /// コンテナ―を全て列挙して返す
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="count"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public IEnumerable<(IPinableContainer<IComposableList<T>> pin, long index, long count)> GetContainer(int index, int count)
+        {
+            if (index < 0 || index >= LongCount)
+                throw new ArgumentOutOfRangeException("index");
+            if (count < 0 || count > LongCount - index)
+                throw new ArgumentOutOfRangeException("count");
+
+            GapBufferSequenceSegment<T> first_seg = null, current_seg = null;
+
+            long relativeIndex;
+            var node = (LeafNode<T>)IndexOfNode(index, out relativeIndex);
+            long nodeItemsLength;
+            nodeItemsLength = node.Count - relativeIndex;
+            if (count > nodeItemsLength)
+            {
+                yield return (node.container, relativeIndex, nodeItemsLength);
+            }
+            else
+            {
+                yield return (node.container, relativeIndex, count);
+                yield break;
+            }
+
+            long leftCount = count - nodeItemsLength;
+            LeafNode<T> current = node.Next;
+            while (leftCount > 0 && current != null)
+            {
+                if (current.Count > leftCount)
+                {
+                    yield return (current.container, 0, current.Count);
+                }
+                else
+                {
+                    yield return (current.container, 0, leftCount);
+                }
+                leftCount -= current.Count;
+                current = current.Next;
+            }
+
         }
 
         /// <summary>

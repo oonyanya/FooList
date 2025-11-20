@@ -13,18 +13,42 @@ using System.Globalization;
 using System.Diagnostics;
 using System.Net.NetworkInformation;
 using System.Linq;
+using System.Buffers;
 
 #endregion Using Directives
 
 
 namespace Slusser.Collections.Generic
 {
-	/// <summary>
-	/// Represents a strongly typed collection of objects that can be accessed by index. Insertions and 
-	/// deletions to the collection near the same relative index are optimized.
-	/// </summary>
-	/// <typeparam name="T">The type of elements in the buffer.</typeparam>
-	[DebuggerDisplay("Count = {Count}")]
+    sealed class GapBufferSequenceSegment<T> : ReadOnlySequenceSegment<T>
+    {
+        public GapBufferSequenceSegment(ReadOnlyMemory<T> memory)
+        {
+            Memory = memory;
+            RunningIndex = 0;
+        }
+
+        public GapBufferSequenceSegment<T> Append(ReadOnlyMemory<T> memory)
+        {
+            if (memory.Length == 0)
+                return null;
+
+            GapBufferSequenceSegment<T> nextChunk = new GapBufferSequenceSegment<T>(memory)
+            {
+                RunningIndex = RunningIndex + Memory.Length
+            };
+
+            Next = nextChunk;
+            return nextChunk;
+        }
+    }
+
+    /// <summary>
+    /// Represents a strongly typed collection of objects that can be accessed by index. Insertions and 
+    /// deletions to the collection near the same relative index are optimized.
+    /// </summary>
+    /// <typeparam name="T">The type of elements in the buffer.</typeparam>
+    [DebuggerDisplay("Count = {Count}")]
 	[DebuggerTypeProxy(typeof(CollectionDebugView<>))]
     sealed partial class GapBuffer<T> : IList<T>, IList
 	{
@@ -437,16 +461,58 @@ namespace Slusser.Collections.Generic
             for (int i = index; i <= end; i++)
 				yield return GetAt(i);
 		}
+        
+		public ReadOnlySequence<T> Slice(int index, int count)
+		{
+            GapBufferSequenceSegment<T> first = null,last = null;
 
-		/// <summary>
-		/// Searches for the specified object and returns the zero-based index of the first 
-		/// occurrence within the <see cref="GapBuffer{T}"/>.
-		/// </summary>
-		/// <param name="item">The object to locate in the <see cref="GapBuffer{T}"/>. The value 
-		/// can be null for reference types.</param>
-		/// <returns>The zero-based index of the first occurrence of <paramref name="item"/> within 
-		/// the <see cref="GapBuffer{T}"/>, if found; otherwise, ÅE.</returns>
-		public int IndexOf(T item)
+			int start = index;
+            if (start >= this._gapStart)
+                start += (this._gapEnd - this._gapStart);
+
+            int end = index + count - 1;
+            if (end >= this._gapStart)
+                end += (this._gapEnd - this._gapStart);
+
+            if (index < this._gapStart)
+			{
+				if(end <= this._gapStart)
+				{
+                    first = new GapBufferSequenceSegment<T>(this._buffer.AsMemory(start, count));
+				}
+				else
+				{
+                    first = new GapBufferSequenceSegment<T>(this._buffer.AsMemory(start, this._gapStart - start));
+                    last = first.Append(this._buffer.AsMemory(this._gapEnd, end - this._gapEnd + 1));
+				}
+			}
+			else
+			{
+                first = new GapBufferSequenceSegment<T>(this._buffer.AsMemory(start, count));
+            }
+
+			if(last != null)
+			{
+                var seq = new ReadOnlySequence<T>(first, 0, last, last.Memory.Length);
+                return seq;
+
+			}
+			else
+			{
+                var seq = new ReadOnlySequence<T>(first.Memory);
+                return seq;
+            }
+        }
+
+        /// <summary>
+        /// Searches for the specified object and returns the zero-based index of the first 
+        /// occurrence within the <see cref="GapBuffer{T}"/>.
+        /// </summary>
+        /// <param name="item">The object to locate in the <see cref="GapBuffer{T}"/>. The value 
+        /// can be null for reference types.</param>
+        /// <returns>The zero-based index of the first occurrence of <paramref name="item"/> within 
+        /// the <see cref="GapBuffer{T}"/>, if found; otherwise, ÅE.</returns>
+        public int IndexOf(T item)
 		{
 			// Search within the buffer spans
 
