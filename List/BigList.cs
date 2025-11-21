@@ -882,48 +882,21 @@ namespace FooProject.Collection
             if (count < 0 || count > LongCount - index)
                 throw new ArgumentOutOfRangeException("count");
 
-            long relativeIndex;
-            var node = (LeafNode<T>)IndexOfNode(index, out relativeIndex);
-            long nodeItemsLength;
-            using (var pinnedContent = CustomBuilder.DataStore.Get(node.container))
+            foreach(var item in this.GetContainer(index,count))
             {
-                var nodeItems = pinnedContent.Content;
-                var items = nodeItems.Skip((int)relativeIndex).ToArray();
-                nodeItemsLength = items.Length;
-                if (count > items.Length)
+                using (var pinnedContent = CustomBuilder.DataStore.Get(item.PinableContainer))
                 {
-                    foreach (var item in items)
-                        yield return item;
+                    foreach(var seq in pinnedContent.Content.Slice((int)item.RelativeIndex, (int)item.Count))
+                    {
+                        for(int i = 0; i< seq.Span.Length; i++)
+                        {
+                            yield return seq.Span[i];
+                        }
+                    }
                 }
-                else
-                {
-                    foreach (var item in items.Take((int)count))
-                        yield return item;
-                    yield break;
-                }
+
             }
 
-            long leftCount = count - nodeItemsLength;
-            LeafNode<T> current = node.Next;
-            while (leftCount > 0 && current != null)
-            {
-                using (var pinnedContent = CustomBuilder.DataStore.Get(current.container))
-                {
-                    var currentItems = pinnedContent.Content;
-                    if (leftCount > currentItems.Count)
-                    {
-                        foreach (var item in currentItems)
-                            yield return item;
-                    }
-                    else if (leftCount > 0)
-                    {
-                        foreach (var item in currentItems.Take((int)leftCount))
-                            yield return item;
-                    }
-                    leftCount -= currentItems.Count;
-                }
-                current = current.Next;
-            }
         }
 
         /// <summary>
@@ -960,20 +933,18 @@ namespace FooProject.Collection
         }
 
         /// <summary>
-        /// コンテナ―を全て列挙して返す
+        /// コンテナ―を列挙して返す
         /// </summary>
         /// <param name="index"></param>
         /// <param name="count"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public IEnumerable<ContainerInfo<T>> GetContainer(int index, int count)
+        public IEnumerable<ContainerInfo<T>> GetContainer(long index, long count)
         {
             if (index < 0 || index >= LongCount)
                 throw new ArgumentOutOfRangeException("index");
             if (count < 0 || count > LongCount - index)
                 throw new ArgumentOutOfRangeException("count");
-
-            GapBufferSequenceSegment<T> first_seg = null, current_seg = null;
 
             long relativeIndex;
             var node = (LeafNode<T>)IndexOfNode(index, out relativeIndex);
@@ -993,7 +964,7 @@ namespace FooProject.Collection
             LeafNode<T> current = node.Next;
             while (leftCount > 0 && current != null)
             {
-                if (current.Count > leftCount)
+                if (leftCount > current.Count)
                 {
                     yield return new ContainerInfo<T>(current.container, 0, current.Count);
                 }
