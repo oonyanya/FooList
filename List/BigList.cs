@@ -49,6 +49,19 @@ namespace FooProject.Collection
         }
     }
 
+    public readonly struct ContainerInfo<T>
+    {
+        public IPinableContainer<IComposableList<T>> PinableContainer { get; }
+        public long RelativeIndex { get; }
+        public long Count { get; }
+        public ContainerInfo(IPinableContainer<IComposableList<T>> container, long rIndex, long count)
+        {
+            this.PinableContainer = container;
+            this.RelativeIndex = rIndex;
+            this.Count = count;
+        }
+    }
+
     /// <summary>
     /// List for huge items.
     /// </summary>
@@ -935,14 +948,14 @@ namespace FooProject.Collection
         /// </summary>
         /// <returns>IPinableContainerのインスタンスが列挙される</returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public IEnumerable<(IPinableContainer<IComposableList<T>> pin,long count)> GetContainer()
+        public IEnumerable<ContainerInfo<T>> GetContainer()
         {
             if (LongCount + 1 > MaxCapacity)
                 throw new InvalidOperationException("too large");
 
             foreach (var node in _leafNodeEnumrator)
             {
-                yield return (node.container,node.Count);
+                yield return new ContainerInfo<T>(node.container, 0, node.Count);
             }
         }
 
@@ -953,7 +966,7 @@ namespace FooProject.Collection
         /// <param name="count"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public IEnumerable<(IPinableContainer<IComposableList<T>> pin, long index, long count)> GetContainer(int index, int count)
+        public IEnumerable<ContainerInfo<T>> GetContainer(int index, int count)
         {
             if (index < 0 || index >= LongCount)
                 throw new ArgumentOutOfRangeException("index");
@@ -968,11 +981,11 @@ namespace FooProject.Collection
             nodeItemsLength = node.Count - relativeIndex;
             if (count > nodeItemsLength)
             {
-                yield return (node.container, relativeIndex, nodeItemsLength);
+                yield return new ContainerInfo<T>(node.container, relativeIndex, nodeItemsLength);
             }
             else
             {
-                yield return (node.container, relativeIndex, count);
+                yield return new ContainerInfo<T>(node.container, relativeIndex, count);
                 yield break;
             }
 
@@ -982,11 +995,11 @@ namespace FooProject.Collection
             {
                 if (current.Count > leftCount)
                 {
-                    yield return (current.container, 0, current.Count);
+                    yield return new ContainerInfo<T>(current.container, 0, current.Count);
                 }
                 else
                 {
-                    yield return (current.container, 0, leftCount);
+                    yield return new ContainerInfo<T>(current.container, 0, leftCount);
                 }
                 leftCount -= current.Count;
                 current = current.Next;

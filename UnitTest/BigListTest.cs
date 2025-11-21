@@ -173,8 +173,8 @@ namespace UnitTest
             var list = this.CreateList(0, TEST_SIZE);
             foreach(var item in list.GetContainer())
             {
-                Assert.IsTrue(item.count > 0);
-                Assert.AreEqual(nameof(MemoryPinableContentDataStore<IComposableList<int>>),item.pin.ID);
+                Assert.IsTrue(item.Count > 0);
+                Assert.AreEqual(nameof(MemoryPinableContentDataStore<IComposableList<int>>),item.PinableContainer.ID);
             }
         }
 
@@ -210,13 +210,13 @@ namespace UnitTest
             AreEuqalSeqence(list6, new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 });
         }
 
-        private void AreEuqalSeqence<T>(IEnumerable<(IPinableContainer<IComposableList<T>> pin, long index, long count)> actual, IList<T> expected)
+        private void AreEuqalSeqence<T>(IEnumerable<ContainerInfo<T>> actual, IList<T> expected)
         {
             int i = 0;
             foreach (var seq in actual)
             {
-                var pinable = seq.pin;
-                foreach (var c in pinable.Content.Slice((int)seq.index, (int)seq.count).ToArray())
+                var pinable = seq.PinableContainer;
+                foreach (var c in pinable.Content.Slice((int)seq.RelativeIndex, (int)seq.Count).ToArray())
                 {
                     Assert.AreEqual(expected[i], c);
                     i++;

@@ -433,14 +433,14 @@ namespace UnitTest
 
             foreach (var item in list.GetContainer())
             {
-                if (dataStore.IsCanCloneContent(item.pin))
+                if (dataStore.IsCanCloneContent(item.PinableContainer))
                 {
-                    newlist.Add(dataStore.Clone(item.pin,item.pin.Content), item.count);
+                    newlist.Add(dataStore.Clone(item.PinableContainer,item.PinableContainer.Content), item.Count);
                 }
                 else
                 {
-                    var clonedContent = customConverter.CreateList(newlist.BlockSize,newlist.BlockSize,item.pin.Content);
-                    newlist.Add(dataStore.Clone(item.pin, clonedContent), item.count);
+                    var clonedContent = customConverter.CreateList(newlist.BlockSize,newlist.BlockSize,item.PinableContainer.Content);
+                    newlist.Add(dataStore.Clone(item.PinableContainer, clonedContent), item.Count);
                 }
             }
 
