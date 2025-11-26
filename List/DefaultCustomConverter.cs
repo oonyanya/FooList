@@ -12,11 +12,11 @@ namespace FooProject.Collection
     /// デフォルトの実装
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class DefaultCustomConverter<T> : ICustomConverter<T>, ICustomBuilder<T>
+    public abstract class CustomConverterBase<T> : IStateStore<T>, ICustomBuilder<T>
     {
         public IPinableContainerStore<IComposableList<T>> DataStore { get; set; }
 
-        public ILeastFetch<T> LeastFetch { get; private set; }
+        public virtual ILeastFetch<T> LeastFetch { get; private set; }
 
         public T Convert(T item)
         {
@@ -38,19 +38,29 @@ namespace FooProject.Collection
             return list;
         }
 
-        public ConcatNode<T> CreateConcatNode(ConcatNode<T> node)
+        public ConcatNode<T> CreateConcatNode(Node<T> left, Node<T> right)
         {
-            return new ConcatNode<T>(node);
+            return OnCreateConcatNode(left, right);
         }
 
-        public ConcatNode<T> CreateConcatNode(Node<T> left, Node<T> right)
+        protected virtual ConcatNode<T> OnCreateConcatNode(Node<T> left, Node<T> right)
         {
             return new ConcatNode<T>(left, right);
         }
 
+        protected virtual LeafNode<T> OnCreateLeafNode()
+        {
+            return new LeafNode<T>();
+         }
+
+        protected virtual LeafNode<T> OnCreateLeafNode(long count, IPinableContainer<IComposableList<T>> container)
+        {
+            return new LeafNode<T>(count, container);
+        }
+
         public LeafNode<T> CreateLeafNode(int blocksize)
         {
-            var newLeafNode = new LeafNode<T>();
+            var newLeafNode = OnCreateLeafNode();
             var container = this.DataStore.CreatePinableContainer(this.CreateList(4, blocksize));
             newLeafNode.container = container;
             this.DataStore.Set(container);
@@ -62,23 +72,28 @@ namespace FooProject.Collection
             var list = this.CreateList(4, blocksize, new T[] {item});
             var container = this.DataStore.CreatePinableContainer(list);
             this.DataStore.Set(container);
-            return new LeafNode<T>(list.Count, container);
+            return OnCreateLeafNode(list.Count, container);
         }
 
         public LeafNode<T> CreateLeafNode(long count, IPinableContainer<IComposableList<T>> container)
         {
             this.DataStore.Set(container);
-            return new LeafNode<T>(count, container);
+            return OnCreateLeafNode(count, container);
         }
 
-        public void SetState(Node<T> current, long totalLeftCountInList)
+        public virtual void SetState(Node<T> current, long totalLeftCountInList)
         {
             this.LeastFetch = new LeastFetch<T>(current, totalLeftCountInList);
         }
 
-        public void ResetState()
+        public virtual void ResetState()
         {
             this.LeastFetch = null;
         }
     }
+
+    public class DefaultCustomConverter<T> : CustomConverterBase<T>
+    {
+    }
+
 }

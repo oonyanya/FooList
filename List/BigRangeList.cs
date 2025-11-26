@@ -89,8 +89,14 @@ namespace FooProject.Collection
         /// <returns>Tを返すが、IRangeインターフェイスのstartの値が絶対的な位置に変換される</returns>
         public T GetWithConvertAbsolteIndex(long index)
         {
-            var CustomConverter = (ICustomConverter<T>)LeastFetchStore;
-            return CustomConverter.ConvertBack(GetRawData(index));
+            var CustomConverter = (RangeConverter<T>)LeastFetchStore;
+
+            var item = GetRawData(index);
+
+            T result = (T)item.DeepCopy();
+            result.start = item.start + CustomConverter.customLeastFetch.absoluteIndexIntoRange;
+            result.length = item.length;
+            return result;
         }
 
         /// <summary>
@@ -323,30 +329,13 @@ namespace FooProject.Collection
         }
     }
 
-    internal class RangeConverter<T> : ICustomConverter<T>,ICustomBuilder<T> where T : IRange
+    internal class RangeConverter<T> : CustomConverterBase<T> where T : IRange
     {
-        public IPinableContainerStore<IComposableList<T>> DataStore { get; set; }
-
-        public ILeastFetch<T> LeastFetch { get { return customLeastFetch; } }
+        public override ILeastFetch<T> LeastFetch { get { return customLeastFetch; } }
 
         public RangeLeastFetch<T> customLeastFetch { get; set; }
 
-        public T Convert(T item)
-        {
-            var result = item;
-            result.start -= customLeastFetch.absoluteIndexIntoRange;
-            return result;
-        }
-
-        public T ConvertBack(T item)
-        {
-            T result = (T)item.DeepCopy();
-            result.start = item.start + customLeastFetch.absoluteIndexIntoRange;
-            result.length = item.length;
-            return result;
-        }
-
-        public IComposableList<T> CreateList(long init, long max, IEnumerable<T> collection = null)
+        public override IComposableList<T> CreateList(long init, long max, IEnumerable<T> collection = null)
         {
             var list = new FixedRangeList<T>((int)init, (int)max);
             if (collection != null)
@@ -356,45 +345,26 @@ namespace FooProject.Collection
             return list;
         }
 
-        public ConcatNode<T> CreateConcatNode(ConcatNode<T> node)
-        {
-            return new RangeConcatNode<T>(node);
-        }
-
-        public ConcatNode<T> CreateConcatNode(Node<T> left, Node<T> right)
+        protected override ConcatNode<T> OnCreateConcatNode(Node<T> left, Node<T> right)
         {
             return new RangeConcatNode<T>(left, right);
         }
 
-        public LeafNode<T> CreateLeafNode(int blocksize)
+        protected override LeafNode<T> OnCreateLeafNode()
         {
-            var newLeafNode = new RangeLeafNode<T>();
-            var container = new PinableContainer<IComposableList<T>>(this.CreateList(4, blocksize));
-            newLeafNode.container = container;
-            this.DataStore.Set(container);
-            return newLeafNode;
+            return new RangeLeafNode<T>();
         }
 
-        public LeafNode<T> CreateLeafNode(T item,int blocksize)
+        protected override LeafNode<T> OnCreateLeafNode(long count, IPinableContainer<IComposableList<T>> container)
         {
-            var list = this.CreateList(4, blocksize);
-            list.Add(item);
-            var container = DataStore.CreatePinableContainer(list);
-            this.DataStore.Set(container);
-            return new RangeLeafNode<T>(list.Count, container);
-        }
-
-        public LeafNode<T> CreateLeafNode(long count, IPinableContainer<IComposableList<T>> container)
-        {
-            if(container.Content is FixedRangeList<T>)
+            if (container.Content is FixedRangeList<T>)
             {
-                this.DataStore.Set(container);
                 return new RangeLeafNode<T>(count, container);
             }
             throw new NotSupportedException("FixedRangeListを継承したクラスをcontainerのContentに設定する必要があります");
         }
 
-        public void SetState(Node<T> current, long totalLeftCountInList)
+        public override void SetState(Node<T> current, long totalLeftCountInList)
         {
             if (current == null)
             {
@@ -407,7 +377,7 @@ namespace FooProject.Collection
             }
         }
 
-        public void ResetState()
+        public override void ResetState()
         {
             this.customLeastFetch = null;
         }

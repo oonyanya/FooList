@@ -52,28 +52,6 @@ namespace FooProject.Collection
     }
 
     /// <summary>
-    /// 変換用のインターフェイス
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    public interface ICustomConverter<T> : IStateStore<T>
-    {
-        /// <summary>
-        /// 変換する
-        /// </summary>
-        /// <param name="item">変換前の値</param>
-        /// <returns>変換後の値</returns>
-
-        T Convert(T item);
-
-        /// <summary>
-        /// 逆変換する
-        /// </summary>
-        /// <param name="item">変換前の値</param>
-        /// <returns>変換後の値</returns>
-        T ConvertBack(T item);
-    }
-
-    /// <summary>
     /// デフォルトの実装
     /// </summary>
     /// <typeparam name="T"></typeparam>

@@ -52,13 +52,6 @@ namespace FooProject.Collection
         /// <summary>
         /// 幹を表すノードを作成する
         /// </summary>
-        /// <param name="node">幹を表すノード</param>
-        /// <returns>幹を表すノードを返す。</returns>
-        ConcatNode<T> CreateConcatNode(ConcatNode<T> node);
-
-        /// <summary>
-        /// 幹を表すノードを作成する
-        /// </summary>
         /// <param name="left">左側のノード。リーフノードか幹を表すノードのうちどちらかがセットされる</param>
         /// <param name="right">右側のノード。リーフノードか幹を表すノードのうちどちらかがセットされる</param>
         /// <returns>幹を表すノードを返す。左右それぞれにノードを設定した状態で返さなければならない。</returns>
