@@ -609,14 +609,6 @@ namespace FooProject.Collection
 
     public class ConcatNode<T> : Node<T>
     {
-        public ConcatNode(ConcatNode<T> node) : base() 
-        {
-            this.Left = node.Left;
-            this.Right = node.Right;
-            this.Count = node.Count;
-            this.Depth = node.Depth;
-            this.NodeCount  = node.Left.NodeCount + node.Right.NodeCount;
-        }
 
         public ConcatNode(Node<T> left, Node<T> right) : base(left, right)
         {
@@ -629,10 +621,14 @@ namespace FooProject.Collection
                 this.Depth = (short)(left.Depth + 1);
             else
                 this.Depth = (short)(right.Depth + 1);
+            this.OnNewNode(Left, Right);
         }
 
+        protected virtual void OnNewNode(Node<T> newLeft, Node<T> newRight)
+        {
+        }
 
-        protected virtual Node<T> NewNodeInPlace(Node<T> newLeft, Node<T> newRight)
+        private Node<T> NewNodeInPlace(Node<T> newLeft, Node<T> newRight)
         {
             if (newLeft == null)
                 return newRight;
@@ -647,6 +643,7 @@ namespace FooProject.Collection
                 Depth = (short)(Left.Depth + 1);
             else
                 Depth = (short)(Right.Depth + 1);
+            this.OnNewNode(Left, Right);
             return this;
         }
 

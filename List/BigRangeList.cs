@@ -267,19 +267,14 @@ namespace FooProject.Collection
 
     internal class RangeConcatNode<T> : ConcatNode<T>, IRangeNode where T : IRange
     {
-        public RangeConcatNode(ConcatNode<T> node) : base(node)
-        {
-        }
+
         public RangeConcatNode(Node<T> left, Node<T> right) : base(left, right)
         {
-            var customNodeLeft = (IRangeNode)left;
-            var customNodeRight = (IRangeNode)right;
-            TotalRangeCount = customNodeLeft.TotalRangeCount + customNodeRight.TotalRangeCount;
         }
 
         public long TotalRangeCount { get; private set; }
 
-        protected override Node<T> NewNodeInPlace(Node<T> newLeft, Node<T> newRight)
+        protected override void OnNewNode(Node<T> newLeft, Node<T> newRight)
         {
             var customNodeLeft = (IRangeNode)newLeft;
             var customNodeRight = (IRangeNode)newRight;
@@ -287,7 +282,6 @@ namespace FooProject.Collection
                 TotalRangeCount = customNodeLeft.TotalRangeCount;
             if (customNodeRight != null)
                 TotalRangeCount += customNodeRight.TotalRangeCount;
-            return base.NewNodeInPlace(newLeft, newRight);
         }
     }
 
