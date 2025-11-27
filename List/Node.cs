@@ -631,33 +631,6 @@ namespace FooProject.Collection
                 this.Depth = (short)(right.Depth + 1);
         }
 
-        sealed class NodeWalkInfo
-        {
-            public const int NOT_SETTED = -1;
-            public Node<T> node { get; private set; }
-            public NodeWalkDirection direction { get; private set; }
-            public long start { get; private set; }
-            public long end { get; private set; }
-            public int state { get; private set; }
-            public long left_count { get; private set; }
-            public NodeWalkInfo(Node<T> node, NodeWalkDirection direction)
-            {
-                this.node = node;
-                this.direction = direction;
-                this.start = NOT_SETTED;
-                this.end = NOT_SETTED;
-            }
-            public NodeWalkInfo(Node<T> node, NodeWalkDirection direction, long start, long end, int state, long left_count = NodeWalkInfo.NOT_SETTED)
-            {
-                this.node = node;
-                this.direction = direction;
-                this.start = start;
-                this.end = end;
-                this.state = state;
-                this.left_count = left_count;
-            }
-        }
-
 
         protected virtual Node<T> NewNodeInPlace(Node<T> newLeft, Node<T> newRight)
         {
