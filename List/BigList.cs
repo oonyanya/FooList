@@ -46,6 +46,7 @@ namespace FooProject.Collection
             LeastFetchStore = conv;
             CustomBuilder = builder;
             BlockSize = blockSize;
+            Type = type;
         }
     }
 
@@ -617,6 +618,8 @@ namespace FooProject.Collection
             if (_root == null)
             {
                 var newLeaf = CustomBuilder.CreateLeafNode(item, this.BlockSize);
+                var args = new BigListArgs<T>(CustomBuilder, LeastFetchStore, this.BlockSize, UpdateType.Add);
+                newLeaf.NotifyUpdate(0, 1, args);
                 _root = newLeaf;
                 _leafNodeEnumrator.AddLast(newLeaf);
             }
@@ -660,6 +663,8 @@ namespace FooProject.Collection
             var newLeaf = CustomBuilder.CreateLeafNode(newItemCount, pinableContainer);
             if (_root == null)
             {
+                var args = new BigListArgs<T>(CustomBuilder, LeastFetchStore, this.BlockSize, UpdateType.Add);
+                newLeaf.NotifyUpdate(0, newItemCount, args);
                 _root = newLeaf;
                 _leafNodeEnumrator.AddLast(newLeaf);
             }
@@ -1088,6 +1093,8 @@ namespace FooProject.Collection
                 if (_root == null)
                 {
                     var newLeafNode = CustomBuilder.CreateLeafNode(item, this.BlockSize);
+                    var args = new BigListArgs<T>(CustomBuilder, LeastFetchStore, this.BlockSize, UpdateType.Add);
+                    newLeafNode.NotifyUpdate(0, 1, args);
                     _root = newLeafNode;
                     _leafNodeEnumrator.AddLast(newLeafNode);
                 }
