@@ -27,20 +27,20 @@ namespace FooProject.Collection
             }
             set
             {
-                var oldValue = this.collection[index];
+                this.collection[index] = value;
 
-                var newValue = value;
-
-                this.collection[index] = newValue;
-
-                long deltaLength = newValue.length - oldValue.length;
-
-                this.TotalCount += deltaLength;
-
-                for (int i = index + 1; i < this.collection.Count; i++)
+                long newIndexIntoRange = 0;
+                if (index > 0)
                 {
-                    this.collection[i].start += deltaLength;
+                    newIndexIntoRange = this.collection[index - 1].start + this.collection[index - 1].length;
                 }
+                int end = this.collection.Count - 1;
+                for (int i = index; i <= end; i++)
+                {
+                    this.collection[i].start = newIndexIntoRange;
+                    newIndexIntoRange += this.collection[i].length;
+                }
+                this.TotalCount = newIndexIntoRange;
             }
         }
 
@@ -70,25 +70,27 @@ namespace FooProject.Collection
         /// <remarks>コレクション内部の値は相対的な値に変換される</remarks>
         public override void AddRange(IEnumerable<T> collection, int collection_length = -1)
         {
+            int updateStartIndex = this.collection.Count;
+
+            base.AddRange(collection,collection_length);
+
+            long newIndexIntoRange = 0;
+            if(updateStartIndex > 0)
+                newIndexIntoRange = this.collection[updateStartIndex-1].start + this.collection[updateStartIndex - 1].length;
+
             long deltaLength = 0;
             foreach (var item in collection)
             {
                 deltaLength += item.length;
             }
 
-            int updateStartIndex = this.collection.Count;
-
-            long newIndexIntoRange = this.TotalCount;
-
-            this.TotalCount += deltaLength;
-
-            base.AddRange(collection,collection_length);
-
             for (int i = updateStartIndex; i < this.collection.Count; i++)
             {
                 this.collection[i].start = newIndexIntoRange;
                 newIndexIntoRange += this.collection[i].length;
             }
+
+            this.TotalCount += deltaLength;
         }
 
         /// <summary>
@@ -112,27 +114,9 @@ namespace FooProject.Collection
         public override void InsertRange(int index, IEnumerable<T> collection, int collection_length = -1)
         {
             long deltaLength = 0;
-            foreach (var item in collection)
-            {
-                deltaLength += item.length;
-            }
-
-            this.TotalCount += deltaLength;
-
-            for (int i = index; i < this.collection.Count; i++)
-            {
-                this.collection[i].start += deltaLength;
-            }
 
             base.InsertRange(index, collection, collection_length);
 
-            int previousIndex = index;
-            long newIndexIntoRange = 0;
-            if (index > 0)
-            {
-                previousIndex = index - 1;
-                newIndexIntoRange = this.collection[index - 1].start + this.collection[index - 1].length;
-            }
             int insert_collection_count;
 #if NET6_0_OR_GREATER
             if (collection.TryGetNonEnumeratedCount(out insert_collection_count) == false)
@@ -142,7 +126,27 @@ namespace FooProject.Collection
 #else
             insert_collection_count = collection.Count();
 #endif
-            int end = index + insert_collection_count - 1;
+
+            foreach (var item in collection)
+            {
+                deltaLength += item.length;
+            }
+
+            this.TotalCount += deltaLength;
+
+            for (int i = index + insert_collection_count; i < this.collection.Count; i++)
+            {
+                this.collection[i].start += deltaLength;
+            }
+
+            int previousIndex = index;
+            long newIndexIntoRange = 0;
+            if (index > 0)
+            {
+                previousIndex = index - 1;
+                newIndexIntoRange = this.collection[index - 1].start + this.collection[index - 1].length;
+            }
+            int end = this.collection.Count - 1;
             for (int i = index; i <= end; i++)
             {
                 this.collection[i].start = newIndexIntoRange;
@@ -157,21 +161,34 @@ namespace FooProject.Collection
         /// <param name="count">長さ</param>
         public override void RemoveRange(int index,int count)
         {
-            long deltaLength = 0;
-            foreach (var item in collection.GetRage(index,count))
-            {
-                deltaLength += item.length;
-            }
-
-            this.TotalCount -= deltaLength;
-
-            int updateStartIndex = index + count;
-            for (int i = updateStartIndex; i < this.collection.Count; i++)
-            {
-                this.collection[i].start -= deltaLength;
-            }
-
             base.RemoveRange(index, count);
+
+            long deltaLength = 0;
+            if (index < this.collection.Count)
+            {
+                if(index > 0)
+                {
+                    deltaLength = this.collection[index].start - (this.collection[index - 1].start + this.collection[index - 1].length);
+                }
+                else
+                {
+                    //開始位置は常に0から始まる
+                    deltaLength = this.collection[index].start;
+                }
+
+                this.TotalCount -= deltaLength;
+
+                int updateStartIndex = index;
+                for (int i = updateStartIndex; i < this.collection.Count; i++)
+                {
+                    this.collection[i].start -= deltaLength;
+                }
+            }
+            else
+            {
+                int lastIndex = this.collection.Count - 1;
+                this.TotalCount = this.collection[lastIndex].start + this.collection[lastIndex].length;
+            }
         }
 
         /// <inheritdoc/>
