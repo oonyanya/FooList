@@ -302,9 +302,114 @@ namespace FooProject.Collection
             using (var pinnedContent = args.CustomBuilder.DataStore.Get(this.container))
             {
                 var items = pinnedContent.Content;
-                var fixedRangeList = (FixedRangeList<T>)items;
-                TotalRangeCount = fixedRangeList.TotalCount;
+                this.TotalRangeCount = ProcessItems(items, startIndex, count, this.TotalRangeCount, args);
             }
+        }
+
+        private long ProcessItems(IComposableList<T> collection, long index,long count, long oldTotalRangeCount, BigListArgs<T> args)
+        {
+            switch(args.Type)
+            {
+                case UpdateType.Overwrite:
+                    {
+                        int updateStartIndex = (int)index;
+                        long newIndexIntoRange = 0;
+                        if (index > 0)
+                        {
+                            newIndexIntoRange = collection[updateStartIndex - 1].start + collection[updateStartIndex - 1].length;
+                        }
+                        int end = collection.Count - 1;
+                        for (int i = updateStartIndex; i <= end; i++)
+                        {
+                            collection[i].start = newIndexIntoRange;
+                            newIndexIntoRange += collection[i].length;
+                        }
+                        return newIndexIntoRange;
+
+                    }
+                case UpdateType.Add:
+                    {
+                        int updateStartIndex = (int)index;
+                        long newIndexIntoRange = 0;
+                        if (updateStartIndex > 0)
+                            newIndexIntoRange = collection[updateStartIndex - 1].start + collection[updateStartIndex - 1].length;
+
+                        long deltaLength = 0;
+                        for(int i = updateStartIndex; i < updateStartIndex + count; i++)
+                        {
+                            deltaLength += collection[i].length;
+                        }
+
+                        for (int i = updateStartIndex; i < collection.Count; i++)
+                        {
+                            collection[i].start = newIndexIntoRange;
+                            newIndexIntoRange += collection[i].length;
+                        }
+
+                        return oldTotalRangeCount + deltaLength;
+                    }
+                case UpdateType.Insert:
+                    {
+                        int insert_collection_count = (int)count;
+
+                        long deltaLength = 0;
+                        for (int i = (int)index; i < index + insert_collection_count; i++)
+                        {
+                            deltaLength += collection[i].length;
+                        }
+
+                        for (int i = (int)index + insert_collection_count; i < collection.Count; i++)
+                        {
+                            collection[i].start += deltaLength;
+                        }
+
+                        int previousIndex = (int)index;
+                        long newIndexIntoRange = 0;
+                        if (index > 0)
+                        {
+                            previousIndex--;
+                            newIndexIntoRange = collection[previousIndex].start + collection[previousIndex].length;
+                        }
+                        int end = collection.Count - 1;
+                        for (int i = (int)index; i <= end; i++)
+                        {
+                            collection[i].start = newIndexIntoRange;
+                            newIndexIntoRange += collection[i].length;
+                        }
+
+                        return oldTotalRangeCount + deltaLength;
+                    }
+                case UpdateType.Remove:
+                    {
+                        long deltaLength = 0;
+                        if (index < collection.Count)
+                        {
+                            int updateStartIndex = (int)index;
+                            if (index > 0)
+                            {
+                                deltaLength = collection[updateStartIndex].start - (collection[updateStartIndex - 1].start + collection[updateStartIndex - 1].length);
+                            }
+                            else
+                            {
+                                //開始位置は常に0から始まる
+                                deltaLength = collection[updateStartIndex].start;
+                            }
+
+                            for (int i = updateStartIndex; i < collection.Count; i++)
+                            {
+                                collection[i].start -= deltaLength;
+                            }
+
+                            return oldTotalRangeCount - deltaLength;
+                        }
+                        else
+                        {
+                            int lastIndex = collection.Count - 1;
+                            return collection[lastIndex].start + collection[lastIndex].length;
+                        }
+                    }
+            }
+            return oldTotalRangeCount;
         }
 
         public long TotalRangeCount { get; private set; }
