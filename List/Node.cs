@@ -789,7 +789,8 @@ namespace FooProject.Collection
                     rightLeafItems.Add(item);
                 }
                 rightLeaf.Count += 1;
-                rightLeaf.NotifyUpdate(rightLeaf.Count, 1, args);
+                System.Diagnostics.Debug.Assert(rightLeaf.Count > 0);
+                rightLeaf.NotifyUpdate(rightLeaf.Count - 1, 1, args);
                 this.Count += 1;
                 return this;
             }
