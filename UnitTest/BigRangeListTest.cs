@@ -68,7 +68,7 @@ namespace UnitTest
             int index = 3;
             for (int i = 0; i < 8; i++)
             {
-                list.Insert(1,new MyRange(index, length));
+                list.Insert(i + 1,new MyRange(index, length));
                 index += length;
             }
             var expected = new int[] { 0, 3, 6, 9, 12, 15, 18, 21, 24, 27, };
@@ -80,7 +80,7 @@ namespace UnitTest
             index = 0;
             for (int i = 0; i < 8; i++)
             {
-                list.Insert(0, new MyRange(index, length));
+                list.Insert(i + 0, new MyRange(index, length));
                 index += length;
             }
             expected = new int[] { 0, 3, 6, 9, 12, 15, 18, 21, 24, 27, };
