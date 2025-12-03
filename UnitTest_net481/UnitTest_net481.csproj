@@ -12,6 +12,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\UnitTest\BigIndexAndHeightListTest.cs" Link="BigIndexAndHeightListTest.cs" />
     <Compile Include="..\UnitTest\BigList.LeafEnumratorTest.cs" Link="BigList.LeafEnumratorTest.cs" />
     <Compile Include="..\UnitTest\BigListTest.cs" Link="BigListTest.cs" />
     <Compile Include="..\UnitTest\BigRangeListTest.cs" Link="BigRangeListTest.cs" />
