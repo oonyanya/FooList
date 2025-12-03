@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using FooProject.Collection.DataStore;
@@ -34,54 +33,24 @@ namespace FooProject.Collection
     /// </summary>
     /// <typeparam name="T">IRangeを実装したT</typeparam>
     /// <remarks>連続した範囲でないとうまく動きません</remarks>
-    public class BigRangeList<T> : BigList<T> where T : IRange
+    public class BigRangeList<T> : BigRangeListBase<T> where T : IRange
     {
         /// <summary>
         /// コンストラクター
         /// </summary>
-        public BigRangeList() :base()
+        public BigRangeList() : base()
         {
             var custom = new RangeConverter<T>();
             custom.DataStore = new MemoryPinableContentDataStore<IComposableList<T>>();
             this.LeastFetchStore = custom;
             this.CustomBuilder = custom;
         }
-
-        protected override bool IsAllowDirectUseCollection(IComposableList<T> collection)
-        {
-            if (collection is FixedRangeList<T>)
-                return true;
-            throw new NotSupportedException("FixedRangeList以外を使用することはできません");
-        }
-
-        /// <summary>
-        /// 要素を取得する
-        /// </summary>
-        /// <param name="index">0から始まる数値</param>
-        /// <returns>Tを返す。IRangeインターフェイスのstartの値は変換されない</returns>
-        public override T Get(long index)
-        {
-            var result = GetRawData(index);
-            return result;
-        }
-
-        /// <summary>
-        /// 要素を設定する
-        /// </summary>
-        /// <param name="index">0から始まる数値</param>
-        /// <param name="value">設定したいT</param>
-        /// <remarks>valueの値は内部で相対的インデックスに変換されるので、変換する必要はない</remarks>
-        public override void Set(long index, T value)
-        {
-            var args = new BigListArgs<T>(CustomBuilder, LeastFetchStore, this.BlockSize, UpdateType.Overwrite);
-            Root.SetAtInPlace(index, value, leafNodeEnumrator, args);
-        }
-
         [Obsolete]
         public T GetIndexIntoRange(long index)
         {
             return GetWithConvertAbsolteIndex(index);
         }
+
         /// <summary>
         /// 要素を返す
         /// </summary>
@@ -104,7 +73,7 @@ namespace FooProject.Collection
         /// </summary>
         /// <param name="index">0から始まる数値</param>
         /// <returns>Tを返す。IRangeインターフェイスのstartの値は変換されない</returns>
-        public T GetRawData(long index)
+        public override T GetRawData(long index)
         {
             RangeConverter<T> myCustomConverter = (RangeConverter<T>)LeastFetchStore;
             long relativeIndex;
@@ -200,50 +169,23 @@ namespace FooProject.Collection
             return relativeIndex + myCustomConverter.customLeastFetch.TotalLeftCount;
         }
 
-        int IndexOfNearest(IList<T> collection,long start, out long nearIndex)
+        int IndexOfNearest(IList<T> collection, long start, out long nearIndex)
         {
-            if (start < 0)
-                throw new ArgumentOutOfRangeException("indexに負の値を設定することはできません");
-
-            if (start > Int32.MaxValue - 1)
-                throw new ArgumentOutOfRangeException("要素数が大きすぎます");
-
-            nearIndex = -1;
-            if (collection.Count == 0)
-                return -1;
-
-            if (start == 0 && collection.Count > 0)
-                return 0;
-
-            T line;
-            long lineHeadIndex;
-
-            int left = 0, right = collection.Count - 1, mid;
-            while (left <= right)
-            {
-                mid = (left + right) / 2;
-                line = collection[mid];
-                lineHeadIndex = line.start;
-                if (start >= lineHeadIndex && start < lineHeadIndex + line.length)
+            return this.IndexOfNearest(collection, start, (s, line) => {
+                var lineHeadIndex = line.start;
+                if (s >= lineHeadIndex && s < lineHeadIndex + line.length)
                 {
-                    return mid;
+                    return 0;
                 }
                 if (start < lineHeadIndex)
                 {
-                    right = mid - 1;
+                    return -1;
                 }
                 else
                 {
-                    left = mid + 1;
+                    return 1;
                 }
-            }
-
-            System.Diagnostics.Debug.Assert(left >= 0 || right >= 0);
-            nearIndex = left >= 0 ? left : right;
-            if (nearIndex > collection.Count - 1)
-                nearIndex = right;
-
-            return -1;
+            }, out nearIndex);
         }
 
         /// <summary>
@@ -253,7 +195,7 @@ namespace FooProject.Collection
         /// <remarks>IRangeインターフェイスのstartの値は変換される</remarks>
         public override IEnumerator<T> GetEnumerator()
         {
-            for(int i = 0; i < this.Count; i++)
+            for (int i = 0; i < this.Count; i++)
             {
                 yield return GetWithConvertAbsolteIndex(i);
             }
@@ -285,7 +227,7 @@ namespace FooProject.Collection
         }
     }
 
-    internal class RangeLeafNode<T> : LeafNode<T>, IRangeNode where T: IRange
+    internal class RangeLeafNode<T> : LeafNode<T>, IRangeNode where T : IRange
     {
 
         public RangeLeafNode() : base()
@@ -306,9 +248,9 @@ namespace FooProject.Collection
             }
         }
 
-        private long ProcessItems(IComposableList<T> collection, long index,long count, long oldTotalRangeCount, BigListArgs<T> args)
+        private long ProcessItems(IComposableList<T> collection, long index, long count, long oldTotalRangeCount, BigListArgs<T> args)
         {
-            switch(args.Type)
+            switch (args.Type)
             {
                 case UpdateType.Overwrite:
                     {
@@ -335,7 +277,7 @@ namespace FooProject.Collection
                             newIndexIntoRange = collection[updateStartIndex - 1].start + collection[updateStartIndex - 1].length;
 
                         long deltaLength = 0;
-                        for(int i = updateStartIndex; i < updateStartIndex + count; i++)
+                        for (int i = updateStartIndex; i < updateStartIndex + count; i++)
                         {
                             deltaLength += collection[i].length;
                         }

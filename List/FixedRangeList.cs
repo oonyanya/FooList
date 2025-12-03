@@ -12,7 +12,6 @@ namespace FooProject.Collection
 {
     // 互換性のために残しておく
     public class FixedRangeList<T> : FixedList<T>, IEnumerable<T>
-        where T : IRange
     {
         public FixedRangeList(int init,int max):base(init,max) { }
 
