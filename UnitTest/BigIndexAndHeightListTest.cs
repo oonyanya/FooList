@@ -294,20 +294,20 @@ namespace UnitTest
             Assert.AreEqual(0, list[0].start);
             Assert.AreEqual(3, list[0].length);
             Assert.AreEqual(0.0, list[0].sumHeight);
-            Assert.AreEqual(3.0, list[0].height);
+            Assert.AreEqual(3.0, list[0].Height);
             Assert.AreEqual(0, list[8].start);
             Assert.AreEqual(3, list[8].length);
             Assert.AreEqual(0.0, list[8].sumHeight);
-            Assert.AreEqual(3.0, list[8].height);
+            Assert.AreEqual(3.0, list[8].Height);
 
             var newValue = (MyRangeWithHeight)list[0].DeepCopy();
             newValue.length = 4;
-            newValue.height = 4.0;
+            newValue.Height = 4.0;
             list[0] = newValue;
             Assert.AreEqual(0, list[0].start);
             Assert.AreEqual(4, list[0].length);
             Assert.AreEqual(0.0, list[0].sumHeight);
-            Assert.AreEqual(4.0, list[0].height);
+            Assert.AreEqual(4.0, list[0].Height);
 
             var expected = new int[] { 0, 4, 7, 10, 13, 16, 19, 22, 25, 28, };
             var expected2 = new double[] { 0.0, 4.0, 7.0, 10.0, 13.0, 16.0, 19.0, 22.0, 25.0, 28.0, };
@@ -320,14 +320,14 @@ namespace UnitTest
         public long start { get; set; }
         public long length { get; set; }
         public double sumHeight { get; set; }
-        public double height { get; set; }
+        public double Height { get; set; }
 
         public MyRangeWithHeight(long index, long length, double sumHeight, double height)
         {
             start = index;
             this.length = length;
             this.sumHeight = sumHeight;
-            this.height = height;
+            this.Height = height;
         }
         public MyRangeWithHeight()
         {
@@ -335,7 +335,7 @@ namespace UnitTest
 
         public IRangeWithHeight DeepCopy()
         {
-            return new MyRangeWithHeight(start, length, sumHeight, height);
+            return new MyRangeWithHeight(start, length, sumHeight, Height);
         }
     }
 }

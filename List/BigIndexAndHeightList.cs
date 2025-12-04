@@ -19,7 +19,7 @@ namespace FooProject.Collection
         /// <summary>
         /// 長さ
         /// </summary>
-        long length { get; set; }
+        long length { get; }
 
         /// <summary>
         /// 高さの累計
@@ -28,7 +28,7 @@ namespace FooProject.Collection
         /// <summary>
         /// 高さ
         /// </summary>
-        double height { get; set; }
+        double Height { get; }
 
         /// <summary>
         /// ディープコピーを行う
@@ -73,9 +73,7 @@ namespace FooProject.Collection
 
             T result = (T)item.DeepCopy();
             result.start = item.start + CustomConverter.customLeastFetch.absoluteIndexIntoRange;
-            result.length = item.length;
             result.sumHeight = item.sumHeight + CustomConverter.customLeastFetch.absoluteSumHeight;
-            result.height = item.height;
             return result;
         }
 
@@ -251,7 +249,7 @@ namespace FooProject.Collection
         {
             return this.IndexOfNearest(collection, start, (s, line) => {
                 var lineHeadIndex = line.sumHeight;
-                if (s >= lineHeadIndex && s < lineHeadIndex + line.height)
+                if (s >= lineHeadIndex && s < lineHeadIndex + line.Height)
                 {
                     return 0;
                 }
@@ -346,7 +344,7 @@ namespace FooProject.Collection
                         if (index > 0)
                         {
                             newIndexIntoRange = collection[updateStartIndex - 1].start + collection[updateStartIndex - 1].length;
-                            newHeightIntoRange = collection[updateStartIndex - 1].sumHeight + collection[updateStartIndex - 1].height;
+                            newHeightIntoRange = collection[updateStartIndex - 1].sumHeight + collection[updateStartIndex - 1].Height;
                         }
                         int end = collection.Count - 1;
                         for (int i = updateStartIndex; i <= end; i++)
@@ -354,7 +352,7 @@ namespace FooProject.Collection
                             collection[i].start = newIndexIntoRange;
                             newIndexIntoRange += collection[i].length;
                             collection[i].sumHeight = newHeightIntoRange;
-                            newHeightIntoRange += collection[i].height;
+                            newHeightIntoRange += collection[i].Height;
                         }
                         return (newIndexIntoRange, newHeightIntoRange);
 
@@ -367,7 +365,7 @@ namespace FooProject.Collection
                         if (updateStartIndex > 0)
                         {
                             newIndexIntoRange = collection[updateStartIndex - 1].start + collection[updateStartIndex - 1].length;
-                            newHeightIntoRange = collection[updateStartIndex - 1].sumHeight + collection[updateStartIndex - 1].height;
+                            newHeightIntoRange = collection[updateStartIndex - 1].sumHeight + collection[updateStartIndex - 1].Height;
                         }
 
                         long deltaLength = 0;
@@ -375,7 +373,7 @@ namespace FooProject.Collection
                         for (int i = updateStartIndex; i < updateStartIndex + count; i++)
                         {
                             deltaLength += collection[i].length;
-                            deltaHeight += collection[i].height; 
+                            deltaHeight += collection[i].Height; 
                         }
 
                         for (int i = updateStartIndex; i < collection.Count; i++)
@@ -383,7 +381,7 @@ namespace FooProject.Collection
                             collection[i].start = newIndexIntoRange;
                             newIndexIntoRange += collection[i].length;
                             collection[i].sumHeight = newHeightIntoRange;
-                            newHeightIntoRange += collection[i].height;
+                            newHeightIntoRange += collection[i].Height;
                         }
 
                         return (oldTotalRangeCount + deltaLength, oldTotalHeightCount + deltaHeight);
@@ -397,7 +395,7 @@ namespace FooProject.Collection
                         for (int i = (int)index; i < index + insert_collection_count; i++)
                         {
                             deltaLength += collection[i].length;
-                            deltaHeight += collection[i].height;
+                            deltaHeight += collection[i].Height;
                         }
 
                         for (int i = (int)index + insert_collection_count; i < collection.Count; i++)
@@ -413,7 +411,7 @@ namespace FooProject.Collection
                         {
                             previousIndex--;
                             newIndexIntoRange = collection[previousIndex].start + collection[previousIndex].length;
-                            newHeightIntoRange = collection[previousIndex].sumHeight + collection[previousIndex].height;
+                            newHeightIntoRange = collection[previousIndex].sumHeight + collection[previousIndex].Height;
                         }
                         int end = collection.Count - 1;
                         for (int i = (int)index; i <= end; i++)
@@ -421,7 +419,7 @@ namespace FooProject.Collection
                             collection[i].start = newIndexIntoRange;
                             newIndexIntoRange += collection[i].length;
                             collection[i].sumHeight = newHeightIntoRange;
-                            newHeightIntoRange += collection[i].height;
+                            newHeightIntoRange += collection[i].Height;
                         }
 
                         return (oldTotalRangeCount + deltaLength, oldTotalHeightCount + deltaHeight);
@@ -436,7 +434,7 @@ namespace FooProject.Collection
                             if (index > 0)
                             {
                                 deltaLength = collection[updateStartIndex].start - (collection[updateStartIndex - 1].start + collection[updateStartIndex - 1].length);
-                                deltaHeight = collection[updateStartIndex].sumHeight - (collection[updateStartIndex - 1].sumHeight + collection[updateStartIndex - 1].height);
+                                deltaHeight = collection[updateStartIndex].sumHeight - (collection[updateStartIndex - 1].sumHeight + collection[updateStartIndex - 1].Height);
                             }
                             else
                             {
@@ -458,7 +456,7 @@ namespace FooProject.Collection
                             int lastIndex = collection.Count - 1;
                             return (
                                 collection[lastIndex].start + collection[lastIndex].length,
-                                collection[lastIndex].sumHeight + collection[lastIndex].height
+                                collection[lastIndex].sumHeight + collection[lastIndex].Height
                                 );
                         }
                     }
