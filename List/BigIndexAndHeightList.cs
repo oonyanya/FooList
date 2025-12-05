@@ -123,16 +123,17 @@ namespace FooProject.Collection
 
         public long GetIndexFromAbsoluteIndexIntoRange(long indexIntoRange)
         {
-            return this.GetIndexFromAbsoluteIndexIntoRange(indexIntoRange, out _);
+            return this.GetIndexFromAbsoluteIndexIntoRange(indexIntoRange, out _, out _);
         }
 
         /// <summary>
         /// 絶対的な位置、すなわちインデックスに対応する要素の番号を返す
         /// </summary>
         /// <param name="indexIntoRange">0から始まる数値。絶対的な位置を指定しないといけない</param>
+        /// <param name="outAbsoluteIndexIntoRange">対応する範囲を起点とするインデックス</param>
         /// <param name="outAbsoulteSumHeight">対応する範囲を起点とする位置</param>
         /// <returns>0から始まる要素の番号。見つからない場合は-1を返す</returns>
-        public long GetIndexFromAbsoluteIndexIntoRange(long indexIntoRange,out double outAbsoulteSumHeight)
+        public long GetIndexFromAbsoluteIndexIntoRange(long indexIntoRange,out long outAbsoluteIndexIntoRange,out double outAbsoulteSumHeight)
         {
             RangeAndHeightConverter<T> myCustomConverter = (RangeAndHeightConverter<T>)LeastFetchStore;
             long relativeIndexIntoRange = indexIntoRange;
@@ -164,6 +165,7 @@ namespace FooProject.Collection
                 relativeIndex = this.IndexOfNearest(leafNodeItems, relativeIndexIntoRange, out relativeNearIndex);
 
                 outAbsoulteSumHeight = leafNodeItems[(int)relativeIndex].sumHeight + myCustomConverter.customLeastFetch.absoluteSumHeight;
+                outAbsoluteIndexIntoRange = leafNodeItems[(int)relativeIndex].start + myCustomConverter.customLeastFetch.absoluteIndexIntoRange;
             }
 
             if (relativeIndex == -1)
