@@ -121,12 +121,18 @@ namespace FooProject.Collection
             return GetIndexFromAbsoluteIndexIntoRange(indexIntoRange);
         }
 
+        public long GetIndexFromAbsoluteIndexIntoRange(long indexIntoRange)
+        {
+            return this.GetIndexFromAbsoluteIndexIntoRange(indexIntoRange, out _);
+        }
+
         /// <summary>
         /// 絶対的な位置、すなわちインデックスに対応する要素の番号を返す
         /// </summary>
-        /// <param name="index">0から始まる数値。絶対的な位置を指定しないといけない</param>
+        /// <param name="indexIntoRange">0から始まる数値。絶対的な位置を指定しないといけない</param>
+        /// <param name="outAbsoulteSumHeight">対応する範囲を起点とする位置</param>
         /// <returns>0から始まる要素の番号。見つからない場合は-1を返す</returns>
-        public long GetIndexFromAbsoluteIndexIntoRange(long indexIntoRange)
+        public long GetIndexFromAbsoluteIndexIntoRange(long indexIntoRange,out double outAbsoulteSumHeight)
         {
             RangeAndHeightConverter<T> myCustomConverter = (RangeAndHeightConverter<T>)LeastFetchStore;
             long relativeIndexIntoRange = indexIntoRange;
@@ -156,6 +162,8 @@ namespace FooProject.Collection
             {
                 var leafNodeItems = pinnedContent.Content;
                 relativeIndex = this.IndexOfNearest(leafNodeItems, relativeIndexIntoRange, out relativeNearIndex);
+
+                outAbsoulteSumHeight = leafNodeItems[(int)relativeIndex].sumHeight + myCustomConverter.customLeastFetch.absoluteSumHeight;
             }
 
             if (relativeIndex == -1)
@@ -173,6 +181,17 @@ namespace FooProject.Collection
         /// <returns>0から始まる要素の番号。見つからない場合は-1を返す</returns>
         public long GetIndexFromAbsoluteSumHeight(double sumHeight)
         {
+            return GetIndexFromAbsoluteSumHeight(sumHeight, out _);
+        }
+
+        /// <summary>
+        /// 絶対的な位置、すなわちインデックスに対応する要素の番号を返す
+        /// </summary>
+        /// <param name="sumHeight">0から始まる数値。絶対的な位置を指定しないといけない</param>
+        /// <param name="outRelativeSumHeight">対応する範囲を起点とする相対的な位置</param>
+        /// <returns>0から始まる要素の番号。見つからない場合は-1を返す</returns>
+        public long GetIndexFromAbsoluteSumHeight(double sumHeight,out double outRelativeSumHeight)
+        {
             RangeAndHeightConverter<T> myCustomConverter = (RangeAndHeightConverter<T>)LeastFetchStore;
             double relativeSumHeight = sumHeight;
 
@@ -187,7 +206,7 @@ namespace FooProject.Collection
                 }
                 else
                 {
-                    relativeSumHeight -= leftTotalSumCount;
+                    relativeSumHeight -= leftTotalSumHeight;
                     myCustomConverter.customLeastFetch.TotalLeftCount += leftCount;
                     myCustomConverter.customLeastFetch.absoluteIndexIntoRange += leftTotalSumCount;
                     myCustomConverter.customLeastFetch.absoluteSumHeight += leftTotalSumHeight;
@@ -201,7 +220,11 @@ namespace FooProject.Collection
             {
                 var leafNodeItems = pinnedContent.Content;
                 relativeIndex = this.IndexOfNearest(leafNodeItems, relativeSumHeight, out relativeNearIndex);
+
+                //訳が分からなくなるのでこう書いたほうがいい
+                outRelativeSumHeight = sumHeight - myCustomConverter.customLeastFetch.absoluteSumHeight - leafNodeItems[(int)relativeIndex].sumHeight;
             }
+
 
             if (relativeIndex == -1)
             {

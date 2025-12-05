@@ -266,8 +266,10 @@ namespace UnitTest
             var expected = new double[] { 0.0, 3.0, 6.0, 9.0, 12.0, 15.0, 18.0, 21.0, 24.0, 27.0, };
             foreach (var item in expected)
             {
-                var absoluteindex = list.GetIndexFromAbsoluteSumHeight(item);
+                double relativeSumHeight = 0;
+                var absoluteindex = list.GetIndexFromAbsoluteSumHeight(item,out relativeSumHeight);
                 var range = list.GetWithConvertAbsolteIndex(absoluteindex);
+                Assert.AreEqual(0, relativeSumHeight);
                 Assert.AreEqual(item, range.start);
             }
         }
