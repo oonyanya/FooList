@@ -198,9 +198,9 @@ namespace FooProject.Collection
         /// 絶対的な位置、すなわちインデックスに対応する要素の番号を返す
         /// </summary>
         /// <param name="sumHeight">0から始まる数値。絶対的な位置を指定しないといけない</param>
-        /// <param name="outRelativeSumHeight">対応する範囲を起点とする相対的な位置</param>
+        /// <param name="outAbsoulteSumHeight">対応する範囲を起点とする位置</param>
         /// <returns>0から始まる要素の番号。見つからない場合は-1を返す</returns>
-        public long GetIndexFromAbsoluteSumHeight(double sumHeight,out double outRelativeSumHeight)
+        public long GetIndexFromAbsoluteSumHeight(double sumHeight,out double outAbsoulteSumHeight)
         {
             RangeAndHeightConverter<T> myCustomConverter = (RangeAndHeightConverter<T>)LeastFetchStore;
             double relativeSumHeight = sumHeight;
@@ -232,7 +232,14 @@ namespace FooProject.Collection
                 relativeIndex = this.IndexOfNearest(leafNodeItems, relativeSumHeight, out relativeNearIndex);
 
                 //訳が分からなくなるのでこう書いたほうがいい
-                outRelativeSumHeight = sumHeight - myCustomConverter.customLeastFetch.absoluteSumHeight - leafNodeItems[(int)relativeIndex].sumHeight;
+                if (relativeIndex >= 0)
+                {
+                    outAbsoulteSumHeight = leafNodeItems[(int)relativeIndex].sumHeight + myCustomConverter.customLeastFetch.absoluteSumHeight;
+                }
+                else
+                {
+                    outAbsoulteSumHeight = 0;
+                }
             }
 
 

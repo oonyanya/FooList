@@ -237,10 +237,15 @@ namespace UnitTest
             list.AddRange(rangeList);
 
             var expected = new long[] { 0, 3, 6, 9, 12, 15, 18, 21, 24, 27, };
-            foreach (var item in expected)
+            for (int i = 0; i < expected.Length; i++)
             {
-                var absoluteindex = list.GetIndexFromAbsoluteIndexIntoRange(item);
-                var range = list.GetWithConvertAbsolteIndex(absoluteindex);
+                var item = expected[i];
+                double sumHeightFromBox;
+                long sumIndexFromBox;
+                var boxIndex = list.GetIndexFromAbsoluteIndexIntoRange(item + 1, out sumIndexFromBox, out sumHeightFromBox);
+                var range = list.GetWithConvertAbsolteIndex(boxIndex);
+                Assert.AreEqual(item, sumIndexFromBox);
+                Assert.AreEqual(item + 0.0, sumHeightFromBox);
                 Assert.AreEqual(item, range.start);
             }
         }
@@ -266,10 +271,11 @@ namespace UnitTest
             var expected = new double[] { 0.0, 3.0, 6.0, 9.0, 12.0, 15.0, 18.0, 21.0, 24.0, 27.0, };
             foreach (var item in expected)
             {
-                double relativeSumHeight = 0;
-                var absoluteindex = list.GetIndexFromAbsoluteSumHeight(item,out relativeSumHeight);
+                double sumHeightFromBox = 0;
+                var absoluteindex = list.GetIndexFromAbsoluteSumHeight(item + 1.0,out sumHeightFromBox);
                 var range = list.GetWithConvertAbsolteIndex(absoluteindex);
-                Assert.AreEqual(0, relativeSumHeight);
+                Assert.AreEqual(item, sumHeightFromBox);
+                Assert.AreEqual(item, range.sumHeight);
                 Assert.AreEqual(item, range.start);
             }
         }
