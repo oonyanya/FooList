@@ -10,17 +10,8 @@ namespace FooProject.Collection
     /// <summary>
     /// 範囲を表す
     /// </summary>
-    public interface IRangeWithHeight
+    public interface IRangeWithHeight : IRange
     {
-        /// <summary>
-        /// 開始位置
-        /// </summary>
-        long start { get; set; }
-        /// <summary>
-        /// 長さ
-        /// </summary>
-        long length { get; }
-
         /// <summary>
         /// 高さの累計
         /// </summary>
@@ -29,12 +20,6 @@ namespace FooProject.Collection
         /// 高さ
         /// </summary>
         double Height { get; }
-
-        /// <summary>
-        /// ディープコピーを行う
-        /// </summary>
-        /// <returns>複製したクラスのインスタンスを返す</returns>
-        IRangeWithHeight DeepCopy();
     }
 
     /// <summary>

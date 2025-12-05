@@ -333,7 +333,7 @@ namespace UnitTest
         {
         }
 
-        public IRangeWithHeight DeepCopy()
+        public IRange DeepCopy()
         {
             return new MyRangeWithHeight(start, length, sumHeight, Height);
         }
