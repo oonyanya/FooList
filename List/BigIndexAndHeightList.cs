@@ -164,8 +164,16 @@ namespace FooProject.Collection
                 var leafNodeItems = pinnedContent.Content;
                 relativeIndex = this.IndexOfNearest(leafNodeItems, relativeIndexIntoRange, out relativeNearIndex);
 
-                outAbsoulteSumHeight = leafNodeItems[(int)relativeIndex].sumHeight + myCustomConverter.customLeastFetch.absoluteSumHeight;
-                outAbsoluteIndexIntoRange = leafNodeItems[(int)relativeIndex].start + myCustomConverter.customLeastFetch.absoluteIndexIntoRange;
+                if(relativeIndex >= 0)
+                {
+                    outAbsoulteSumHeight = leafNodeItems[(int)relativeIndex].sumHeight + myCustomConverter.customLeastFetch.absoluteSumHeight;
+                    outAbsoluteIndexIntoRange = leafNodeItems[(int)relativeIndex].start + myCustomConverter.customLeastFetch.absoluteIndexIntoRange;
+                }
+                else
+                {
+                    outAbsoulteSumHeight = 0;
+                    outAbsoluteIndexIntoRange = 0;
+                }
             }
 
             if (relativeIndex == -1)
