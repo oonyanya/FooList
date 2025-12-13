@@ -24,6 +24,8 @@ namespace FooProject.Collection.DataStore
         {
             get
             {
+                if (this.disposedValue)
+                    throw new InvalidOperationException("already disposed");
                 return container.Content;
             }
         }
@@ -31,6 +33,7 @@ namespace FooProject.Collection.DataStore
         IPinableContainer<T> container;
 
         IPinableContainerStore<T> DataStore;
+        private bool disposedValue;
 
         public PinnedContent(IPinableContainer<T> c, IPinableContainerStore<T> dataStore)
         {
@@ -41,12 +44,40 @@ namespace FooProject.Collection.DataStore
         /// <inheritdoc/>
         public void RemoveContent()
         {
+            if (this.disposedValue)
+                return;
             container.RemoveContent();
         }
 
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    DataStore.Set(container);
+                }
+
+                // TODO: アンマネージド リソース (アンマネージド オブジェクト) を解放し、ファイナライザーをオーバーライドします
+                this.container = null;
+                this.DataStore = null;
+
+                disposedValue = true;
+            }
+        }
+
+        // // TODO: 'Dispose(bool disposing)' にアンマネージド リソースを解放するコードが含まれる場合にのみ、ファイナライザーをオーバーライドします
+        // ~PinnedContent()
+        // {
+        //     // このコードを変更しないでください。クリーンアップ コードを 'Dispose(bool disposing)' メソッドに記述します
+        //     Dispose(disposing: false);
+        // }
+
         public void Dispose()
         {
-            DataStore.Set(container);
+            // このコードを変更しないでください。クリーンアップ コードを 'Dispose(bool disposing)' メソッドに記述します
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
     }
 }
