@@ -7,50 +7,89 @@ using CommandLine;
 
 namespace TextReaderDemo
 {
+    // https://github.com/commandlineparser/commandline/issues/810
+    public static class CommandLineExtensions
+    {
+        public static Task<ParserResult<object>> WithJobAsync<TJob>(
+            this ParserResult<object> parserResult,
+            Func<TJob, Task> parsedFunc) where TJob : IJob =>
+            parserResult.WithParsedAsync(parsedFunc);
+
+        public static async Task<ParserResult<object>> WithJobAsync<TJob>(
+            this Task<ParserResult<object>> parserResultTask,
+            Func<TJob, Task> parsedFunc) where TJob : IJob
+        {
+            var parserResult = await parserResultTask;
+
+            return await parserResult.WithParsedAsync(parsedFunc);
+        }
+
+        public static async Task WithNotParsedAsync(
+            this Task<ParserResult<object>> parserResultTask,
+            Action<IEnumerable<Error>> notParsedAction)
+        {
+            var parserResult = await parserResultTask;
+
+            parserResult.WithNotParsed(notParsedAction);
+        }
+    }
+
+    // https://github.com/commandlineparser/commandline/issues/810
+    public interface IJob
+    {
+    }
+
     [Verb("load", HelpText = "Load block")]
-    public class LoadCommnad
+    public class LoadCommnad : IJob
+    {
+        [Value(0, MetaName = "CountValue")]
+        public int Count { get; set; }
+    }
+
+    [Verb("loadasync", HelpText = "Load block asynchronously")]
+    public class LoadAsyncCommnad : IJob
     {
         [Value(0, MetaName = "CountValue")]
         public int Count { get; set; }
     }
 
     [Verb("loadall", HelpText = "Load entier file")]
-    public class LoadAllCommnad
+    public class LoadAllCommnad : IJob
     {
         [Value(0)]
         IEnumerable<string> args { get; set; }
     }
 
     [Verb("loadasyncall", HelpText = "Load entire file asynchronously")]
-    public class LoadAsyncAllCommnad
+    public class LoadAsyncAllCommnad : IJob
     {
         [Value(0)]
         IEnumerable<string> args { get; set; }
     }
 
     [Verb("exit", HelpText = "Exit this progoram")]
-    public class ExitCommnad
+    public class ExitCommnad : IJob
     {
         [Value(0)]
         IEnumerable<string> args { get; set; }
     }
 
     [Verb("save",HelpText ="Save entier content to file")]
-    public class SaveCommand
+    public class SaveCommand : IJob
     {
         [Value(0, MetaName = "FilePathValue")]
         public string FilePath { get; set; }
     }
 
     [Verb("usage", HelpText = "Show current state")]
-    public class UsageCommnad
+    public class UsageCommnad : IJob
     {
         [Value(0)]
         IEnumerable<string> args { get; set; }
     }
 
     [Verb("insert", HelpText = "Insert text to index")]
-    internal class InsertCommand
+    internal class InsertCommand : IJob
     {
         [Value(0, MetaName = "IndexValue")]
         public int Index { get; set; }
@@ -60,7 +99,7 @@ namespace TextReaderDemo
     }
 
     [Verb("show", HelpText = "Show text from index")]
-    internal class ShowCommand
+    internal class ShowCommand : IJob
     {
         [Value(0, MetaName = "IndexValue")]
         public int Index { get; set; }
@@ -70,7 +109,7 @@ namespace TextReaderDemo
     }
 
     [Verb("remove", HelpText = "Remove text from index with length")]
-    internal class RemoveCommand
+    internal class RemoveCommand : IJob
     {
         [Value(0, MetaName = "IndexValue")]
         public int Index { get; set; }
@@ -80,7 +119,7 @@ namespace TextReaderDemo
     }
 
     [Verb("find", HelpText = "Find string within loaded text")]
-    internal class FindCommand
+    internal class FindCommand : IJob
     {
         [Value(0, MetaName = "TextValue")]
         public string Text { get; set; }

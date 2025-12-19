@@ -72,7 +72,7 @@ while (exitflag == false)
     string cmd = Console.ReadLine();
 
     string[] cmds = cmd.Split(" ");
-    await Parser.Default.ParseArguments<LoadCommnad, LoadAllCommnad, LoadAsyncAllCommnad, SaveCommand, UsageCommnad, InsertCommand, RemoveCommand, ShowCommand, ExitCommnad, FindCommand>(cmds)
+    await Parser.Default.ParseArguments<LoadCommnad, LoadAllCommnad, LoadAsyncCommnad, LoadAsyncAllCommnad, SaveCommand, UsageCommnad, InsertCommand, RemoveCommand, ShowCommand, ExitCommnad, FindCommand>(cmds)
         .WithParsed<LoadCommnad>(opt =>
         {
             var time = BenchmarkRunner.Run(() =>
@@ -251,7 +251,23 @@ while (exitflag == false)
         {
             exitflag = true;
         })
-        .WithParsedAsync<LoadAsyncAllCommnad>(async opt =>
+        .WithJobAsync<LoadAsyncCommnad>(async opt =>
+        {
+            var time = await BenchmarkRunner.RunAsync(async () =>
+            {
+                for (int i = 0; i < opt.Count; i++)
+                {
+                    var result = await charReader.LoadAsync(biglist1.BlockSize);
+                    var newResult = OnLoadAsyncResult<IComposableList<char>>.Create(new ReadOnlyComposableList<char>(result.Value), result);
+                    var pinableContainer = lazyLoadStore.Load(newResult);
+                    if (pinableContainer == null)
+                        return;
+                    biglist1.Add(pinableContainer);
+                }
+            });
+            Console.WriteLine($"success to load.elapsed time:{time} ms");
+        })
+        .WithJobAsync<LoadAsyncAllCommnad>(async opt =>
         {
             var time = await BenchmarkRunner.RunAsync( async () =>
             {
