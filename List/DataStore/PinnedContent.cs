@@ -15,6 +15,7 @@ namespace FooProject.Collection.DataStore
     {
         T Content { get; }
         void RemoveContent();
+        void NotifyWriteContent();
     }
 
     public class PinnedContent<T> : IPinnedContent<T>
@@ -78,6 +79,13 @@ namespace FooProject.Collection.DataStore
             // このコードを変更しないでください。クリーンアップ コードを 'Dispose(bool disposing)' メソッドに記述します
             Dispose(disposing: true);
             GC.SuppressFinalize(this);
+        }
+
+        public void NotifyWriteContent()
+        {
+            if (this.disposedValue)
+                return;
+            //this.container.WriteContent();
         }
     }
 }

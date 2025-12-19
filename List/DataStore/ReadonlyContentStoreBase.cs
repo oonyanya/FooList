@@ -125,6 +125,7 @@ namespace FooProject.Collection.DataStore
             newpin.Info = new DiskAllocationInfo(index, read_bytes);
             //まずはプライマリーデーターストアを使用する
             newpin.ID = DEFAULT_ID;
+            newpin.WriteContent();
             return newpin;
         }
 
@@ -270,6 +271,7 @@ namespace FooProject.Collection.DataStore
             newpin.Info = new DiskAllocationInfo(oldpin.Info.Index,oldpin.Info.AlignedLength);
             newpin.ID = oldpin.ID;
             newpin.IsRemoved = oldpin.IsRemoved;
+            newpin.IsWrited = oldpin.IsWrited;
 
             return newpin;
         }

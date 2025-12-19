@@ -56,6 +56,7 @@ namespace UnitTest
             foreach (var item in test_data)
             {
                 var data = new PinableContainer<int[]>(new int[] { item });
+                data.WriteContent();
                 disk.Set(data);
                 containers.Add(data);
             }
@@ -84,6 +85,7 @@ namespace UnitTest
             foreach (var item in test_data)
             {
                 var data = new PinableContainer<int[]>(new int[] { item });
+                data.WriteContent();
                 disk.Set(data);
                 containers.Add(data);
             }
@@ -124,6 +126,7 @@ namespace UnitTest
                 foreach (var item in test_data)
                 {
                     var data = new PinableContainer<int[]>(Enumerable.Repeat(item, repeatLength).ToArray());
+                    data.WriteContent();
                     disk.Set(data);
 
                     var pinned = disk.Get(data);
@@ -154,6 +157,7 @@ namespace UnitTest
                 foreach (var item in test_data)
                 {
                     var data = new PinableContainer<int[]>(Enumerable.Repeat(item, repeatLength / 2).ToArray());
+                    data.WriteContent();
                     disk.Set(data);
 
                     containers.Add(data);
@@ -185,6 +189,7 @@ namespace UnitTest
             foreach (var item in test_data)
             {
                 var data = new PinableContainer<int[]>(new int[] { item });
+                data.WriteContent();
                 disk.Set(data);
                 containers.Add(data);
             }
@@ -213,6 +218,7 @@ namespace UnitTest
             foreach (var item in test_data)
             {
                 var data = new PinableContainer<int[]>(new int[] { item });
+                data.WriteContent();
                 disk.Set(data);
                 containers.Add(data);
             }
@@ -245,6 +251,7 @@ namespace UnitTest
             foreach (var item in test_data)
             {
                 var data = new PinableContainer<int[]>(new int[] { item });
+                data.WriteContent();
                 disk.Set(data);
                 containers.Add(data);
             }

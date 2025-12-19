@@ -97,7 +97,7 @@ namespace FooProject.Collection.DataStore
                 if (outed_item.IsRemoved == true)
                     return;
 
-                if (ev.RequireWriteBack)
+                if (ev.RequireWriteBack && outed_item.IsWrited)
                 {
                     var data = this.serializer.Serialize(outed_item.Content);
 
@@ -119,6 +119,7 @@ namespace FooProject.Collection.DataStore
                     this.writer.Write(data.Length);
                     this.writer.Write(data);
                     outed_item.Content = default(T);
+                    outed_item.IsWrited = false;
                 }
                 this.emptyList.ReleaseID(outed_item.CacheIndex);
                 outed_item.CacheIndex = PinableContainer<T>.NOTCACHED;
@@ -170,12 +171,14 @@ namespace FooProject.Collection.DataStore
             }
             newpin.ID = oldpin.ID;
             newpin.IsRemoved = oldpin.IsRemoved;
+            newpin.IsWrited = oldpin.IsWrited;
 
             System.Diagnostics.Debug.Assert(newpin.CacheIndex == oldpin.CacheIndex);
             System.Diagnostics.Debug.Assert(newpin.Info.Index == oldpin.Info.Index);
             System.Diagnostics.Debug.Assert(newpin.Info.AlignedLength == oldpin.Info.AlignedLength);
             System.Diagnostics.Debug.Assert(newpin.ID == oldpin.ID);
             System.Diagnostics.Debug.Assert(newpin.IsRemoved == oldpin.IsRemoved);
+            System.Diagnostics.Debug.Assert(newpin.IsWrited == oldpin.IsWrited);
 
             return newpin;
         }
