@@ -15,7 +15,9 @@ namespace FooProject.Collection.DataStore
         /// <inheritdoc/>
         public virtual IPinableContainer<T> Clone(IPinableContainer<T> pin, T cloned_content)
         {
-            return this.CreatePinableContainer(cloned_content);
+            var newpin = this.CreatePinableContainer(cloned_content);
+            newpin.WriteContent();
+            return newpin;
         }
 
         /// <inheritdoc/>
@@ -63,7 +65,9 @@ namespace FooProject.Collection.DataStore
         /// <inheritdoc/>
         public virtual IPinableContainer<T> Update(IPinableContainer<T> pinableContainer, T newcontent, long oldstart, long oldcount, long newstart, long newcount)
         {
-            return this.CreatePinableContainer(newcontent);
+            var pin = this.CreatePinableContainer(newcontent);
+            pin.WriteContent();
+            return pin;
         }
     }
 }

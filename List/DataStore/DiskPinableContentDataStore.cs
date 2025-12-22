@@ -87,7 +87,30 @@ namespace FooProject.Collection.DataStore
                 if (outed_item.IsRemoved == true)
                     return;
 
-                outed_item.Info = null;
+                if (outed_item.IsWrited)
+                {
+                    var data = this.serializer.Serialize(outed_item.Content);
+
+                    int dataLength = data.Length + 4;
+                    int alignedDataLength = dataLength + PAGESIZE - (dataLength % PAGESIZE);
+
+                    if (outed_item.Info != null && alignedDataLength > outed_item.Info.AlignedLength)
+                    {
+                        this.emptyList.SetEmptyList(outed_item.Info);
+                        outed_item.Info = null;
+                    }
+
+                    if (outed_item.Info == null)
+                    {
+                        outed_item.Info = this.emptyList.GetEmptyList(alignedDataLength);
+                    }
+
+                    this.writer.BaseStream.Position = outed_item.Info.Index;
+                    this.writer.Write(data.Length);
+                    this.writer.Write(data);
+                    outed_item.IsWrited = false;
+                }
+                outed_item.Content = default(T);
 
                 this.emptyList.ReleaseID(outed_item.CacheIndex);
                 outed_item.CacheIndex = PinableContainer<T>.NOTCACHED;
@@ -264,12 +287,15 @@ namespace FooProject.Collection.DataStore
                 return;
             }
 
-            if (pinableContainer.CacheIndex == PinableContainer<T>.NOTCACHED)
+            if(pinableContainer.IsWrited)
             {
-                pinableContainer.CacheIndex = this.emptyList.GetID();
-            }
+                if (pinableContainer.CacheIndex == PinableContainer<T>.NOTCACHED)
+                {
+                    pinableContainer.CacheIndex = this.emptyList.GetID();
+                }
 
-            this.writebackCacheList.Set(pinableContainer.CacheIndex, pinableContainer);
+                this.writebackCacheList.Set(pinableContainer.CacheIndex, pinableContainer);
+            }
             return;
         }
 
