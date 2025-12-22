@@ -1915,6 +1915,25 @@ namespace UnitTest
             }
             InterfaceTests.TestEnumerableElements(buf, str);
 
+            for (int i = 0; i < TEST_SIZE; i++)
+            {
+                if (i % 10 == 0)
+                {
+                    buf.AddToFront('t');
+                    str.Insert(0,"t");
+                }
+            }
+            InterfaceTests.TestEnumerableElements(buf, str);
+
+            for (int i = 0; i < TEST_SIZE; i++)
+            {
+                if (i % 10 == 0)
+                {
+                    buf.AddRangeToFront("ta");
+                    str.Insert(0, "ta");
+                }
+            }
+            InterfaceTests.TestEnumerableElements(buf, str);
         }
     }
 }
