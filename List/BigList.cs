@@ -575,6 +575,7 @@ namespace FooProject.Collection
         /// </summary>
         /// <param name="pinableContainer"></param>
         /// <exception cref="InvalidOperationException"></exception>
+        /// <remarks>IPinableContainerのWriteContent()は自動的に呼ばれるので呼び出す必要はありません</remarks>
         public virtual void AddToFront(IPinableContainer<IComposableList<T>> pinableContainer)
         {
             var newItemCount = pinableContainer.Content.Count;
@@ -642,6 +643,7 @@ namespace FooProject.Collection
         /// <param name="pinableContainer"></param>
         /// <param name="count"></param>
         /// <exception cref="InvalidOperationException"></exception>
+        /// <remarks>IPinableContainerのWriteContent()は自動的に呼ばれるので呼び出す必要はありません</remarks>
         public virtual void Add(IPinableContainer<IComposableList<T>> pinableContainer, long count = -1)
         {
             long newItemCount = 0;
@@ -1032,6 +1034,7 @@ namespace FooProject.Collection
         /// </summary>
         /// <param name="pinableContainer"></param>
         /// <exception cref="InvalidOperationException"></exception>
+        /// <remarks>IPinableContainerのWriteContent()は自動的に呼ばれるので呼び出す必要はありません</remarks>
         public virtual void Insert(long index,IPinableContainer<IComposableList<T>> pinableContainer)
         {
             var newItemCount = pinableContainer.Content.Count;

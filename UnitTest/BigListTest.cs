@@ -1891,6 +1891,11 @@ namespace UnitTest
                 {
                     buf.Insert(i, 't');
                     str.Insert(i, 't');
+
+                    var list = buf.CustomBuilder.CreateList(buf.BlockSize, buf.BlockSize, "t");
+                    var pin = dataStore.CreatePinableContainer(list);
+                    buf.Insert(i, pin);
+                    str.Insert(i, 't');
                 }
             }
             InterfaceTests.TestEnumerableElements(buf, str);
@@ -1911,6 +1916,11 @@ namespace UnitTest
                 {
                     buf.Add('t');
                     str.Append("t");
+
+                    var list = buf.CustomBuilder.CreateList(buf.BlockSize, buf.BlockSize, "t");
+                    var pin = dataStore.CreatePinableContainer(list);
+                    buf.Add(pin);
+                    str.Append('t');
                 }
             }
             InterfaceTests.TestEnumerableElements(buf, str);
@@ -1921,6 +1931,11 @@ namespace UnitTest
                 {
                     buf.AddToFront('t');
                     str.Insert(0,"t");
+
+                    var list = buf.CustomBuilder.CreateList(buf.BlockSize, buf.BlockSize, "t");
+                    var pin = dataStore.CreatePinableContainer(list);
+                    buf.AddToFront(pin);
+                    str.Insert(0, "t");
                 }
             }
             InterfaceTests.TestEnumerableElements(buf, str);
