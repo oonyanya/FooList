@@ -26,6 +26,10 @@ namespace FooProject.Collection.DataStore
         }
     }
 
+    public static class DiskPinableContentDataStoreExtenion
+    {
+    }
+
     /// <summary>
     /// ディスクに格納するタイプのデーターストアです
     /// </summary>
@@ -59,15 +63,17 @@ namespace FooProject.Collection.DataStore
         /// コンストラクター
         /// </summary>
         /// <param name="serializer">ISerializeDataを継承したクラスのインスタンス</param>
-        /// <param name="workfolderpath">ワークファイルを格納するフォルダーへのフルパス。nullの場合は%TEMP%を参照します。</param>
+        /// <param name="stream">ストリーム。nullの場合は%TEMP%にワークファイルを作成します。</param>
         /// <param name="cache_limit">キャッシュしておく量。すくなくとも、CacheParameters.MINCACHESIZE以上は指定する必要がある。</param>
-        public DiskPinableContentDataStore(ISerializeData<T> serializer,string workfolderpath,int cache_limit = 128)
+        public DiskPinableContentDataStore(ISerializeData<T> serializer, Stream stream, int cache_limit = 128)
         {
-            if (workfolderpath == null)
-                tempFilePath = Path.GetTempFileName();
-            else
-                tempFilePath = Path.Combine(workfolderpath,Path.GetRandomFileName());
-            var dataStream = new FileStream(tempFilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None, BUFFERSIZE, FileOptions.None);
+            Stream dataStream = stream;
+            if(stream == null)
+            {
+                this.tempFilePath = Path.GetTempFileName();
+                dataStream = new FileStream(tempFilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None, BUFFERSIZE, FileOptions.None);
+            }
+
             this.writer = new BinaryWriter(dataStream);
             this.reader = new BinaryReader(dataStream);
             this.serializer = serializer;
@@ -82,13 +88,12 @@ namespace FooProject.Collection.DataStore
                     return;
 
                 outed_item.Info = null;
-                outed_item.Content = default(T);
 
                 this.emptyList.ReleaseID(outed_item.CacheIndex);
                 outed_item.CacheIndex = PinableContainer<T>.NOTCACHED;
             };
             this.writebackCacheList.Limit = cache_limit;
-            this.writebackCacheList.CacheOuted += (ev)=>{
+            this.writebackCacheList.CacheOuted += (ev) => {
 
                 var key = ev.Key;
                 var outed_item = ev.Value;
@@ -124,6 +129,25 @@ namespace FooProject.Collection.DataStore
                 this.emptyList.ReleaseID(outed_item.CacheIndex);
                 outed_item.CacheIndex = PinableContainer<T>.NOTCACHED;
             };
+        }
+
+        /// <summary>
+        /// コンストラクター
+        /// </summary>
+        /// <param name="serializer">ISerializeDataを継承したクラスのインスタンス</param>
+        /// <param name="workfolderpath">ワークファイルを格納するフォルダーへのフルパス。nullの場合は%TEMP%を参照します。</param>
+        /// <param name="cache_limit">キャッシュしておく量。すくなくとも、CacheParameters.MINCACHESIZE以上は指定する必要がある。</param>
+        public static DiskPinableContentDataStore<T> Create(ISerializeData<T> serializer, string workfolderpath, int cache_limit = 128)
+        {
+            var tempFilePath = string.Empty;
+            if (workfolderpath == null)
+                tempFilePath = Path.GetTempFileName();
+            else
+                tempFilePath = Path.Combine(workfolderpath, Path.GetRandomFileName());
+            var dataStream = new FileStream(tempFilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None, BUFFERSIZE, FileOptions.None);
+            var r = new DiskPinableContentDataStore<T>(serializer, dataStream, cache_limit);
+            r.tempFilePath = tempFilePath;
+            return r;
         }
 
         /// <inheritdoc/>
@@ -257,7 +281,8 @@ namespace FooProject.Collection.DataStore
                 this.writer.Dispose();
                 this.reader.Dispose();
 #if !KEEP_TEMPORARY_FILE
-                File.Delete(this.tempFilePath);
+                if(this.tempFilePath != null)
+                    File.Delete(this.tempFilePath);
 #endif
             }
             catch

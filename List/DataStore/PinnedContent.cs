@@ -85,7 +85,7 @@ namespace FooProject.Collection.DataStore
         {
             if (this.disposedValue)
                 return;
-            //this.container.WriteContent();
+            this.container.WriteContent();
         }
     }
 }
