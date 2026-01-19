@@ -50,7 +50,7 @@ namespace UnitTest
         {
             const int TEST_SIZE = 50;
             var serializer = new TestSerializer();
-            var disk = new DiskPinableContentDataStore<int[]>(serializer, Path.GetTempPath(), CACHE_SIZE);
+            var disk = new DiskPinableContentDataStore<int[]>(serializer, null, CACHE_SIZE);
             var test_data = Enumerable.Range(1, TEST_SIZE).Select((i) => { return i * 100; }).ToArray();
             List<PinableContainer<int[]>> containers = new List<PinableContainer<int[]>>();
             foreach (var item in test_data)
@@ -78,7 +78,7 @@ namespace UnitTest
         {
             const int TEST_SIZE = 50;
             var serializer = new TestSerializer();
-            var disk = new DiskPinableContentDataStore<int[]>(serializer, Path.GetTempPath(), CACHE_SIZE);
+            var disk = new DiskPinableContentDataStore<int[]>(serializer, null, CACHE_SIZE);
             var test_data = Enumerable.Range(1, TEST_SIZE).Select((i) => { return i * 100; }).ToArray();
             List<PinableContainer<int[]>> containers = new List<PinableContainer<int[]>>();
             foreach (var item in test_data)
