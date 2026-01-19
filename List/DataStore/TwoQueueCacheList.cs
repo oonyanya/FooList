@@ -282,7 +282,7 @@ namespace FooProject.Collection.DataStore
                 this.inQueue.AddFirst(key);
                 hasFreeslot = true;
             }
-            else if (this.outQueque.Count < this.Limit)
+            else if (this.outQueque.Count < this._outQLimit)
             {
                 this.outQueque.Add(key);
                 hasFreeslot = true;
@@ -295,6 +295,8 @@ namespace FooProject.Collection.DataStore
             }
 
             K lastKeyInQ = this.inQueue.Last.Value;
+            if (lastKeyInQ == null)
+                throw new NullReferenceException("The last element is missing in input queue");
             this.inQueue.RemoveLast();
 
             this.outQueque.Add(lastKeyInQ);
@@ -303,6 +305,8 @@ namespace FooProject.Collection.DataStore
             if (this.outQueque.Count > this._outQLimit)
             {
                 K lastKeyQutQ = this.outQueque.Last;
+                if (lastKeyQutQ == null)
+                    throw new NullReferenceException("The last element is missing in LRU cache");
                 if (this.store.ContainsKey(lastKeyQutQ))
                 {
                     outed_item = this.store[lastKeyQutQ];
