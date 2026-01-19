@@ -122,6 +122,11 @@ namespace FooProject.Collection.DataStore
             this.list.Clear();
         }
 
+        public void RemoveLast()
+        {
+
+        }
+
         public IEnumerator<K> GetEnumerator()
         {
             foreach(var item in list)
@@ -142,7 +147,7 @@ namespace FooProject.Collection.DataStore
 
         LRUCache<K> lru = new LRUCache<K>();
         LinkedList<K> inQueue = new LinkedList<K>();
-        FIFOCache<K> outQueque = new FIFOCache<K>();
+        LinkedList<K> outQueque = new LinkedList<K>();
         Dictionary<K, V> store = new Dictionary<K, V>();
 
         int _limit;
@@ -282,9 +287,9 @@ namespace FooProject.Collection.DataStore
                 this.inQueue.AddFirst(key);
                 hasFreeslot = true;
             }
-            else if (this.outQueque.Count < this._outQLimit)
+            else if (this.outQueque.Count < this.Limit)
             {
-                this.outQueque.Add(key);
+                this.outQueque.AddFirst(key);
                 hasFreeslot = true;
             }
 
@@ -299,12 +304,12 @@ namespace FooProject.Collection.DataStore
                 throw new NullReferenceException("The last element is missing in input queue");
             this.inQueue.RemoveLast();
 
-            this.outQueque.Add(lastKeyInQ);
+            this.outQueque.AddFirst(lastKeyInQ);
 
             bool hasOverflow = false;
             if (this.outQueque.Count > this._outQLimit)
             {
-                K lastKeyQutQ = this.outQueque.Last;
+                K lastKeyQutQ = this.outQueque.Last.Value;
                 if (lastKeyQutQ == null)
                     throw new NullReferenceException("The last element is missing in LRU cache");
                 if (this.store.ContainsKey(lastKeyQutQ))
@@ -312,7 +317,7 @@ namespace FooProject.Collection.DataStore
                     outed_item = this.store[lastKeyQutQ];
                     this.OnCacheOuted(lastKeyQutQ, outed_item, true);
                     this.store.Remove(lastKeyQutQ);
-                    this.outQueque.Remove(lastKeyQutQ);
+                    this.outQueque.RemoveLast();
                     hasOverflow = true;
                 }
                 else
