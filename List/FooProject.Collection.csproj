@@ -4,7 +4,7 @@
     <TargetFrameworks>net8.0;netstandard2.0</TargetFrameworks>
     <ImplicitUsings>false</ImplicitUsings>
     <Nullable>disable</Nullable>
-	<VersionPrefix>-alpha3</VersionPrefix>
+	<VersionPrefix>-alpha4</VersionPrefix>
     <Version>1.0.13$(VersionPrefix)</Version>
     <IncludeSymbols>True</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
