@@ -116,8 +116,6 @@ namespace FooProject.Collection.DataStore
                 if (outed_item.IsRemoved == true)
                     return;
 
-                if (outed_item.Content == null)
-                    System.Diagnostics.Debugger.Break();
                 System.Diagnostics.Debug.Assert(outed_item.Content != null);
                 this.OnDispoing(outed_item.Content);
 
@@ -175,7 +173,7 @@ namespace FooProject.Collection.DataStore
 #else
             foreach (var pinableContainer in this.readCacheList.ForEachValue())
             {
-                if (pinableContainer.CacheIndex != PinableContainer<T>.NOTCACHED || pinableContainer.Content?.Equals(default(T)) == false)
+                if (pinableContainer.CacheIndex != PinableContainer<T>.NOTCACHED || pinableContainer.Content?.Equals(default(T)) == false || pinableContainer.IsRemoved == false)
                 {
                     yield return pinableContainer.Content;
                 }
@@ -183,7 +181,7 @@ namespace FooProject.Collection.DataStore
 #endif
             foreach (var pinableContainer in this.writebackCacheList.ForEachValue())
             {
-                if (pinableContainer.CacheIndex != PinableContainer<T>.NOTCACHED || pinableContainer.Content?.Equals(default(T)) == false)
+                if (pinableContainer.CacheIndex != PinableContainer<T>.NOTCACHED || pinableContainer.Content?.Equals(default(T)) == false || pinableContainer.IsRemoved == false)
                 {
                     yield return pinableContainer.Content;
                 }
@@ -240,6 +238,9 @@ namespace FooProject.Collection.DataStore
         /// <inheritdoc/>
         public override bool TryGet(IPinableContainer<T> ipinableContainer, out IPinnedContent<T> result)
         {
+            if (ipinableContainer.IsRemoved)
+                throw new InvalidOperationException("already removed");
+
             var pinableContainer = (PinableContainer<T>)ipinableContainer;
             if (pinableContainer.CacheIndex != PinableContainer<T>.NOTCACHED || pinableContainer.Content?.Equals(default(T)) == false)
             {
