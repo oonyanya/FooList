@@ -77,10 +77,12 @@ namespace FooProject.Collection.DataStore
 
                 var key = ev.Key;
                 var outed_item = ev.Value;
-                this.OnDispoing(outed_item.Content);
 
                 if (outed_item.IsRemoved == true)
                     return;
+
+                System.Diagnostics.Debug.Assert(outed_item.Content != null);
+                this.OnDispoing(outed_item.Content);
 
                 outed_item.Info = null;
                 outed_item.Content = default(T);
@@ -93,11 +95,12 @@ namespace FooProject.Collection.DataStore
 
                 var key = ev.Key;
                 var outed_item = ev.Value;
-                System.Diagnostics.Debug.Assert(outed_item.Content != null);
-                this.OnDispoing(outed_item.Content);
 
                 if (outed_item.IsRemoved == true)
                     return;
+
+                System.Diagnostics.Debug.Assert(outed_item.Content != null);
+                this.OnDispoing(outed_item.Content);
 
                 if (ev.RequireWriteBack)
                 {
@@ -252,6 +255,10 @@ namespace FooProject.Collection.DataStore
                 if(pinableContainer.Info != null)
                     this.emptyList.SetEmptyList(pinableContainer.Info);
                 this.emptyList.ReleaseID(pinableContainer.CacheIndex);
+
+                System.Diagnostics.Debug.Assert(pinableContainer.Content != null);
+                this.OnDispoing(pinableContainer.Content);
+
                 pinableContainer.Info = null;
                 pinableContainer.Content = default(T);
                 pinableContainer.CacheIndex = PinableContainer<T>.NOTCACHED;
