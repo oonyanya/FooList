@@ -24,4 +24,6 @@
     <Using Include="Microsoft.VisualStudio.TestTools.UnitTesting" />
   </ItemGroup>
 
+  <Import Project="..\SharedDemoProgram\SharedDemoProgram.projitems" Label="Shared" />
+
 </Project>

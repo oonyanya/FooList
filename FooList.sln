@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.2.11408.102 d18.0
+VisualStudioVersion = 18.2.11408.102
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FooProject.Collection", "List\FooProject.Collection.csproj", "{0E9DF698-18A6-4572-8E1F-F775B3A5A53B}"
 EndProject
@@ -51,6 +51,8 @@ Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		SharedDemoProgram\SharedDemoProgram.projitems*{1b82c21b-1301-45c0-a65b-44b25fe9c7c0}*SharedItemsImports = 5
 		SharedDemoProgram\SharedDemoProgram.projitems*{3f8f85e6-b563-4e11-9550-ed288393053a}*SharedItemsImports = 13
+		SharedDemoProgram\SharedDemoProgram.projitems*{61606089-dea9-4208-a983-301dda786f4e}*SharedItemsImports = 5
+		SharedDemoProgram\SharedDemoProgram.projitems*{73d69884-6781-4150-b63e-809a1110ed82}*SharedItemsImports = 5
 		SharedDemoProgram\SharedDemoProgram.projitems*{9c1b9490-1752-49d7-84a0-7a64a2dec4d5}*SharedItemsImports = 5
 	EndGlobalSection
 EndGlobal

@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using FooProject.Collection;
 using FooProject.Collection.DataStore;
+using SharedDemoProgram;
 
 namespace UnitTest
 {
@@ -41,14 +42,13 @@ namespace UnitTest
             }
         }
 
-        private (BigList<char>, StringBuilder, IPinableContainerStore<IComposableList<char>>) CreateList(string test_pattern,int test_size)
+        private (BigList<char>, StringBuilder, IPinableContainerStore<IComposableList<char>>) CreateList(string test_pattern,int test_size, Stream backingStream)
         {
 
             BigList<char> buf = new BigList<char>();
             var serializer = new StringBufferSerializer();
-            var memStream = new MemoryStream(test_size);
             var str = new StringBuilder();
-            IPinableContainerStore<IComposableList<char>> dataStore = new DiskPinableContentDataStore<IComposableList<char>>(serializer, memStream, CacheParameters.MINCACHESIZE);
+            IPinableContainerStore<IComposableList<char>> dataStore = new DiskPinableContentDataStore<IComposableList<char>>(serializer, backingStream, CacheParameters.MINCACHESIZE);
             buf.CustomBuilder.DataStore = dataStore;
             buf.BlockSize = 8;
 
@@ -58,7 +58,37 @@ namespace UnitTest
                 str.Append(test_pattern);
             }
 
+            Assert.AreEqual(str.Length, buf.LongCount);
+
             return (buf, str, dataStore);
+        }
+
+        [TestMethod]
+        public void RemoveRangeAndInsertRangeTest()
+        {
+            const string test_pattern = "this is a pen.this is a pen.this is a pen";
+            var memStream = new MemoryStream(TEST_SIZE);
+            var (buf, str, dataStore) = CreateList(test_pattern, TEST_SIZE, memStream);
+
+            var target = "pen";
+            var pattern = "ratking";
+            TextSearch ts = new TextSearch(target, false);
+            char[] pattern_chars = pattern.ToCharArray();
+            long left = 0, right = buf.LongCount;
+            while (right != -1)
+            {
+                while ((right = ts.IndexOf(buf, left, buf.LongCount - 1)) != -1)
+                {
+                    buf.RemoveRange(right, target.Length);
+                    buf.InsertRange(right, pattern_chars);
+                    str.Remove((int)right, target.Length);
+                    str.Insert((int)right, pattern_chars);
+                    left = right + pattern.Length;
+                }
+            }
+
+            InterfaceTests.TestEnumerableElements(buf, str);
+
         }
 
         [TestMethod]
@@ -66,7 +96,8 @@ namespace UnitTest
         {
             const string test_pattern = "this is a pen.this is a pen.this is a pen";
             //CreateListのなかでAddRange()を呼び出してる
-            var (buf, str, dataStore) = CreateList(test_pattern, TEST_SIZE);
+            var memStream = new MemoryStream(TEST_SIZE);
+            var (buf, str, dataStore) = CreateList(test_pattern, TEST_SIZE, memStream);
 
             InterfaceTests.TestEnumerableElements(buf, str);
         }
@@ -75,7 +106,8 @@ namespace UnitTest
         public void RemoveAtTest()
         {
             const string test_pattern = "this is a pen.this is a pen.this is a pen";
-            var (buf, str, dataStore) = CreateList(test_pattern, TEST_SIZE);
+            var memStream = new MemoryStream(TEST_SIZE);
+            var (buf, str, dataStore) = CreateList(test_pattern, TEST_SIZE, memStream);
 
             for (int i = 0; i < TEST_SIZE; i++)
             {
@@ -93,7 +125,8 @@ namespace UnitTest
         public void RemoveRangeTest()
         {
             const string test_pattern = "this is a pen.this is a pen.this is a pen";
-            var (buf, str, dataStore) = CreateList(test_pattern, TEST_SIZE);
+            var memStream = new MemoryStream(TEST_SIZE);
+            var (buf, str, dataStore) = CreateList(test_pattern, TEST_SIZE, memStream);
 
             for (int i = 0; i < TEST_SIZE; i++)
             {
@@ -110,7 +143,8 @@ namespace UnitTest
         public void InsertTest()
         {
             const string test_pattern = "this is a pen.this is a pen.this is a pen";
-            var (buf, str, dataStore) = CreateList(test_pattern, TEST_SIZE);
+            var memStream = new MemoryStream(TEST_SIZE);
+            var (buf, str, dataStore) = CreateList(test_pattern, TEST_SIZE, memStream);
 
             for (int i = 0; i < TEST_SIZE; i++)
             {
@@ -132,7 +166,8 @@ namespace UnitTest
         public void InsertRangeTest()
         {
             const string test_pattern = "this is a pen.this is a pen.this is a pen";
-            var (buf, str, dataStore) = CreateList(test_pattern, TEST_SIZE);
+            var memStream = new MemoryStream(TEST_SIZE);
+            var (buf, str, dataStore) = CreateList(test_pattern, TEST_SIZE, memStream);
 
             for (int i = 0; i < TEST_SIZE; i++)
             {
@@ -150,7 +185,8 @@ namespace UnitTest
         public void AddTest()
         {
             const string test_pattern = "this is a pen.this is a pen.this is a pen";
-            var (buf, str, dataStore) = CreateList(test_pattern, TEST_SIZE);
+            var memStream = new MemoryStream(TEST_SIZE);
+            var (buf, str, dataStore) = CreateList(test_pattern, TEST_SIZE, memStream);
 
             for (int i = 0; i < TEST_SIZE; i++)
             {
@@ -172,7 +208,8 @@ namespace UnitTest
         public void AddToFrontTest()
         {
             const string test_pattern = "this is a pen.this is a pen.this is a pen";
-            var (buf, str, dataStore) = CreateList(test_pattern, TEST_SIZE);
+            var memStream = new MemoryStream(TEST_SIZE);
+            var (buf, str, dataStore) = CreateList(test_pattern, TEST_SIZE, memStream);
 
             for (int i = 0; i < TEST_SIZE; i++)
             {
@@ -194,7 +231,8 @@ namespace UnitTest
         public void AddRangeToFront()
         {
             const string test_pattern = "this is a pen.this is a pen.this is a pen";
-            var (buf, str, dataStore) = CreateList(test_pattern, TEST_SIZE);
+            var memStream = new MemoryStream(TEST_SIZE);
+            var (buf, str, dataStore) = CreateList(test_pattern, TEST_SIZE, memStream);
 
             for (int i = 0; i < TEST_SIZE; i++)
             {
