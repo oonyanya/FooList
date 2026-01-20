@@ -93,6 +93,7 @@ namespace FooProject.Collection.DataStore
 
                 var key = ev.Key;
                 var outed_item = ev.Value;
+                System.Diagnostics.Debug.Assert(outed_item.Content != null);
                 this.OnDispoing(outed_item.Content);
 
                 if (outed_item.IsRemoved == true)
