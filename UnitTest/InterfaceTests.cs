@@ -9,8 +9,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Text;
 using FooProject.Collection;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace UnitTest
 {
@@ -30,6 +31,23 @@ namespace UnitTest
     /// </summary>
     internal static class InterfaceTests
     {
+        /// <summary>
+        /// Test an IEnumerable should contain the given values in order
+        /// </summary>
+        public static void TestEnumerableElements(IEnumerable<char> e, StringBuilder expected, BinaryPredicate<char> equals = null)
+        {
+            if (equals == null)
+                equals = delegate (char x, char y) { return object.Equals(x, y); };
+
+            int i = 0;
+            foreach (var item in e)
+            {
+                Assert.IsTrue(equals(expected[i], item));
+                ++i;
+            }
+            Assert.AreEqual(expected.Length, i);
+        }
+
         /// <summary>
         /// Test an IEnumerable should contain the given values in order
         /// </summary>
