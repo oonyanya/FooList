@@ -11,6 +11,8 @@ namespace UnitTest
     [TestClass]
     public class BigListTestOnDisk
     {
+        const int TEST_SIZE = 100;
+
         class StringBufferSerializer : ISerializeData<IComposableList<char>>
         {
             public IComposableList<char> DeSerialize(byte[] inputData)
@@ -48,25 +50,32 @@ namespace UnitTest
             var str = new StringBuilder();
             IPinableContainerStore<IComposableList<char>> dataStore = new DiskPinableContentDataStore<IComposableList<char>>(serializer, memStream, CacheParameters.MINCACHESIZE);
             buf.CustomBuilder.DataStore = dataStore;
+            buf.BlockSize = 8;
+
+            for (int i = 0; i < test_size; i++)
+            {
+                buf.AddRange(test_pattern);
+                str.Append(test_pattern);
+            }
 
             return (buf, str, dataStore);
         }
 
         [TestMethod]
-        public void DiskBaseTest()
+        public void AddRangeTest()
         {
-            //呼ぶべきメソッドを呼んでない可能性があるので、それを検知する
-
             const string test_pattern = "this is a pen.this is a pen.this is a pen";
-            const int TEST_SIZE = 1000;
-            var (buf,str, dataStore) = CreateList(test_pattern, TEST_SIZE);
+            //CreateListのなかでAddRange()を呼び出してる
+            var (buf, str, dataStore) = CreateList(test_pattern, TEST_SIZE);
 
-            for (int i = 0; i < TEST_SIZE; i++)
-            {
-                buf.AddRange(test_pattern);
-                str.Append(test_pattern);
-            }
             InterfaceTests.TestEnumerableElements(buf, str);
+        }
+
+        [TestMethod]
+        public void RemoveAtTest()
+        {
+            const string test_pattern = "this is a pen.this is a pen.this is a pen";
+            var (buf, str, dataStore) = CreateList(test_pattern, TEST_SIZE);
 
             for (int i = 0; i < TEST_SIZE; i++)
             {
@@ -77,6 +86,14 @@ namespace UnitTest
                 }
             }
             InterfaceTests.TestEnumerableElements(buf, str);
+        }
+
+
+        [TestMethod]
+        public void RemoveRangeTest()
+        {
+            const string test_pattern = "this is a pen.this is a pen.this is a pen";
+            var (buf, str, dataStore) = CreateList(test_pattern, TEST_SIZE);
 
             for (int i = 0; i < TEST_SIZE; i++)
             {
@@ -87,6 +104,13 @@ namespace UnitTest
                 }
             }
             InterfaceTests.TestEnumerableElements(buf, str);
+        }
+
+        [TestMethod]
+        public void InsertTest()
+        {
+            const string test_pattern = "this is a pen.this is a pen.this is a pen";
+            var (buf, str, dataStore) = CreateList(test_pattern, TEST_SIZE);
 
             for (int i = 0; i < TEST_SIZE; i++)
             {
@@ -102,6 +126,13 @@ namespace UnitTest
                 }
             }
             InterfaceTests.TestEnumerableElements(buf, str);
+        }
+
+        [TestMethod]
+        public void InsertRangeTest()
+        {
+            const string test_pattern = "this is a pen.this is a pen.this is a pen";
+            var (buf, str, dataStore) = CreateList(test_pattern, TEST_SIZE);
 
             for (int i = 0; i < TEST_SIZE; i++)
             {
@@ -112,6 +143,14 @@ namespace UnitTest
                 }
             }
             InterfaceTests.TestEnumerableElements(buf, str);
+
+        }
+
+        [TestMethod]
+        public void AddTest()
+        {
+            const string test_pattern = "this is a pen.this is a pen.this is a pen";
+            var (buf, str, dataStore) = CreateList(test_pattern, TEST_SIZE);
 
             for (int i = 0; i < TEST_SIZE; i++)
             {
@@ -127,6 +166,13 @@ namespace UnitTest
                 }
             }
             InterfaceTests.TestEnumerableElements(buf, str);
+        }
+
+        [TestMethod]
+        public void AddToFrontTest()
+        {
+            const string test_pattern = "this is a pen.this is a pen.this is a pen";
+            var (buf, str, dataStore) = CreateList(test_pattern, TEST_SIZE);
 
             for (int i = 0; i < TEST_SIZE; i++)
             {
@@ -142,6 +188,13 @@ namespace UnitTest
                 }
             }
             InterfaceTests.TestEnumerableElements(buf, str);
+        }
+
+        [TestMethod]
+        public void AddRangeToFront()
+        {
+            const string test_pattern = "this is a pen.this is a pen.this is a pen";
+            var (buf, str, dataStore) = CreateList(test_pattern, TEST_SIZE);
 
             for (int i = 0; i < TEST_SIZE; i++)
             {
