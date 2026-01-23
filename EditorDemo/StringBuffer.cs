@@ -213,8 +213,10 @@ namespace FooEditEngine
         {
             for(long i = 0; i < buf.LongCount; i++)
             {
-                if (buf.Get(i) != str[(int)i % str.Length])
-                    throw new InvalidDataException("data is invaild at " + i);
+                var expected = str[(int)i % str.Length];
+                var actual = buf.Get(i);
+                if (actual != expected)
+                    throw new InvalidDataException(string.Format("data is invaild at {0} (expected:{1},actual:{2})",i,expected,actual));
             }
         }
 
