@@ -88,6 +88,7 @@ namespace UnitTest
             }
 
             InterfaceTests.TestEnumerableElements(buf, str);
+            InterfaceTests.TestIndexerElements(buf, str);
 
         }
 
@@ -100,6 +101,7 @@ namespace UnitTest
             var (buf, str, dataStore) = CreateList(test_pattern, TEST_SIZE, memStream);
 
             InterfaceTests.TestEnumerableElements(buf, str);
+            InterfaceTests.TestIndexerElements(buf, str);
         }
 
         [TestMethod]
@@ -118,6 +120,7 @@ namespace UnitTest
                 }
             }
             InterfaceTests.TestEnumerableElements(buf, str);
+            InterfaceTests.TestIndexerElements(buf, str);
         }
 
 
@@ -137,6 +140,7 @@ namespace UnitTest
                 }
             }
             InterfaceTests.TestEnumerableElements(buf, str);
+            InterfaceTests.TestIndexerElements(buf, str);
         }
 
         [TestMethod]
@@ -160,6 +164,7 @@ namespace UnitTest
                 }
             }
             InterfaceTests.TestEnumerableElements(buf, str);
+            InterfaceTests.TestIndexerElements(buf, str);
         }
 
         [TestMethod]
@@ -178,6 +183,7 @@ namespace UnitTest
                 }
             }
             InterfaceTests.TestEnumerableElements(buf, str);
+            InterfaceTests.TestIndexerElements(buf, str);
 
         }
 
@@ -202,6 +208,7 @@ namespace UnitTest
                 }
             }
             InterfaceTests.TestEnumerableElements(buf, str);
+            InterfaceTests.TestIndexerElements(buf, str);
         }
 
         [TestMethod]
@@ -225,6 +232,7 @@ namespace UnitTest
                 }
             }
             InterfaceTests.TestEnumerableElements(buf, str);
+            InterfaceTests.TestIndexerElements(buf, str);
         }
 
         [TestMethod]
@@ -243,6 +251,7 @@ namespace UnitTest
                 }
             }
             InterfaceTests.TestEnumerableElements(buf, str);
+            InterfaceTests.TestIndexerElements(buf, str);
         }
     }
 }

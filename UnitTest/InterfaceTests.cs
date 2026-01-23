@@ -51,6 +51,20 @@ namespace UnitTest
         /// <summary>
         /// Test an IEnumerable should contain the given values in order
         /// </summary>
+        public static void TestIndexerElements(IList<char> e, StringBuilder expected, BinaryPredicate<char> equals = null)
+        {
+            if (equals == null)
+                equals = delegate (char x, char y) { return object.Equals(x, y); };
+
+            for (int i = 0; i < e.Count; ++i)
+            {
+                Assert.IsTrue(equals(expected[i], e[i]));
+            }
+        }
+
+        /// <summary>
+        /// Test an IEnumerable should contain the given values in order
+        /// </summary>
         public static void TestEnumerableElements<T>(IEnumerable<T> e, T[] expected)
         {
             TestEnumerableElements<T>(e, expected, null);
