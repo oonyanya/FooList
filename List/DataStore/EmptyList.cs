@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 
 namespace FooProject.Collection.DataStore
 {
+    // TLSFメモリアロケータ
+    // http://www.marupeke296.com/ALG_No2_TLSFMemoryAllocator.html
     internal class EmptyList
     {
         const int EMPTYLISTSIZE = 32;   //ひとまず2^32までとする
