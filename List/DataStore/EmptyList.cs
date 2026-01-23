@@ -142,7 +142,8 @@ namespace FooProject.Collection.DataStore
                 {
                     var popedInfo = this.emptylist[i].Pop();
                     newInfo = new DiskAllocationInfo(popedInfo.Index + requireDataLength, popedInfo.AlignedLength - requireDataLength);
-                    this.SetEmptyList(newInfo);
+                    if(newInfo.AlignedLength > 0)
+                        this.SetEmptyList(newInfo);
 
                     return new DiskAllocationInfo(popedInfo.Index, requireDataLength);
                 }
