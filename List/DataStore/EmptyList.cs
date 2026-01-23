@@ -7,9 +7,60 @@ using System.Threading.Tasks;
 
 namespace FooProject.Collection.DataStore
 {
+    internal interface IAllocator
+    {
+        void ReleaseID(long id);
+        long GetID();
+        void SetEmptyList(DiskAllocationInfo Info);
+        DiskAllocationInfo GetEmptyList(int requireDataLength);
+        void Clear();
+    }
+
+    /// <summary>
+    /// 特に再利用もしないのでデバック用に使うこと
+    /// </summary>
+    internal class SimpleAllocator : IAllocator
+    {
+        Stack<long> emptyIDList = new Stack<long>();
+        long currentID = 0;
+        long emptyIndex = 0;
+
+        public void Clear()
+        {
+        }
+
+        public DiskAllocationInfo GetEmptyList(int requireDataLength)
+        {
+            var result = new DiskAllocationInfo(emptyIndex, requireDataLength);
+            this.emptyIndex += requireDataLength;
+            return result;
+        }
+
+        public void ReleaseID(long id)
+        {
+            this.emptyIDList.Push(id);
+        }
+
+        public long GetID()
+        {
+            if (emptyIDList.Count == 0)
+            {
+                return ++currentID;
+            }
+            else
+            {
+                return this.emptyIDList.Pop();
+            }
+        }
+
+        public void SetEmptyList(DiskAllocationInfo Info)
+        {
+        }
+    }
+
     // TLSFメモリアロケータ
     // http://www.marupeke296.com/ALG_No2_TLSFMemoryAllocator.html
-    internal class EmptyList
+    internal class EmptyList : IAllocator
     {
         const int EMPTYLISTSIZE = 32;   //ひとまず2^32までとする
         Stack<DiskAllocationInfo>[] emptylist = new Stack<DiskAllocationInfo>[EMPTYLISTSIZE];
