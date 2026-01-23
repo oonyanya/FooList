@@ -209,6 +209,15 @@ namespace FooEditEngine
             return patternIndex;
         }
 
+        internal void Verify(string str)
+        {
+            for(long i = 0; i < buf.LongCount; i++)
+            {
+                if (buf.Get(i) != str[(int)i % str.Length])
+                    throw new InvalidDataException("data is invaild at " + i);
+            }
+        }
+
         internal void SaveFile(string path)
         {
             StreamWriter streamWriter;

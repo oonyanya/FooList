@@ -4,7 +4,9 @@
 //文字列の操作の最終結果を保存するならコメントアウトする
 //#define SAVE_FILE
 //文字列操作の結果を各段階ごとに保存するならコメントアウトする
-#define SAVE_FILE_ALL_STAGE
+//#define SAVE_FILE_ALL_STAGE
+//バッファーの内容をチェックするならコメントアウトする
+#define VERIFY_BUFFER
 //キャッシュサイズを固定するならコメントアウトする
 #define FIXED_CACHE_SIZE
 
@@ -21,6 +23,7 @@ using SharedDemoProgram;
 const int BENCHMARK_SIZE = 1000000;
 
 const string insertStr = "this is a pen.this is a pen.this is a pen.this is a pen.this is a pen.this is a pen.this is a pen.\n";
+string replacedStr = string.Empty;
 
 Console.WriteLine("benchmark start");
 Console.WriteLine("size:" + BENCHMARK_SIZE);
@@ -50,7 +53,10 @@ ElapsedMilliseconds = BenchmarkRunner.Run(() =>
     }
 });
 Console.WriteLine(String.Format("add time:{0} ms", ElapsedMilliseconds));
-Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}" + "bytes"); 
+Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}" + "bytes");
+#if VERIFY_BUFFER
+buf.Verify(insertStr);
+#endif
 #if SAVE_FILE_ALL_STAGE
 buf.SaveFile("test1.txt");
 #endif
@@ -61,6 +67,10 @@ ElapsedMilliseconds = BenchmarkRunner.Run(() =>
 });
 Console.WriteLine(String.Format("replace 1 time:{0} ms",ElapsedMilliseconds));
 Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}" + "bytes");
+#if VERIFY_BUFFER
+replacedStr = insertStr.Replace("pen", "cat");
+buf.Verify(replacedStr);
+#endif
 #if SAVE_FILE_ALL_STAGE
     buf.SaveFile("test2.txt");
 #endif
@@ -71,6 +81,10 @@ ElapsedMilliseconds = BenchmarkRunner.Run(() =>
 });
 Console.WriteLine(String.Format("replace 2 time:{0} ms", ElapsedMilliseconds));
 Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}" + "bytes");
+#if VERIFY_BUFFER
+replacedStr = replacedStr.Replace("cat", "ratking");
+buf.Verify(replacedStr);
+#endif
 #if SAVE_FILE_ALL_STAGE
     buf.SaveFile("test3.txt");
 #endif
@@ -81,6 +95,10 @@ ElapsedMilliseconds = BenchmarkRunner.Run(() =>
 });
 Console.WriteLine(String.Format("replace 3 time:{0} ms", ElapsedMilliseconds));
 Console.WriteLine("Allocated GC Memory:" + $"{System.GC.GetTotalMemory(true):N0}" + "bytes");
+#if VERIFY_BUFFER
+replacedStr = replacedStr.Replace("ratking", "cat");
+buf.Verify(replacedStr);
+#endif
 #if SAVE_FILE_ALL_STAGE
     buf.SaveFile("test4.txt");
 #endif
