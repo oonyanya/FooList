@@ -55,7 +55,7 @@ namespace FooProject.Collection.DataStore
         protected const string DEFAULT_ID = nameof(ReadonlyContentStoreBase<T>);
         protected const string SECONDARY_DATA_STORE_ID = nameof(ReadonlyContentStoreBase<T>) + ".SecondaryDataStore";
 
-        EmptyList emptyList = new EmptyList();
+        IAllocator emptyList = new EmptyAllocator();
         TwoQueueCacheList<long, PinableContainer<T>> cacheList = null;
         IPinableContainerStore<T> _SecondaryDataStore;
 

@@ -8,7 +8,7 @@ namespace FooProject.Collection.DataStore
 {
     public class MemoryPinableContentDataStoreWithAutoDisposer<T> : PinableContentDataStoreWithAutoDisposerBase<T>
     {
-        EmptyList emptyList = new EmptyList();
+        IAllocator emptyList = new EmptyAllocator();
         bool disposedValue = false;
         TwoQueueCacheList<long, PinableContainer<T>> writebackCacheList = null;
 

@@ -41,7 +41,7 @@ namespace FooProject.Collection.DataStore
         
         string tempFilePath;
         ISerializeData<T> serializer;
-        IAllocator emptyList = new SimpleAllocator();
+        IAllocator emptyList = new EmptyAllocator();
         bool disposedValue = false;
 #if SAME_WRITE_AND_READ_CACHE
 #if USE_TWO_QUEUE_CACHE
