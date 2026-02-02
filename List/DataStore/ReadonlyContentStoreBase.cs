@@ -125,6 +125,7 @@ namespace FooProject.Collection.DataStore
             newpin.Info = new DiskAllocationInfo(index, read_bytes);
             //まずはプライマリーデーターストアを使用する
             newpin.ID = DEFAULT_ID;
+            newpin.WriteContent();
             return newpin;
         }
 
@@ -235,43 +236,6 @@ namespace FooProject.Collection.DataStore
             var updatedPinableContainer = this.SecondaryDataStore.Update(pinableContainer, newcontent, oldstart, oldcount, newstart, newcount);
             updatedPinableContainer.ID = SECONDARY_DATA_STORE_ID;
             return updatedPinableContainer;
-        }
-
-        /// <inheritdoc/>
-        public override bool IsCanCloneContent(IPinableContainer<IComposableList<char>> pin)
-        {
-            switch (pin.ID)
-            {
-                case SECONDARY_DATA_STORE_ID:
-                    return this.SecondaryDataStore.IsCanCloneContent(pin);
-            }
-
-            return true;
-        }
-
-        /// <inheritdoc/>
-        /// <remarks>呼び出し前にCommit()を実行すること</remarks>
-        public override IPinableContainer<T> Clone(IPinableContainer<T> pin, T cloned_content)
-        {
-            PinableContainer<T> newpin;
-            switch (pin.ID)
-            {
-                case SECONDARY_DATA_STORE_ID:
-                    {
-                        newpin = (PinableContainer<T>)this.SecondaryDataStore.Clone(pin, cloned_content);
-                        newpin.ID = SECONDARY_DATA_STORE_ID;
-                        return newpin;
-                    }
-            }
-
-            PinableContainer<T> oldpin = (PinableContainer<T>) pin;
-            newpin = (PinableContainer<T>)this.CreatePinableContainer(cloned_content);
-            newpin.CacheIndex = oldpin.CacheIndex;
-            newpin.Info = new DiskAllocationInfo(oldpin.Info.Index,oldpin.Info.AlignedLength);
-            newpin.ID = oldpin.ID;
-            newpin.IsRemoved = oldpin.IsRemoved;
-
-            return newpin;
         }
 
         /// <inheritdoc/>

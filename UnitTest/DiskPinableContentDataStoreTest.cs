@@ -50,12 +50,13 @@ namespace UnitTest
         {
             const int TEST_SIZE = 50;
             var serializer = new TestSerializer();
-            var disk = new DiskPinableContentDataStore<int[]>(serializer, null, CACHE_SIZE);
+            var disk = DiskPinableContentDataStore<int[]>.Create(serializer, Path.GetTempPath(), CACHE_SIZE);
             var test_data = Enumerable.Range(1, TEST_SIZE).Select((i) => { return i * 100; }).ToArray();
             List<PinableContainer<int[]>> containers = new List<PinableContainer<int[]>>();
             foreach (var item in test_data)
             {
                 var data = new PinableContainer<int[]>(new int[] { item });
+                data.WriteContent();
                 disk.Set(data);
                 containers.Add(data);
             }
@@ -72,34 +73,6 @@ namespace UnitTest
             disk.Dispose();
         }
 
-
-        [TestMethod]
-        public void CloneTest()
-        {
-            const int TEST_SIZE = 50;
-            var serializer = new TestSerializer();
-            var disk = new DiskPinableContentDataStore<int[]>(serializer, null, CACHE_SIZE);
-            var test_data = Enumerable.Range(1, TEST_SIZE).Select((i) => { return i * 100; }).ToArray();
-            List<PinableContainer<int[]>> containers = new List<PinableContainer<int[]>>();
-            foreach (var item in test_data)
-            {
-                var data = new PinableContainer<int[]>(new int[] { item });
-                disk.Set(data);
-                containers.Add(data);
-            }
-
-            disk.Commit();
-
-            foreach (var data in containers)
-            {
-                var newpinned = (PinableContainer<int[]>)disk.Clone(data, null);
-                Assert.AreEqual(data.Content, null);
-                Assert.AreEqual(data.ID, newpinned.ID);
-                Assert.AreEqual(data.IsRemoved, newpinned.IsRemoved);
-            }
-
-            disk.Dispose();
-        }
 
         [TestMethod]
         public void SetTest()
@@ -124,6 +97,7 @@ namespace UnitTest
                 foreach (var item in test_data)
                 {
                     var data = new PinableContainer<int[]>(Enumerable.Repeat(item, repeatLength).ToArray());
+                    data.WriteContent();
                     disk.Set(data);
 
                     var pinned = disk.Get(data);
@@ -154,6 +128,7 @@ namespace UnitTest
                 foreach (var item in test_data)
                 {
                     var data = new PinableContainer<int[]>(Enumerable.Repeat(item, repeatLength / 2).ToArray());
+                    data.WriteContent();
                     disk.Set(data);
 
                     containers.Add(data);
@@ -185,6 +160,7 @@ namespace UnitTest
             foreach (var item in test_data)
             {
                 var data = new PinableContainer<int[]>(new int[] { item });
+                data.WriteContent();
                 disk.Set(data);
                 containers.Add(data);
             }
@@ -213,6 +189,7 @@ namespace UnitTest
             foreach (var item in test_data)
             {
                 var data = new PinableContainer<int[]>(new int[] { item });
+                data.WriteContent();
                 disk.Set(data);
                 containers.Add(data);
             }
@@ -245,6 +222,7 @@ namespace UnitTest
             foreach (var item in test_data)
             {
                 var data = new PinableContainer<int[]>(new int[] { item });
+                data.WriteContent();
                 disk.Set(data);
                 containers.Add(data);
             }

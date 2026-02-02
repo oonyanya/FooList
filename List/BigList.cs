@@ -52,8 +52,17 @@ namespace FooProject.Collection
 
     public readonly struct ContainerInfo<T>
     {
+        /// <summary>
+        /// IPinableContainer
+        /// </summary>
         public IPinableContainer<IComposableList<T>> PinableContainer { get; }
+        /// <summary>
+        /// 相対インデックス
+        /// </summary>
         public long RelativeIndex { get; }
+        /// <summary>
+        /// 取得すべき要素数
+        /// </summary>
         public long Count { get; }
         public ContainerInfo(IPinableContainer<IComposableList<T>> container, long rIndex, long count)
         {
@@ -206,6 +215,25 @@ namespace FooProject.Collection
                     return items[(int)relativeIndex];
                 }
             }
+        }
+
+        /// <summary>
+        /// コンテナ―を返す
+        /// </summary>
+        /// <param name="index">取得したい要素のインデックス</param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public ContainerInfo<T> GetContainerInfo(long index)
+        {
+            // This could just be a simple call to GetAt on the root.
+            // It is recoded as an interative algorithm for performance.
+
+            if (_root == null || index < 0 || index >= _root.Count)
+                throw new ArgumentOutOfRangeException("index");
+
+            long relativeIndex;
+            LeafNode<T> curLeaf = (LeafNode<T>)IndexOfNode(index, out relativeIndex);
+            return new ContainerInfo<T>(curLeaf.container, relativeIndex, 1);
         }
 
         /// <summary>
@@ -575,6 +603,7 @@ namespace FooProject.Collection
         /// </summary>
         /// <param name="pinableContainer"></param>
         /// <exception cref="InvalidOperationException"></exception>
+        /// <remarks>IPinableContainerのWriteContent()は自動的に呼ばれるので呼び出す必要はありません</remarks>
         public virtual void AddToFront(IPinableContainer<IComposableList<T>> pinableContainer)
         {
             var newItemCount = pinableContainer.Content.Count;
@@ -642,6 +671,7 @@ namespace FooProject.Collection
         /// <param name="pinableContainer"></param>
         /// <param name="count"></param>
         /// <exception cref="InvalidOperationException"></exception>
+        /// <remarks>IPinableContainerのWriteContent()は自動的に呼ばれるので呼び出す必要はありません</remarks>
         public virtual void Add(IPinableContainer<IComposableList<T>> pinableContainer, long count = -1)
         {
             long newItemCount = 0;
@@ -1032,6 +1062,7 @@ namespace FooProject.Collection
         /// </summary>
         /// <param name="pinableContainer"></param>
         /// <exception cref="InvalidOperationException"></exception>
+        /// <remarks>IPinableContainerのWriteContent()は自動的に呼ばれるので呼び出す必要はありません</remarks>
         public virtual void Insert(long index,IPinableContainer<IComposableList<T>> pinableContainer)
         {
             var newItemCount = pinableContainer.Content.Count;

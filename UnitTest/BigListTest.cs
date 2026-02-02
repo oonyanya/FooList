@@ -171,10 +171,20 @@ namespace UnitTest
         public void GetEnumratorPinTest()
         {
             const int TEST_SIZE = 3000;
-            var list = this.CreateList(0, TEST_SIZE);
-            foreach(var item in list.GetContainer())
+            var list = new FooProject.Collection.BigList<char>();
+            for (int i = 0; i < TEST_SIZE; i++)
+                list.Add('-');
+            foreach (var item in list.GetContainer())
             {
                 Assert.IsTrue(item.Count > 0);
+                using(var pinned = list.CustomBuilder.DataStore.Get(item.PinableContainer))
+                {
+                    Assert.IsTrue(item.Count <= pinned.Content.Count);
+                    foreach(var c in pinned.Content)
+                    {
+                        Assert.AreEqual('-', c);
+                    }
+                }
                 Assert.AreEqual(nameof(MemoryPinableContentDataStore<IComposableList<int>>),item.PinableContainer.ID);
             }
         }
@@ -461,6 +471,27 @@ namespace UnitTest
             list2.Add(0);
             Assert.AreEqual(0, list2[0]);
         }
+
+        [TestMethod]
+        public void GetContainrInfoTest()
+        {
+            BigList<int> list1;
+            int i;
+
+            list1 = new BigList<int>();
+            for (i = 0; i < 100; ++i)
+                list1.Add(i);
+            for (i = 99; i >= 0; --i)
+            {
+                var info = list1.GetContainerInfo(i);
+                Assert.AreEqual(1, info.Count);
+                using (var pinned = list1.CustomBuilder.DataStore.Get(info.PinableContainer))
+                {
+                    Assert.AreEqual(i, pinned.Content[(int)info.RelativeIndex]);
+                }
+            }
+        }
+
 
         // Try Create an enumerable.
         [TestMethod]

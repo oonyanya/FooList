@@ -21,13 +21,29 @@ namespace FooProject.Collection.DataStore
         /// </summary>
         void RemoveContent();
         /// <summary>
+        /// コンテントを書き込む
+        /// </summary>
+        void WriteContent();
+        /// <summary>
         /// 削除されたことを表す
         /// </summary>
         bool IsRemoved { get; set; }
         /// <summary>
+        /// 書き込み要求がされたことを表す
+        /// </summary>
+        bool IsRequireWrited { get; set; }
+        /// <summary>
         /// IDを指定する。IDの使い方はストアごとに違うのでストアのドキュメントを参照すること。
         /// </summary>
         string ID { get; set; }
+    }
+
+    [Flags]
+    public enum PinableContainerFlags
+    {
+        None = 0,
+        Removed = 1,
+        Writed = 2,
     }
 
     public class PinableContainer<T> : IPinableContainer<T>
@@ -38,11 +54,38 @@ namespace FooProject.Collection.DataStore
 
         internal long CacheIndex { get; set; }
 
+        internal PinableContainerFlags Flags { get; private set; }
+
         /// <inheritdoc/>
         public T Content { get; internal set; }
 
         /// <inheritdoc/>
-        public bool IsRemoved { get; set; }
+        public bool IsRemoved {
+            get { return this.Flags.HasFlag(PinableContainerFlags.Removed); }
+            set
+            {
+                if (value)
+                {
+                    this.Flags |= PinableContainerFlags.Removed;
+                }
+                else
+                {
+                    this.Flags = PinableContainerFlags.None;
+                }
+            }
+        }
+
+        /// <inheritdoc/>
+        public bool IsRequireWrited
+        {
+            get { return this.Flags.HasFlag(PinableContainerFlags.Writed); }
+            set {
+                if (value)
+                    this.Flags |= PinableContainerFlags.Writed;
+                else
+                    this.Flags = PinableContainerFlags.None;
+            }
+        }
 
         /// <inheritdoc/>
         public string ID { get; set; }
@@ -56,7 +99,7 @@ namespace FooProject.Collection.DataStore
             Content = content;
             Info = null;
             CacheIndex = NOTCACHED;
-            IsRemoved = false;
+            Flags = PinableContainerFlags.None;
             ID = null;
         }
 
@@ -66,5 +109,9 @@ namespace FooProject.Collection.DataStore
             this.IsRemoved = true;
         }
 
+        public void WriteContent()
+        {
+            this.IsRequireWrited = true;
+        }
     }
 }

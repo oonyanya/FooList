@@ -84,6 +84,31 @@ namespace UnitTest
             Assert.AreEqual(expected.Length, i);
         }
 
+        public static void TestEnumerableElements<T>(IEnumerable<T> e, IList<T> expected, BinaryPredicate<T> equals = null)
+        {
+            if (equals == null)
+                equals = delegate (T x, T y) { return object.Equals(x, y); };
+
+            int i = 0;
+            foreach (T item in e)
+            {
+                Assert.IsTrue(equals(expected[i], item));
+                ++i;
+            }
+            Assert.AreEqual(expected.Count, i);
+        }
+
+        public static void TestIndexerElements<T>(IList<T> e, IList<T> expected, BinaryPredicate<T> equals = null)
+        {
+            if (equals == null)
+                equals = delegate (T x, T y) { return object.Equals(x, y); };
+
+            for (int i = 0; i < e.Count; ++i)
+            {
+                Assert.IsTrue(equals(expected[i], e[i]));
+            }
+        }
+
         // Check collection read-only exceptions
         private static void CheckReadonlyCollectionException(Exception e, string name)
         {

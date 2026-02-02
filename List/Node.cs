@@ -101,6 +101,7 @@ namespace FooProject.Collection
                 {
                     var items = pinnedContent.Content;
                     items[(int)index] = item;
+                    pinnedContent.NotifyWriteContent();
                 }
                 else
                 {
@@ -133,6 +134,7 @@ namespace FooProject.Collection
                     {
                         items.Insert((int)Count, item);
                     }
+                    pinnedContent.NotifyWriteContent();
                 }
                 NotifyUpdate(Count, 1, args);
                 Count += 1;
@@ -173,6 +175,7 @@ namespace FooProject.Collection
                         {
                             items.InsertRange(0, otherLeafItems, (int)otherLeaf.Count);
                         }
+                        pinnedContent.NotifyWriteContent();
                         otherLeafPinnedCotent.RemoveContent();
                     }
                     NotifyUpdate(0, otherLeaf.Count, args);
@@ -210,6 +213,7 @@ namespace FooProject.Collection
                         {
                             items.AddRange(otherLeafItems, (int)otherLeaf.Count);
                         }
+                        pinnedContent.NotifyWriteContent();
                         otherLeafPinnedCotent.RemoveContent();
                     }
                     NotifyUpdate(itemsCount, otherLeaf.Count, args);
@@ -300,6 +304,7 @@ namespace FooProject.Collection
                 {
                     var items = pinnedContent.Content;
                     items.Insert((int)index, item);
+                    pinnedContent.NotifyWriteContent();
                 }
                 NotifyUpdate(index, 1, args);
                 Count += 1;
@@ -411,6 +416,7 @@ namespace FooProject.Collection
                     // Combine the two leaf nodes into one.
                     items.InsertRange((int)index, otherLeafItems);
 
+                    pinnedContent.NotifyWriteContent();
                     otherLeafPinnedCotent.RemoveContent();
                 }
                 NotifyUpdate(index, otherLeaf.Count, args);
@@ -488,6 +494,7 @@ namespace FooProject.Collection
                     items.Insert(0, item);
                     NotifyUpdate(0, 1, args);
                     Count += 1;
+                    pinnedContent.NotifyWriteContent();
                 }
                 return this;
             }
@@ -542,6 +549,7 @@ namespace FooProject.Collection
                     {
                         var items = pinnedContent.Content;
                         items.RemoveRange((int)first, (int)removeLength);
+                        pinnedContent.NotifyWriteContent();
                     }
                 }
                 NotifyUpdate(first, -removeLength, args);
@@ -787,6 +795,7 @@ namespace FooProject.Collection
                 {
                     var rightLeafItems = pinnedContent.Content;
                     rightLeafItems.Add(item);
+                    pinnedContent.NotifyWriteContent();
                 }
                 rightLeaf.Count += 1;
                 System.Diagnostics.Debug.Assert(rightLeaf.Count > 0);
@@ -948,6 +957,7 @@ namespace FooProject.Collection
                     // Prepend the item to the left leaf. This keeps repeated prepends from creating
                     // single item nodes.
                     leftLeafItems.Insert(0, item);
+                    pinnedContent.NotifyWriteContent();
                 }
                 leftLeaf.Count += 1;
                 leftLeaf.NotifyUpdate(0, 1, args);

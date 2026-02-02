@@ -63,6 +63,7 @@ namespace FooProject.Collection
             var newLeafNode = OnCreateLeafNode();
             var container = this.DataStore.CreatePinableContainer(this.CreateList(4, blocksize));
             newLeafNode.container = container;
+            container.WriteContent();
             this.DataStore.Set(container);
             return newLeafNode;
         }
@@ -71,12 +72,14 @@ namespace FooProject.Collection
         {
             var list = this.CreateList(4, blocksize, new T[] {item});
             var container = this.DataStore.CreatePinableContainer(list);
+            container.WriteContent();
             this.DataStore.Set(container);
             return OnCreateLeafNode(list.Count, container);
         }
 
         public LeafNode<T> CreateLeafNode(long count, IPinableContainer<IComposableList<T>> container)
         {
+            container.WriteContent();
             this.DataStore.Set(container);
             return OnCreateLeafNode(count, container);
         }

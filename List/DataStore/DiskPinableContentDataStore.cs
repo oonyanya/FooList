@@ -93,14 +93,34 @@ namespace FooProject.Collection.DataStore
 
                 var key = ev.Key;
                 var outed_item = ev.Value;
+                this.OnDispoing(outed_item.Content);
 
                 if (outed_item.IsRemoved == true)
                     return;
 
-                System.Diagnostics.Debug.Assert(outed_item.Content != null);
-                this.OnDispoing(outed_item.Content);
+                if (outed_item.IsRequireWrited)
+                {
+                    var data = this.serializer.Serialize(outed_item.Content);
 
-                outed_item.Info = null;
+                    int dataLength = data.Length + 4;
+                    int alignedDataLength = dataLength + PAGESIZE - (dataLength % PAGESIZE);
+
+                    if (outed_item.Info != null && alignedDataLength > outed_item.Info.AlignedLength)
+                    {
+                        this.emptyList.SetEmptyList(outed_item.Info);
+                        outed_item.Info = null;
+                    }
+
+                    if (outed_item.Info == null)
+                    {
+                        outed_item.Info = this.emptyList.GetEmptyList(alignedDataLength);
+                    }
+
+                    this.writer.BaseStream.Position = outed_item.Info.Index;
+                    this.writer.Write(data.Length);
+                    this.writer.Write(data);
+                    outed_item.IsRequireWrited = false;
+                }
                 outed_item.Content = default(T);
 
                 this.emptyList.ReleaseID(outed_item.CacheIndex);
@@ -108,7 +128,7 @@ namespace FooProject.Collection.DataStore
             };
 #endif
             this.writebackCacheList.Limit = cache_limit;
-            this.writebackCacheList.CacheOuted += (ev)=>{
+            this.writebackCacheList.CacheOuted += (ev) => {
 
                 var key = ev.Key;
                 var outed_item = ev.Value;
@@ -116,10 +136,10 @@ namespace FooProject.Collection.DataStore
                 if (outed_item.IsRemoved == true)
                     return;
 
-                System.Diagnostics.Debug.Assert(outed_item.Content != null);
+                System.Diagnostics.Debug.Assert(outed_item.Content != null || outed_item.Info != null);
                 this.OnDispoing(outed_item.Content);
 
-                if (ev.RequireWriteBack)
+                if (ev.RequireWriteBack && outed_item.IsRequireWrited)
                 {
                     var data = this.serializer.Serialize(outed_item.Content);
 
@@ -141,6 +161,7 @@ namespace FooProject.Collection.DataStore
                     this.writer.Write(data.Length);
                     this.writer.Write(data);
                     outed_item.Content = default(T);
+                    outed_item.IsRequireWrited = false;
                 }
                 this.emptyList.ReleaseID(outed_item.CacheIndex);
                 outed_item.CacheIndex = PinableContainer<T>.NOTCACHED;
@@ -194,35 +215,6 @@ namespace FooProject.Collection.DataStore
             return new PinableContainer<T>(content) { ID = nameof(DiskPinableContentDataStore<T>) };
         }
 
-
-        /// <inheritdoc/>
-        /// <remarks>呼び出し前にCommit()を実行すること</remarks>
-        public override IPinableContainer<T> Clone(IPinableContainer<T> pin, T cloned_content)
-        {
-            PinableContainer<T> newpin;
-            newpin = (PinableContainer<T>)this.CreatePinableContainer(cloned_content);
-
-            PinableContainer<T> oldpin = (PinableContainer<T>)pin;
-            newpin.CacheIndex = oldpin.CacheIndex;
-            if(oldpin.Info != null)
-            {
-                newpin.Info = new DiskAllocationInfo(oldpin.Info.Index, oldpin.Info.AlignedLength);
-            }
-            else
-            {
-                newpin.Info = null;
-            }
-            newpin.ID = oldpin.ID;
-            newpin.IsRemoved = oldpin.IsRemoved;
-
-            System.Diagnostics.Debug.Assert(newpin.CacheIndex == oldpin.CacheIndex);
-            System.Diagnostics.Debug.Assert(newpin.Info.Index == oldpin.Info.Index);
-            System.Diagnostics.Debug.Assert(newpin.Info.AlignedLength == oldpin.Info.AlignedLength);
-            System.Diagnostics.Debug.Assert(newpin.ID == oldpin.ID);
-            System.Diagnostics.Debug.Assert(newpin.IsRemoved == oldpin.IsRemoved);
-
-            return newpin;
-        }
 
         /// <inheritdoc/>
         public override void Commit()
@@ -308,12 +300,21 @@ namespace FooProject.Collection.DataStore
                 return;
             }
 
-            if (pinableContainer.CacheIndex == PinableContainer<T>.NOTCACHED)
-            {
-                pinableContainer.CacheIndex = this.emptyList.GetID();
-            }
+#if SAME_WRITE_AND_READ_CACHE
+#else
+            if (this.readCacheList.TryGet(pinableContainer.CacheIndex, out _))
+                return;
+#endif
 
-            this.writebackCacheList.Set(pinableContainer.CacheIndex, pinableContainer);
+            if(pinableContainer.IsRequireWrited)
+            {
+                if (pinableContainer.CacheIndex == PinableContainer<T>.NOTCACHED)
+                {
+                    pinableContainer.CacheIndex = this.emptyList.GetID();
+                }
+
+                this.writebackCacheList.Set(pinableContainer.CacheIndex, pinableContainer);
+            }
             return;
         }
 

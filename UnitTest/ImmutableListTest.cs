@@ -117,6 +117,139 @@ namespace UnitTest
             buf.AddToFront(' ');
             Assert.AreEqual(" this is a", new string(buf.ToArray()));
         }
+
+        class TestIndexTableData
+        {
+            public long start { get; set; }
+            public long length { get; set; }
+
+            public int[] Syntax { get; set; }
+
+            public override bool Equals(object? obj)
+            {
+                var other = (TestIndexTableData)obj;
+                return this.start == other.start && this.length == other.length && this.Syntax.SequenceEqual(other.Syntax);
+            }
+        }
+
+        class ReadOnlyTestIndexTableDataSerializer : ISerializeData<IComposableList<TestIndexTableData>>
+        {
+            public IComposableList<TestIndexTableData> DeSerialize(byte[] inputData)
+            {
+                var memStream = new MemoryStream(inputData);
+                var reader = new BinaryReader(memStream);
+                var arrayCount = reader.ReadInt32();
+                var array = new List<TestIndexTableData>();
+                for (int i = 0; i < arrayCount; i++)
+                {
+                    var item = new TestIndexTableData();
+                    item.start = reader.ReadInt64();
+                    item.length = reader.ReadInt64();
+                    var syntax_item_count = reader.ReadInt64();
+                    if (syntax_item_count > 0)
+                    {
+                        var syntax_items = new int[syntax_item_count];
+                        for (int j = 0; j < syntax_item_count; j++)
+                        {
+                            var info = reader.ReadInt32();
+                            syntax_items[j] = info;
+                        }
+                        item.Syntax = syntax_items;
+                    }
+                    else
+                    {
+                        item.Syntax = null;
+                    }
+                    array.Add(item);
+                }
+                return new ReadOnlyComposableList<TestIndexTableData>(array);
+            }
+
+            public byte[] Serialize(IComposableList<TestIndexTableData> data)
+            {
+                ReadOnlyComposableList<TestIndexTableData> list = (ReadOnlyComposableList<TestIndexTableData>)data;
+                //内部配列の確保に時間がかかるので、書き込むメンバー数×バイト数の2倍程度をひとまず確保しておく
+                var memStream = new MemoryStream(data.Count * 5 * 8 * 2);
+                var writer = new BinaryWriter(memStream, Encoding.Unicode);
+                //面倒なのでlongにキャストできるところはlongで書き出す
+                writer.Write(list.Count);
+                foreach (var item in list)
+                {
+                    writer.Write(item.start);
+                    writer.Write(item.length);
+                    if (item.Syntax == null)
+                    {
+                        writer.Write(0L);
+                    }
+                    else
+                    {
+                        writer.Write((long)item.Syntax.LongLength);
+                        foreach (var s in item.Syntax)
+                        {
+                            writer.Write(s);
+                        }
+                    }
+                }
+                writer.Close();
+                var result = memStream.ToArray();
+                memStream.Dispose();
+                return result;
+            }
+        }
+        private (BigList<TestIndexTableData>, List<TestIndexTableData>, IPinableContainerStore<IComposableList<TestIndexTableData>>) CreateList(int test_size, Stream backingStream)
+        {
+
+            BigList<TestIndexTableData> buf = new BigList<TestIndexTableData>();
+            var serializer = new ReadOnlyTestIndexTableDataSerializer();
+            var str = new List<TestIndexTableData>();
+            IPinableContainerStore<IComposableList<TestIndexTableData>> dataStore = new DiskPinableContentDataStore<IComposableList<TestIndexTableData>>(serializer, backingStream, CacheParameters.MINCACHESIZE);
+            var customBuilder = new MixedCustomConverter<TestIndexTableData>();
+            customBuilder.DataStore = dataStore;
+            buf.CustomBuilder = customBuilder;
+            buf.BlockSize = 8;
+
+            for (int i = 0; i < test_size; i++)
+            {
+                int[] test = new int[3] { i + 0, i + 1, i + 2 };
+                var test_pattern = new TestIndexTableData() { start = i, length = 1, Syntax = test };
+                buf.Add(test_pattern);
+                //念のためコピーしておいたほうがいい
+                var test_pattern2 = new TestIndexTableData() { start = i, length = 1, Syntax = test.ToArray() };
+                str.Add(test_pattern2);
+            }
+
+            Assert.AreEqual(str.Count, buf.LongCount);
+
+            return (buf, str, dataStore);
+        }
+
+        [TestMethod]
+        public void UpdateDiskBaseElementTest()
+        {
+            const int TEST_SIZE = 100;
+            var memStream = new MemoryStream(TEST_SIZE);
+            var (buf, str, dataStore) = CreateList(TEST_SIZE, memStream);
+
+            InterfaceTests.TestEnumerableElements(buf, str);
+            InterfaceTests.TestIndexerElements(buf, str);
+
+            for (int i = 0; i < buf.Count; i++)
+            {
+                var info = buf.GetContainerInfo(i);
+                using (var pinnable = buf.CustomBuilder.DataStore.Get(info.PinableContainer))
+                {
+                    pinnable.Content[(int)info.RelativeIndex].start = i + 1;
+                    pinnable.Content[(int)info.RelativeIndex].Syntax = new int[3] { i + 4, i + 5, i + 6 };
+                    pinnable.NotifyWriteContent();
+                }
+                str[i].start = i + 1;
+                str[i].Syntax = new int[3] { i + 4, i + 5, i + 6 };
+            }
+
+            InterfaceTests.TestEnumerableElements(buf, str);
+            InterfaceTests.TestIndexerElements(buf, str);
+        }
+
         class ReadOnlyStringBufferSerializer : ISerializeData<IComposableList<char>>
         {
             public IComposableList<char> DeSerialize(byte[] inputData)

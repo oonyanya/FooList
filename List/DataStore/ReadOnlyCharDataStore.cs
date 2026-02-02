@@ -68,33 +68,6 @@ namespace FooProject.Collection.DataStore
             }
         }
 
-        public override bool IsCanCloneContent(IPinableContainer<IComposableList<char>> pin)
-        {
-            if (pin.ID == ReadonlyContentStoreBase<char>.DEFAULT_ID)
-            {
-                return true;
-            }
-            else
-            {
-                return base.IsCanCloneContent(pin);
-            }
-        }
-
-        public override IPinableContainer<IComposableList<char>> Clone(IPinableContainer<IComposableList<char>> pin, IComposableList<char> cloned_content)
-        {
-            if (pin.ID == ReadonlyContentStoreBase<char>.DEFAULT_ID)
-            {
-                if(pin.Content == null)
-                    return base.Clone(pin, cloned_content);
-                var list = new ReadOnlyComposableList<char>(cloned_content);
-                return base.Clone(pin, list);
-            }
-            else
-            {
-                return base.Clone(pin, cloned_content);
-            }
-        }
-
         /// <summary>
         /// 全ての処理が完了したことを表す。LoadAsyncを使用しない場合は呼び出す必要がない。
         /// </summary>

@@ -13,8 +13,18 @@ namespace FooProject.Collection.DataStore
     /// <typeparam name="T">格納対象の型</typeparam>
     public interface IPinnedContent<T> : IDisposable
     {
+        /// <summary>
+        /// 固定されたコンテナ―の中身
+        /// </summary>
         T Content { get; }
+        /// <summary>
+        /// コンテナ―が削除されたことを通知する
+        /// </summary>
         void RemoveContent();
+        /// <summary>
+        /// コンテナ―に書き込まれたことを通知する
+        /// </summary>
+        void NotifyWriteContent();
     }
 
     public class PinnedContent<T> : IPinnedContent<T>
@@ -78,6 +88,13 @@ namespace FooProject.Collection.DataStore
             // このコードを変更しないでください。クリーンアップ コードを 'Dispose(bool disposing)' メソッドに記述します
             Dispose(disposing: true);
             GC.SuppressFinalize(this);
+        }
+
+        public void NotifyWriteContent()
+        {
+            if (this.disposedValue)
+                return;
+            this.container.WriteContent();
         }
     }
 }

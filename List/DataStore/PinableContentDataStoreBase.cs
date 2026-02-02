@@ -13,12 +13,6 @@ namespace FooProject.Collection.DataStore
     public abstract class PinableContentDataStoreBase<T> : IPinableContainerStore<T>
     {
         /// <inheritdoc/>
-        public virtual IPinableContainer<T> Clone(IPinableContainer<T> pin, T cloned_content)
-        {
-            return this.CreatePinableContainer(cloned_content);
-        }
-
-        /// <inheritdoc/>
         public virtual void Commit()
         {
         }
@@ -41,12 +35,6 @@ namespace FooProject.Collection.DataStore
         }
 
         /// <inheritdoc/>
-        public virtual bool IsCanCloneContent(IPinableContainer<IComposableList<char>> pin)
-        {
-            return false;
-        }
-
-        /// <inheritdoc/>
         /// <remarks>必ず実装してください</remarks>
         public virtual void Set(IPinableContainer<T> pinableContainer)
         {
@@ -63,7 +51,9 @@ namespace FooProject.Collection.DataStore
         /// <inheritdoc/>
         public virtual IPinableContainer<T> Update(IPinableContainer<T> pinableContainer, T newcontent, long oldstart, long oldcount, long newstart, long newcount)
         {
-            return this.CreatePinableContainer(newcontent);
+            var pin = this.CreatePinableContainer(newcontent);
+            pin.WriteContent();
+            return pin;
         }
     }
 }
