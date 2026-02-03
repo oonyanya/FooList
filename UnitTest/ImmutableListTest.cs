@@ -118,12 +118,22 @@ namespace UnitTest
             Assert.AreEqual(" this is a", new string(buf.ToArray()));
         }
 
+        class TestSyntaxData
+        {
+            public int Number { get; set; }
+            public override bool Equals(object? obj)
+            {
+                var other = (TestSyntaxData)obj;
+                return this.Number == other.Number;
+            }
+        }
+
         class TestIndexTableData
         {
             public long start { get; set; }
             public long length { get; set; }
 
-            public int[] Syntax { get; set; }
+            public TestSyntaxData[] Syntax { get; set; }
 
             public override bool Equals(object? obj)
             {
@@ -148,11 +158,11 @@ namespace UnitTest
                     var syntax_item_count = reader.ReadInt64();
                     if (syntax_item_count > 0)
                     {
-                        var syntax_items = new int[syntax_item_count];
+                        var syntax_items = new TestSyntaxData[syntax_item_count];
                         for (int j = 0; j < syntax_item_count; j++)
                         {
                             var info = reader.ReadInt32();
-                            syntax_items[j] = info;
+                            syntax_items[j] = new TestSyntaxData() { Number = info };
                         }
                         item.Syntax = syntax_items;
                     }
@@ -186,7 +196,7 @@ namespace UnitTest
                         writer.Write((long)item.Syntax.LongLength);
                         foreach (var s in item.Syntax)
                         {
-                            writer.Write(s);
+                            writer.Write(s.Number);
                         }
                     }
                 }
@@ -210,11 +220,12 @@ namespace UnitTest
 
             for (int i = 0; i < test_size; i++)
             {
-                int[] test = new int[3] { i + 0, i + 1, i + 2 };
+                TestSyntaxData[] test = new TestSyntaxData[3] { new TestSyntaxData() { Number = i + 0 }, new TestSyntaxData() { Number = i + 1 }, new TestSyntaxData() { Number = i + 1 } };
                 var test_pattern = new TestIndexTableData() { start = i, length = 1, Syntax = test };
                 buf.Add(test_pattern);
                 //念のためコピーしておいたほうがいい
-                var test_pattern2 = new TestIndexTableData() { start = i, length = 1, Syntax = test.ToArray() };
+                TestSyntaxData[] test2 = new TestSyntaxData[3] { new TestSyntaxData() { Number = i + 0 }, new TestSyntaxData() { Number = i + 1 }, new TestSyntaxData() { Number = i + 1 } };
+                var test_pattern2 = new TestIndexTableData() { start = i, length = 1, Syntax = test2 };
                 str.Add(test_pattern2);
             }
 
@@ -239,11 +250,13 @@ namespace UnitTest
                 using (var pinnable = buf.CustomBuilder.DataStore.Get(info.PinableContainer))
                 {
                     pinnable.Content[(int)info.RelativeIndex].start = i + 1;
-                    pinnable.Content[(int)info.RelativeIndex].Syntax = new int[3] { i + 4, i + 5, i + 6 };
+                    TestSyntaxData[] test = new TestSyntaxData[3] { new TestSyntaxData() { Number = i + 4 }, new TestSyntaxData() { Number = i + 5 }, new TestSyntaxData() { Number = i + 6 } };
+                    pinnable.Content[(int)info.RelativeIndex].Syntax = test;
                     pinnable.NotifyWriteContent();
                 }
                 str[i].start = i + 1;
-                str[i].Syntax = new int[3] { i + 4, i + 5, i + 6 };
+                TestSyntaxData[] test2 = new TestSyntaxData[3] { new TestSyntaxData() { Number = i + 4 }, new TestSyntaxData() { Number = i + 5 }, new TestSyntaxData() { Number = i + 6 } };
+                str[i].Syntax = test2;
             }
 
             InterfaceTests.TestEnumerableElements(buf, str);
