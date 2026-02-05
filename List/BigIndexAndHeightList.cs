@@ -210,7 +210,7 @@ namespace FooProject.Collection
                 long leftTotalSumCount = rangeLeftNode.TotalRangeCount;
                 double leftTotalSumHeight = rangeLeftNode.TotalHeightCount;
 
-                if (relativeSumHeight < leftTotalSumCount)
+                if (relativeSumHeight < leftTotalSumHeight)
                 {
                     return NodeWalkDirection.Left;
                 }
