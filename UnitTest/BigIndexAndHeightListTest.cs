@@ -223,7 +223,7 @@ namespace UnitTest
         {
             var rangeList = new List<MyRangeWithHeight>();
             const int length = 3;
-            const double height = 3.0;
+            const double height = 4.0;
             int index = 0;
             double sumHeight = 0;
             for (int i = 0; i < 10; i++)
@@ -237,6 +237,7 @@ namespace UnitTest
             list.AddRange(rangeList);
 
             var expected = new long[] { 0, 3, 6, 9, 12, 15, 18, 21, 24, 27, };
+            var expected_sumheight = new double[] { 0, 4, 8, 12, 16, 20, 24, 28, 32, 36, };
             for (int i = 0; i < expected.Length; i++)
             {
                 var item = expected[i];
@@ -245,7 +246,7 @@ namespace UnitTest
                 var boxIndex = list.GetIndexFromAbsoluteIndexIntoRange(item + 1, out sumIndexFromBox, out sumHeightFromBox);
                 var range = list.GetWithConvertAbsolteIndex(boxIndex);
                 Assert.AreEqual(item, sumIndexFromBox);
-                Assert.AreEqual(item + 0.0, sumHeightFromBox);
+                Assert.AreEqual(expected_sumheight[i], sumHeightFromBox);
                 Assert.AreEqual(item, range.start);
             }
         }
@@ -255,7 +256,7 @@ namespace UnitTest
         {
             var rangeList = new List<MyRangeWithHeight>();
             const int length = 3;
-            const double height = 3.0;
+            const double height = 4.0;
             int index = 0;
             double sumHeight = 0;
             for (int i = 0; i < 10; i++)
@@ -268,15 +269,16 @@ namespace UnitTest
             var list = new BigIndexAndHeightList<MyRangeWithHeight>();
             list.AddRange(rangeList);
 
-            var expected = new double[] { 0.0, 3.0, 6.0, 9.0, 12.0, 15.0, 18.0, 21.0, 24.0, 27.0, };
-            foreach (var item in expected)
+            var expected = new long[] { 0, 3, 6, 9, 12, 15, 18, 21, 24, 27, };
+            var expected_sumheight = new double[] { 0, 4, 8, 12, 16, 20, 24, 28, 32, 36, };
+            for (int i = 0; i < expected.Length; i++)
             {
                 double sumHeightFromBox = 0;
-                var absoluteindex = list.GetIndexFromAbsoluteSumHeight(item + 1.0,out sumHeightFromBox);
+                var absoluteindex = list.GetIndexFromAbsoluteSumHeight(expected_sumheight[i] + 1.0, out sumHeightFromBox);
                 var range = list.GetWithConvertAbsolteIndex(absoluteindex);
-                Assert.AreEqual(item, sumHeightFromBox);
-                Assert.AreEqual(item, range.sumHeight);
-                Assert.AreEqual(item, range.start);
+                Assert.AreEqual(expected_sumheight[i], sumHeightFromBox);
+                Assert.AreEqual(expected_sumheight[i], range.sumHeight);
+                Assert.AreEqual(expected[i], range.start);
             }
         }
 
