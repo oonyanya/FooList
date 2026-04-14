@@ -23,15 +23,29 @@ namespace FooProject.Collection
     }
     public abstract class Node<T>
     {
+        /// <summary>
+        /// ノードの左側を表す
+        /// </summary>
         public Node<T> Left {  get; set; }
 
+        /// <summary>
+        /// ノードの右側を表す
+        /// </summary>
         public Node<T> Right { get; set; }
 
+        /// <summary>
+        /// ノードの深さを表す
+        /// </summary>
         public long Depth {  get; set; }
 
+        /// <summary>
+        /// ノードの数を表す。リーフノードは１。それ以外のノードは左右のNodeCountの合計である。
+        /// </summary>
         public long NodeCount { get; set; }
 
-        // TODO
+        /// <summary>
+        /// ノードに格納されているアイテムの数を表す。それ以外のノードは左右のCountの合計である。
+        /// </summary>
         public long Count { get; set; }
 
         public Node() 

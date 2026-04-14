@@ -287,6 +287,16 @@ namespace FooProject.Collection
             return node;
         }
 
+        /// <summary>
+        /// ノードを探索する
+        /// </summary>
+        /// <param name="fn">各ノードで呼び出される関数</param>
+        /// <returns>ノードを返す</returns>
+        /// <exception cref="InvalidOperationException"></exception>
+        /// <remarks>
+        /// fnに渡されるパラメーターは現在訪問中のノード、ノード内にあるアイテムの数である。
+        /// fnでの処理が終了したら、左か右のどちらかを返さなければならない。
+        /// </remarks>
         protected Node<T> WalkNode(Func<Node<T>,long,NodeWalkDirection> fn)
         {
             Node<T> current = _root;

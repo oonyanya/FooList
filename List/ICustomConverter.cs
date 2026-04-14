@@ -13,7 +13,16 @@ namespace FooProject.Collection
     /// <typeparam name="T"></typeparam>
     public interface ILeastFetch<T>
     {
+        /// <summary>
+        /// 一番最後に取得したノードそのもの
+        /// </summary>
         Node<T> Node { get; }
+        /// <summary>
+        /// 一番最後に取得したノードに到達までのルートにある全てのノードの左側の要素数の合計値を表す
+        /// </summary>
+        /// <remarks>
+        /// 詳しいことはBigListのWalkNode()を参照すること
+        /// </remarks>
         long TotalLeftCount { get; }
     }
     /// <summary>
