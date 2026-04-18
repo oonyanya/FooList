@@ -1,4 +1,9 @@
-﻿using System;
+﻿/*
+ 一部コードはGrokの支援を受けて作成しています。
+ プロンプトは「RleArrayをc#で作成せよ」と「Insert,Remove,Addを追加せよ」です。
+ ただし、何も考えずに指示をするとGrokのコードはO(N)になってしまう、計算量を減らすために適宜改変しています。
+*/
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
