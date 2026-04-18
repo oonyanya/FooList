@@ -17,6 +17,7 @@
     <Compile Include="..\UnitTest\BigList.TestOnDisk.cs" Link="BigList.TestOnDisk.cs" />
     <Compile Include="..\UnitTest\BigListTest.cs" Link="BigListTest.cs" />
     <Compile Include="..\UnitTest\BigRangeListTest.cs" Link="BigRangeListTest.cs" />
+    <Compile Include="..\UnitTest\BigRleArrayTest.cs" Link="BigRleArrayTest.cs" />
     <Compile Include="..\UnitTest\CacheTest.cs" Link="CacheTest.cs" />
     <Compile Include="..\UnitTest\DiskPinableContentDataStoreTest.cs" Link="DiskPinableContentDataStoreTest.cs" />
     <Compile Include="..\UnitTest\FixedListTest.cs" Link="FixedListTest.cs" />
