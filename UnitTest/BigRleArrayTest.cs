@@ -20,6 +20,13 @@ namespace UnitTest
             {
             }
 
+            public CharRleArray(char v, long index,long length)
+            {
+                this.Value = v;
+                this.start = index;
+                this.length = length;
+            }
+
             public CharRleArray(char v,long length)
             {
                 this.Value = v;
@@ -39,7 +46,7 @@ namespace UnitTest
             {
                 var other = obj as CharRleArray;
                 if (other == null) return false;
-                if(other.Value == this.Value && other.length == this.length) return true;
+                if(other.Value == this.Value && other.length == this.length && other.start == this.start) return true;
                 return false;
             }
         }
@@ -54,7 +61,7 @@ namespace UnitTest
             list.AddOrUpdate('b');
             list.AddOrUpdate('b');
 
-            var expected_list = new CharRleArray[] { new CharRleArray('a', 3), new CharRleArray('b', 2) };
+            var expected_list = new CharRleArray[] { new CharRleArray('a', 0, 3), new CharRleArray('b', 3, 2) };
             InterfaceTests.TestEnumerableElements<CharRleArray>(list, expected_list);
         }
 
@@ -72,11 +79,11 @@ namespace UnitTest
             list.InsertOrUpdate(1, 'a');
             list.InsertOrUpdate(4, 'c');
 
-            var expected_list = new CharRleArray[] { new CharRleArray('a', 4),  new CharRleArray('c', 1), new CharRleArray('b', 3) };
+            var expected_list = new CharRleArray[] { new CharRleArray('a', 0, 4),  new CharRleArray('c', 4, 1), new CharRleArray('b', 5, 3) };
             InterfaceTests.TestEnumerableElements<CharRleArray>(list, expected_list);
 
             list.InsertOrUpdate(6, 'd');
-            expected_list = new CharRleArray[] { new CharRleArray('a', 4), new CharRleArray('c', 1), new CharRleArray('b', 1), new CharRleArray('d', 1), new CharRleArray('b', 1) };
+            expected_list = new CharRleArray[] { new CharRleArray('a', 0, 4), new CharRleArray('c', 4, 1), new CharRleArray('b', 5, 1), new CharRleArray('d', 6, 1), new CharRleArray('b', 7, 1) };
             InterfaceTests.TestEnumerableElements<CharRleArray>(list, expected_list);
         }
 
@@ -92,12 +99,12 @@ namespace UnitTest
 
             list.Remove(1);
 
-            var expected_list = new CharRleArray[] { new CharRleArray('a', 2), new CharRleArray('b', 2) };
+            var expected_list = new CharRleArray[] { new CharRleArray('a', 0, 2), new CharRleArray('b', 2, 2) };
             InterfaceTests.TestEnumerableElements<CharRleArray>(list, expected_list);
 
             list.Remove(0);
             list.Remove(0);
-            expected_list = new CharRleArray[] { new CharRleArray('b', 2) };
+            expected_list = new CharRleArray[] { new CharRleArray('b', 0, 2) };
             InterfaceTests.TestEnumerableElements<CharRleArray>(list, expected_list);
         }
     }
