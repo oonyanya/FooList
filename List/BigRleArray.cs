@@ -48,6 +48,22 @@ namespace FooProject.Collection
             }
         }
 
+        /// <summary>
+        /// アイテムを取得します
+        /// </summary>
+        /// <param name="absolute_index">取得対象の絶対インデックス</param>
+        /// <returns>絶対インデックスに該当するアイテムを返す</returns>
+        /// <exception cref="InvalidOperationException"></exception>
+        public T Get(long absolute_index)
+        {
+            var i = _rleData.GetIndexFromAbsoluteIndexIntoRange(absolute_index);
+            if (i == -1)
+                throw new InvalidOperationException("absoulte range is invaild");
+
+            var container = _rleData.Get(i);
+            return container;
+        }
+
         public IEnumerator<T> GetEnumerator()
         {
             foreach(var item in _rleData)

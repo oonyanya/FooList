@@ -52,6 +52,26 @@ namespace UnitTest
         }
 
         [TestMethod]
+        public void GetTest()
+        {
+            var list = new BigRleArray<CharRleArray, char>();
+            list.AddOrUpdate('a');
+            list.AddOrUpdate('a');
+            list.AddOrUpdate('a');
+            list.AddOrUpdate('b');
+            list.AddOrUpdate('b');
+
+            var item = list.Get(0);
+            Assert.AreEqual('a', item.Value);
+
+            var item2 = list.Get(1);
+            Assert.AreEqual('a', item2.Value);
+
+            var item3 = list.Get(4);
+            Assert.AreEqual('b', item3.Value);
+        }
+
+        [TestMethod]
         public void AddTest()
         {
             var list = new BigRleArray<CharRleArray, char>();
