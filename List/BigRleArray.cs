@@ -136,10 +136,51 @@ namespace FooProject.Collection
         /// <remarks>アイテムの長さを変えます。0になった場合、アイテム自体が削除されます。</remarks>
         public void RemoveRange(int absolute_index,int count = 1)
         {
-            //TODO:もっと早い方法があるはず
-            for (int i = 0; i < count; i++)
+            var index = _rleData.GetIndexFromAbsoluteIndexIntoRange(absolute_index);
+            if (index == -1)
+                throw new InvalidOperationException("absoulte range is invaild");
+
+            var container = _rleData.Get(index);
+            if (count <= container.length)
             {
-                this.RemoveAt(absolute_index);
+                if (container.length == count)
+                {
+                    _rleData.RemoveAt(index);
+                }
+                else
+                {
+                    container.length -= count;
+                    _rleData.Set(index, container);
+                }
+            }
+            else
+            {
+                long total_remove_length = count;
+                while (true)
+                {
+                    var offset = Math.Max(0, absolute_index - container.start);
+                    var offseted_length = container.length - offset;
+                    var remove_length = Math.Min(total_remove_length, offseted_length);
+                    if (container.length == remove_length)
+                    {
+                        _rleData.RemoveAt(index);
+                    }
+                    else
+                    {
+                        container.length -= remove_length;
+                        _rleData.Set(index, container);
+                    }
+
+                    total_remove_length -= remove_length;
+
+                    if (total_remove_length <= 0)
+                        break;
+
+                    index = _rleData.GetIndexFromAbsoluteIndexIntoRange(absolute_index);
+                    if (index == -1)
+                        throw new InvalidOperationException("absoulte range is invaild");
+                    container = this.Get(absolute_index);
+                }
             }
         }
 
@@ -151,20 +192,7 @@ namespace FooProject.Collection
         /// <remarks>アイテムの長さを変えます。0になった場合、アイテム自体が削除されます。</remarks>
         public void RemoveAt(int absolute_index)
         {
-            var i = _rleData.GetIndexFromAbsoluteIndexIntoRange(absolute_index);
-            if (i == -1)
-                throw new InvalidOperationException("absoulte range is invaild");
-
-            var container = _rleData.Get(i);
-            if (container.length <= 1)
-            {
-                _rleData.RemoveAt(i);
-            }
-            else
-            {
-                container.length--;
-                _rleData.Set(i, container);
-            }
+            this.RemoveRange(absolute_index, 1);
         }
 
         IEnumerator IEnumerable.GetEnumerator()
