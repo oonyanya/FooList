@@ -26,21 +26,21 @@ namespace FooProject.Collection
         /// </summary>
         /// <param name="item">追加するアイテム</param>
         /// <remarks>既に存在するアイテムの場合、アイテムの長さが変わります</remarks>
-        public void AddOrUpdate(J item)
+        public void AddRange(J item,int count = 1)
         {
             if (_rleData.Count > 0)
             {
                 var last = _rleData[_rleData.Count - 1];
                 if (last.Value.Equals(item))
                 {
-                    last.length++;
+                    last.length += count;
                     _rleData[_rleData.Count - 1] = last;
                 }
                 else
                 {
                     var new_value = new T();
                     new_value.Value = item;
-                    new_value.length = 1;
+                    new_value.length = count;
                     _rleData.Add(new_value);
                 }
             }
@@ -48,7 +48,7 @@ namespace FooProject.Collection
             {
                 var new_value = new T();
                 new_value.Value = item;
-                new_value.length = 1;
+                new_value.length = count;
                 _rleData.Add(new_value);
             }
         }
@@ -86,7 +86,7 @@ namespace FooProject.Collection
         {
             if (absolute_index == _rleData.Count)
             {
-                AddOrUpdate(item);
+                AddRange(item);
                 return;
             }
 

@@ -55,11 +55,11 @@ namespace UnitTest
         public void GetTest()
         {
             var list = new BigRleArray<CharRleArray, char>();
-            list.AddOrUpdate('a');
-            list.AddOrUpdate('a');
-            list.AddOrUpdate('a');
-            list.AddOrUpdate('b');
-            list.AddOrUpdate('b');
+            list.AddRange('a');
+            list.AddRange('a');
+            list.AddRange('a');
+            list.AddRange('b');
+            list.AddRange('b');
 
             var item = list.Get(0);
             Assert.AreEqual('a', item.Value);
@@ -75,11 +75,10 @@ namespace UnitTest
         public void AddTest()
         {
             var list = new BigRleArray<CharRleArray, char>();
-            list.AddOrUpdate('a');
-            list.AddOrUpdate('a');
-            list.AddOrUpdate('a');
-            list.AddOrUpdate('b');
-            list.AddOrUpdate('b');
+            list.AddRange('a');
+            list.AddRange('a');
+            list.AddRange('a');
+            list.AddRange('b',2);
 
             var expected_list = new CharRleArray[] { new CharRleArray('a', 0, 3), new CharRleArray('b', 3, 2) };
             InterfaceTests.TestEnumerableElements<CharRleArray>(list, expected_list);
@@ -89,13 +88,13 @@ namespace UnitTest
         public void UpdateTest()
         {
             var list = new BigRleArray<CharRleArray, char>();
-            list.AddOrUpdate('a');
-            list.AddOrUpdate('a');
-            list.AddOrUpdate('a');
-            list.AddOrUpdate('b');
-            list.AddOrUpdate('b');
-            list.AddOrUpdate('b');
-            list.AddOrUpdate('b');
+            list.AddRange('a');
+            list.AddRange('a');
+            list.AddRange('a');
+            list.AddRange('b');
+            list.AddRange('b');
+            list.AddRange('b');
+            list.AddRange('b');
             list.InsertRange(1, 'a');
             list.InsertRange(4, 'c');
 
@@ -111,11 +110,11 @@ namespace UnitTest
         public void RemoveTest()
         {
             var list = new BigRleArray<CharRleArray, char>();
-            list.AddOrUpdate('a');
-            list.AddOrUpdate('a');
-            list.AddOrUpdate('a');
-            list.AddOrUpdate('b');
-            list.AddOrUpdate('b');
+            list.AddRange('a');
+            list.AddRange('a');
+            list.AddRange('a');
+            list.AddRange('b');
+            list.AddRange('b');
 
             list.RemoveRange(1);
 
