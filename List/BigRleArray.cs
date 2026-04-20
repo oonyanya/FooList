@@ -63,7 +63,7 @@ namespace FooProject.Collection
         {
             var i = _rleData.GetIndexFromAbsoluteIndexIntoRange(absolute_index);
             if (i == -1)
-                throw new InvalidOperationException("absoulte range is invaild");
+                throw new InvalidOperationException("absoulte range is invaild or not found");
 
             var container = _rleData.Get(i);
             return container;
@@ -92,7 +92,7 @@ namespace FooProject.Collection
 
             var i = _rleData.GetIndexFromAbsoluteIndexIntoRange(absolute_index);
             if(i == -1)
-                throw new InvalidOperationException("absoulte range is invaild");
+                throw new InvalidOperationException("absoulte range is invaild or not found");
 
             var container = _rleData.Get(i);
             if (container.Value.Equals(item))
@@ -111,12 +111,12 @@ namespace FooProject.Collection
                 {
                     _rleData.Set(i, new T() { Value = container.Value, length = offset });
                     _rleData.Insert(i + 1, new T() { Value = item, length = count });
-                    _rleData.Insert(i + 2, new T() { Value = container.Value, length = length });  // -1は挿入した分
+                    _rleData.Insert(i + 2, new T() { Value = container.Value, length = length });
                 }
                 else
                 {
                     _rleData.Set(i, new T() { Value = item, length = count });
-                    _rleData.Insert(i + 1, new T() { Value = container.Value, length = length });  // -1は挿入した分
+                    _rleData.Insert(i + 1, new T() { Value = container.Value, length = length });
                 }
             }
         }
