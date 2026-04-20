@@ -81,8 +81,8 @@ namespace FooProject.Collection
         /// <param name="absolute_index">挿入対象の絶対インデックス</param>
         /// <param name="item">挿入対象のアイテム</param>
         /// <exception cref="InvalidOperationException"></exception>
-        /// <remarks>既に存在するアイテムの場合、アイテムの長さが変わります。また、既に存在するアイテムに別のアイテムを挿入した場合、挿入した箇所が上書きされます</remarks>
-        public void InsertOrUpdate(int absolute_index, J item)
+        /// <remarks>既に存在するアイテムの場合、アイテムの長さが変わります。また、既に存在するアイテムに別のアイテムを挿入した場合、分割されます</remarks>
+        public void InsertRange(int absolute_index, J item,int count = 1)
         {
             if (absolute_index == _rleData.Count)
             {
@@ -105,17 +105,18 @@ namespace FooProject.Collection
                 var CustomConverter = (RangeConverter<T>)_rleData.LeastFetchStore;
                 var converter = CustomConverter.customLeastFetch.absoluteIndexIntoRange;
                 var offset = absolute_index - container.start;
+                var length = container.length - offset;
 
-                if(offset > 0)
+                if (offset > 0)
                 {
                     _rleData.Set(i, new T() { Value = container.Value, length = offset });
-                    _rleData.Insert(i + 1, new T() { Value = item, length = 1 });
-                    _rleData.Insert(i + 2, new T() { Value = container.Value, length = container.length - offset - 1 });  // -1は挿入した分
+                    _rleData.Insert(i + 1, new T() { Value = item, length = count });
+                    _rleData.Insert(i + 2, new T() { Value = container.Value, length = length });  // -1は挿入した分
                 }
                 else
                 {
-                    _rleData.Set(i, new T() { Value = item, length = 1 });
-                    _rleData.Insert(i + 1, new T() { Value = container.Value, length = container.length - 1 });  // -1は挿入した分
+                    _rleData.Set(i, new T() { Value = item, length = count });
+                    _rleData.Insert(i + 1, new T() { Value = container.Value, length = length });  // -1は挿入した分
                 }
             }
         }
@@ -126,21 +127,28 @@ namespace FooProject.Collection
         /// <param name="absolute_index">削除するインデックス</param>
         /// <exception cref="InvalidOperationException"></exception>
         /// <remarks>アイテムの長さを変えます。0になった場合、アイテム自体が削除されます。</remarks>
-        public void Remove(int absolute_index)
+        public void RemoveRange(int absolute_index,int count = 1)
         {
-            var i = _rleData.GetIndexFromAbsoluteIndexIntoRange(absolute_index);
-            if (i == -1)
-                throw new InvalidOperationException("absoulte range is invaild");
+            long removed_length = count;
 
-            var container = _rleData.Get(i);
-            if (container.length == 1)
+            while(removed_length >= 0)
             {
-                _rleData.RemoveAt(i);
-            }
-            else
-            {
-                container.length--;
-                _rleData.Set(i, container);
+                var i = _rleData.GetIndexFromAbsoluteIndexIntoRange(absolute_index);
+                if (i == -1)
+                    throw new InvalidOperationException("absoulte range is invaild");
+
+                var container = _rleData.Get(i);
+                if (container.length <= removed_length)
+                {
+                    _rleData.RemoveAt(i);
+                    removed_length -= container.length;
+                }
+                else
+                {
+                    container.length -= removed_length;
+                    _rleData.Set(i, container);
+                    break;
+                }
             }
         }
 
