@@ -20,7 +20,7 @@ using System.Buffers;
 
 namespace Slusser.Collections.Generic
 {
-    sealed class GapBufferSequenceSegment<T> : ReadOnlySequenceSegment<T>
+    public sealed class GapBufferSequenceSegment<T> : ReadOnlySequenceSegment<T>
     {
         public GapBufferSequenceSegment(ReadOnlyMemory<T> memory)
         {
@@ -50,7 +50,7 @@ namespace Slusser.Collections.Generic
     /// <typeparam name="T">The type of elements in the buffer.</typeparam>
     [DebuggerDisplay("Count = {Count}")]
 	[DebuggerTypeProxy(typeof(CollectionDebugView<>))]
-    sealed partial class GapBuffer<T> : IList<T>, IList
+    public sealed partial class GapBuffer<T> : IList<T>, IList
 	{
         #region Fields
 
@@ -448,7 +448,14 @@ namespace Slusser.Collections.Generic
             }
         }
 
-		public IEnumerable<T> GetRage(int index,int count)
+        /// <summary>
+        /// Enumrate range
+        /// </summary>
+        /// <param name="index">start index</param>
+        /// <param name="count">count</param>
+        /// <returns>IEnumerable interface</returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public IEnumerable<T> GetRage(int index,int count)
 		{
             if (index < 0 || index >= Count)
                 throw new ArgumentOutOfRangeException("index", "");
@@ -461,8 +468,14 @@ namespace Slusser.Collections.Generic
             for (int i = index; i <= end; i++)
 				yield return GetAt(i);
 		}
-        
-		public ReadOnlySequence<T> Slice(int index, int count)
+
+        /// <summary>
+        /// Get slice
+        /// </summary>
+        /// <param name="index">start index</param>
+        /// <param name="count">range of slice</param>
+        /// <returns>ReadOnlySequence</returns>
+        public ReadOnlySequence<T> Slice(int index, int count)
 		{
             GapBufferSequenceSegment<T> first = null,last = null;
 
