@@ -21,6 +21,13 @@ namespace FooProject.Collection
     {
         BigRangeList<T> _rleData = new BigRangeList<T>();
 
+        public int Count
+        {
+            get {
+                return _rleData.Count;
+            }
+        }
+
         /// <summary>
         /// アイテムを追加する
         /// </summary>
@@ -129,26 +136,34 @@ namespace FooProject.Collection
         /// <remarks>アイテムの長さを変えます。0になった場合、アイテム自体が削除されます。</remarks>
         public void RemoveRange(int absolute_index,int count = 1)
         {
-            long removed_length = count;
-
-            while(removed_length >= 0)
+            //TODO:もっと早い方法があるはず
+            for (int i = 0; i < count; i++)
             {
-                var i = _rleData.GetIndexFromAbsoluteIndexIntoRange(absolute_index);
-                if (i == -1)
-                    throw new InvalidOperationException("absoulte range is invaild");
+                this.RemoveAt(absolute_index);
+            }
+        }
 
-                var container = _rleData.Get(i);
-                if (container.length <= removed_length)
-                {
-                    _rleData.RemoveAt(i);
-                    removed_length -= container.length;
-                }
-                else
-                {
-                    container.length -= removed_length;
-                    _rleData.Set(i, container);
-                    break;
-                }
+        /// <summary>
+        /// アイテムを削除します
+        /// </summary>
+        /// <param name="absolute_index">削除するインデックス</param>
+        /// <exception cref="InvalidOperationException"></exception>
+        /// <remarks>アイテムの長さを変えます。0になった場合、アイテム自体が削除されます。</remarks>
+        public void RemoveAt(int absolute_index)
+        {
+            var i = _rleData.GetIndexFromAbsoluteIndexIntoRange(absolute_index);
+            if (i == -1)
+                throw new InvalidOperationException("absoulte range is invaild");
+
+            var container = _rleData.Get(i);
+            if (container.length <= 1)
+            {
+                _rleData.RemoveAt(i);
+            }
+            else
+            {
+                container.length--;
+                _rleData.Set(i, container);
             }
         }
 

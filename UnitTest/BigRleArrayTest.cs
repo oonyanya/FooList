@@ -121,9 +121,25 @@ namespace UnitTest
             var expected_list = new CharRleArray[] { new CharRleArray('a', 0, 2), new CharRleArray('b', 2, 2) };
             InterfaceTests.TestEnumerableElements<CharRleArray>(list, expected_list);
 
+            list = new BigRleArray<CharRleArray, char>();
+            list.AddRange('a', 2);
+            list.AddRange('b', 3);
             list.RemoveRange(0,3);
-            expected_list = new CharRleArray[] { new CharRleArray('b', 0, 1) };
+            expected_list = new CharRleArray[] { new CharRleArray('b', 0, 2) };
             InterfaceTests.TestEnumerableElements<CharRleArray>(list, expected_list);
+
+            list = new BigRleArray<CharRleArray, char>();
+            list.AddRange('a', 2);
+            list.AddRange('b', 3);
+            list.RemoveRange(1, 4);
+            expected_list = new CharRleArray[] { new CharRleArray('a', 0, 1) };
+            InterfaceTests.TestEnumerableElements<CharRleArray>(list, expected_list);
+
+            list = new BigRleArray<CharRleArray, char>();
+            list.AddRange('a',2);
+            list.AddRange('b',3);
+            list.RemoveRange(0, 5);
+            Assert.AreEqual(0,list.Count);
         }
     }
 }
