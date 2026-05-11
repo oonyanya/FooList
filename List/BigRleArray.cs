@@ -185,6 +185,106 @@ namespace FooProject.Collection
         }
 
         /// <summary>
+        /// アイテムを更新します
+        /// </summary>
+        /// <param name="absolute_index">更新するインデックス</param>
+        /// <param name="count">長さ</param>
+        /// <param name="fn">更新時に呼び出される関数</param>
+        /// <exception cref="InvalidOperationException"></exception>
+        public void UpdateRange(int absolute_index, int count = 1, Func<T, long, T> fn = null)
+        {
+            var index = _rleData.GetIndexFromAbsoluteIndexIntoRange(absolute_index);
+            if (index == -1)
+                throw new InvalidOperationException("absoulte range is invaild");
+
+            var container = _rleData.Get(index);
+            if (count <= container.length)
+            {
+                if (container.length == count)
+                {
+                    _rleData.RemoveAt(index);
+                    if (fn != null)
+                    {
+                        var new_item = fn(container, container.length);
+                        _rleData.Insert(index, new_item);
+                    }
+                }
+                else
+                {
+                    var offset = absolute_index - container.start;
+                    var offseted_length = container.length - offset;
+
+                    if (offset > 0)
+                    {
+                        _rleData.Set(index, new T() { Value = container.Value, length = offset });
+                        _rleData.Insert(index + 1, fn(container, count));
+                        _rleData.Insert(index + 2, new T() { Value = container.Value, length = offseted_length - count });
+                    }
+                    else
+                    {
+                        _rleData.Set(index, fn(container, count));
+                        _rleData.Insert(index + 1, new T() { Value = container.Value, length = offseted_length - count });
+                    }
+                }
+            }
+            else
+            {
+                long current_index = absolute_index;
+                long total_remove_length = count;
+                while (true)
+                {
+                    var offset = Math.Max(0, absolute_index - container.start);
+                    var offseted_length = container.length - offset;
+                    var remove_length = Math.Min(total_remove_length, offseted_length);
+                    if (container.length == remove_length)
+                    {
+                        _rleData.RemoveAt(index);
+                        if (fn != null)
+                        {
+                            var new_item = fn(container, container.length);
+                            _rleData.Insert(index, new_item);
+                        }
+                    }
+                    else
+                    {
+                        if (total_remove_length == count)    //先頭かどうか判別する
+                        {
+                            container.length -= remove_length;
+                            _rleData.Set(index, container);
+                            if (fn != null)
+                            {
+                                var new_item = fn(container, remove_length);
+                                _rleData.Insert(index + 1, new_item);
+                            }
+                        }
+                        else
+                        {
+                            if (fn != null)
+                            {
+                                var new_item = fn(container, remove_length);
+                                _rleData.Insert(index, new_item);
+                            }
+                            container.length -= remove_length;
+                            _rleData.Set(index + 1, container);
+                        }
+                    }
+
+                    total_remove_length -= remove_length;
+
+                    if (total_remove_length <= 0)
+                        break;
+
+                    current_index += remove_length;
+
+                    index = _rleData.GetIndexFromAbsoluteIndexIntoRange(current_index);
+                    if (index == -1)
+                        throw new InvalidOperationException("absoulte range is invaild");
+                    container = this.Get(current_index);
+                }
+            }
+        }
+
+        /// <summary>
         /// アイテムを削除します
         /// </summary>
         /// <param name="absolute_index">削除するインデックス</param>
