@@ -218,7 +218,9 @@ namespace FooProject.Collection
                     {
                         _rleData.Set(index, new T() { Value = container.Value, length = offset });
                         _rleData.Insert(index + 1, fn(container, count));
-                        _rleData.Insert(index + 2, new T() { Value = container.Value, length = offseted_length - count });
+                        var new_item_length = offseted_length - count;
+                        if (new_item_length > 0)
+                            _rleData.Insert(index + 2, new T() { Value = container.Value, length = new_item_length });
                     }
                     else
                     {
