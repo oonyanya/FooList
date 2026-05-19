@@ -185,14 +185,6 @@ namespace FooProject.Collection
             }
         }
 
-        /// <summary>
-        /// アイテムを処理する
-        /// </summary>
-        /// <param name="container">処理対象のコンテナー</param>
-        /// <param name="count">処理対象の数</param>
-        /// <param name="input">入力アイテム</param>
-        /// <returns>処理済みのアイテムを返す。</returns>
-        /// <remarks>デフォルトだとinputの内容をそのまま返します。何かしらの処理をした場合、continerを複製してください。複製しない場合の動作は保証されません</remarks>
         static T defaultProcessItem(T container, long count, J input)
         {
             return new T() { length = count, Value = input };
@@ -204,8 +196,9 @@ namespace FooProject.Collection
         /// <param name="absolute_index">更新するインデックス</param>
         /// <param name="count">長さ</param>
         /// <param name="input_value">アイテム</param>
+        /// <param name="processItem">処理用のメソッド。nullの場合、単純に上書きされます。arg1は処理対象のコンテナー、arg2は出力すべき数、arg3は入力アイテムを表します。</param>
         /// <exception cref="InvalidOperationException"></exception>
-        /// <remarks>何もしない場合、input_valueの値で置き換えます。</remarks>
+        /// <remarks>何もしない場合、input_valueの値で置き換えます。カスタム処理を実装したい場合、continerを複製してください。</remarks>
         public void UpdateRange(int absolute_index, J input_value, int count = 1, Func<T,long,J, T> processItem = null)
         {
             var index = _rleData.GetIndexFromAbsoluteIndexIntoRange(absolute_index);
