@@ -17,6 +17,7 @@ namespace FooProject.Collection
     {
         J Value { get; set; }
     }
+
     public class BigRleArray<T, J>: IEnumerable<T> where  T : IRleArrayRange<J>, new()
     {
         BigRangeList<T> _rleData = new BigRangeList<T>();
@@ -192,9 +193,9 @@ namespace FooProject.Collection
         /// <param name="input">入力アイテム</param>
         /// <returns>処理済みのアイテムを返す。</returns>
         /// <remarks>デフォルトだとinputの内容をそのまま返します。何かしらの処理をした場合、continerを複製してください。複製しない場合の動作は保証されません</remarks>
-        protected virtual T ProcessItem(T container, long count, J input)
+        static T defaultProcessItem(T container, long count, J input)
         {
-            return new T() { length = count , Value = input};
+            return new T() { length = count, Value = input };
         }
 
         /// <summary>
@@ -204,12 +205,17 @@ namespace FooProject.Collection
         /// <param name="count">長さ</param>
         /// <param name="input_value">アイテム</param>
         /// <exception cref="InvalidOperationException"></exception>
-        /// <remarks>何もしない場合、input_valueの値で置き換えます。処理の仕方を変更したい場合、継承先のクラスでProcessItemを上書きする必要があります</remarks>
-        public void UpdateRange(int absolute_index, J input_value, int count = 1)
+        /// <remarks>何もしない場合、input_valueの値で置き換えます。</remarks>
+        public void UpdateRange(int absolute_index, J input_value, int count = 1, Func<T,long,J, T> processItem = null)
         {
             var index = _rleData.GetIndexFromAbsoluteIndexIntoRange(absolute_index);
             if (index == -1)
                 throw new InvalidOperationException("absoulte range is invaild");
+
+            if(processItem == null)
+            {
+                processItem = defaultProcessItem;
+            }
 
             var container = _rleData.Get(index);
             if (count <= container.length)
@@ -217,7 +223,7 @@ namespace FooProject.Collection
                 if (container.length == count)
                 {
                     _rleData.RemoveAt(index);
-                    var new_item = this.ProcessItem(container, container.length, input_value);
+                    var new_item = processItem(container, container.length, input_value);
                     _rleData.Insert(index, new_item);
                 }
                 else
@@ -228,14 +234,14 @@ namespace FooProject.Collection
                     if (offset > 0)
                     {
                         _rleData.Set(index, new T() { Value = container.Value, length = offset });
-                        _rleData.Insert(index + 1, this.ProcessItem(container, count, input_value));
+                        _rleData.Insert(index + 1, processItem(container, count, input_value));
                         var new_item_length = offseted_length - count;
                         if (new_item_length > 0)
                             _rleData.Insert(index + 2, new T() { Value = container.Value, length = new_item_length });
                     }
                     else
                     {
-                        _rleData.Set(index, this.ProcessItem(container, count, input_value));
+                        _rleData.Set(index, processItem(container, count, input_value));
                         _rleData.Insert(index + 1, new T() { Value = container.Value, length = offseted_length - count });
                     }
                 }
@@ -252,7 +258,7 @@ namespace FooProject.Collection
                     if (container.length == remove_length)
                     {
                         _rleData.RemoveAt(index);
-                        var new_item = this.ProcessItem(container, container.length, input_value);
+                        var new_item = processItem(container, container.length, input_value);
                         _rleData.Insert(index, new_item);
                     }
                     else
@@ -261,12 +267,12 @@ namespace FooProject.Collection
                         {
                             container.length -= remove_length;
                             _rleData.Set(index, container);
-                            var new_item = this.ProcessItem(container, remove_length, input_value);
+                            var new_item = processItem(container, remove_length, input_value);
                             _rleData.Insert(index + 1, new_item);
                         }
                         else
                         {
-                            var new_item = this.ProcessItem(container, remove_length, input_value);
+                            var new_item = processItem(container, remove_length, input_value);
                             _rleData.Insert(index, new_item);
                             container.length -= remove_length;
                             _rleData.Set(index + 1, container);

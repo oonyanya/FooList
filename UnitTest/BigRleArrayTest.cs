@@ -113,30 +113,21 @@ namespace UnitTest
             var list = new BigRleArray<CharRleArray, char>();
             list.AddRange('a', 2);
             list.AddRange('b', 3);
-            list.UpdateRange(2, 2, (item, count) =>
-            {
-                return new CharRleArray('0',count);
-            });
+            list.UpdateRange(2, '0', 2);
             var expected_list = new CharRleArray[] { new CharRleArray('a', 0, 2), new CharRleArray('0', 2, 2), new CharRleArray('b', 4, 1) };
             InterfaceTests.TestEnumerableElements<CharRleArray>(list, expected_list);
 
             list = new BigRleArray<CharRleArray, char>();
             list.AddRange('a', 2);
             list.AddRange('b', 3);
-            list.UpdateRange(3, 1, (item, count) =>
-            {
-                return new CharRleArray('0', count);
-            });
+            list.UpdateRange(3, '0', 1);
             expected_list = new CharRleArray[] { new CharRleArray('a', 0, 2), new CharRleArray('b', 2, 1), new CharRleArray('0', 3, 1), new CharRleArray('b', 4, 1) };
             InterfaceTests.TestEnumerableElements<CharRleArray>(list, expected_list);
 
             list = new BigRleArray<CharRleArray, char>();
             list.AddRange('a', 2);
             list.AddRange('b', 3);
-            list.UpdateRange(3, 2, (item, count) =>
-            {
-                return new CharRleArray('0', count);
-            });
+            list.UpdateRange(3, '0', 2);
             expected_list = new CharRleArray[] { new CharRleArray('a', 0, 2), new CharRleArray('b', 2, 1), new CharRleArray('0', 3, 2)};
             InterfaceTests.TestEnumerableElements<CharRleArray>(list, expected_list);
 
@@ -144,10 +135,7 @@ namespace UnitTest
             list.AddRange('a', 2);
             list.AddRange('b', 3);
             list.AddRange('c', 3);
-            list.UpdateRange(1, 5, (item, count) =>
-            {
-                return new CharRleArray('0', count);
-            });
+            list.UpdateRange(1, '0', 5);
             expected_list = new CharRleArray[] { new CharRleArray('a', 0, 1), new CharRleArray('0', 1, 1), new CharRleArray('0', 2, 3), new CharRleArray('0', 5, 1), new CharRleArray('c', 6, 2) };
             InterfaceTests.TestEnumerableElements<CharRleArray>(list, expected_list);
         }
