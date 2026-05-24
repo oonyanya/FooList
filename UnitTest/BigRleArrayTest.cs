@@ -11,84 +11,63 @@ namespace UnitTest
     [TestClass]
     public class BigRleArrayTest
     {
-        class CharRleArray : IRleArrayRange<char>
+        public class CharRleArray : BigRleArrayRange<char>
         {
-            public char Value { get; set; }
-            public long start { get; set; }
-            public long length { get; set; }
-
             public CharRleArray()
             {
             }
 
-            public CharRleArray(char v, long index,long length)
+            public CharRleArray(char v, long index, long length)
             {
                 this.Value = v;
                 this.start = index;
                 this.length = length;
             }
 
-            public CharRleArray(char v,long length)
+            public CharRleArray(char v, long length)
             {
                 this.Value = v;
                 this.length = length;
             }
-
-            public IRange DeepCopy()
-            {
-                var new_item = new CharRleArray();
-                new_item.start = start;
-                new_item.Value  = Value;
-                new_item.length = length;
-                return new_item;
-            }
-
-            public override bool Equals(object? obj)
-            {
-                var other = obj as CharRleArray;
-                if (other == null) return false;
-                if(other.Value == this.Value && other.length == this.length && other.start == this.start) return true;
-                return false;
-            }
         }
 
         [TestMethod]
-        public void GetTest()
+        public void GetValueTest()
         {
-            var list = new BigRleArray<CharRleArray, char>();
+            var list = new BigRleArray<char>();
             list.AddRange('a');
             list.AddRange('a');
             list.AddRange('a');
             list.AddRange('b');
             list.AddRange('b');
 
-            var item = list.Get(0);
-            Assert.AreEqual('a', item.Value);
+            var item = list.GetValue(0);
+            Assert.AreEqual('a', item);
 
-            var item2 = list.Get(1);
-            Assert.AreEqual('a', item2.Value);
+            var item2 = list.GetValue(1);
+            Assert.AreEqual('a', item2);
 
-            var item3 = list.Get(4);
-            Assert.AreEqual('b', item3.Value);
+            var item3 = list.GetValue(4);
+            Assert.AreEqual('b', item3);
         }
 
         [TestMethod]
         public void AddTest()
         {
-            var list = new BigRleArray<CharRleArray, char>();
+            var list = new BigRleArray<char>();
             list.AddRange('a');
             list.AddRange('a');
             list.AddRange('a');
             list.AddRange('b',2);
 
             var expected_list = new CharRleArray[] { new CharRleArray('a', 0, 3), new CharRleArray('b', 3, 2) };
-            InterfaceTests.TestEnumerableElements<CharRleArray>(list, expected_list);
+            InterfaceTests.TestEnumerableElements(list, expected_list);
         }
 
         [TestMethod]
         public void InsertRangeTest()
         {
-            var list = new BigRleArray<CharRleArray, char>();
+            var list = new BigRleArray<char>();
             list.AddRange('a');
             list.AddRange('a');
             list.AddRange('a');
@@ -100,50 +79,50 @@ namespace UnitTest
             list.InsertRange(4, 'c');
 
             var expected_list = new CharRleArray[] { new CharRleArray('a', 0, 4),  new CharRleArray('c', 4, 1), new CharRleArray('b', 5, 4) };
-            InterfaceTests.TestEnumerableElements<CharRleArray>(list, expected_list);
+            InterfaceTests.TestEnumerableElements(list, expected_list);
 
             list.InsertRange(6, 'd');
             expected_list = new CharRleArray[] { new CharRleArray('a', 0, 4), new CharRleArray('c', 4, 1), new CharRleArray('b', 5, 1), new CharRleArray('d', 6, 1), new CharRleArray('b', 7, 3) };
-            InterfaceTests.TestEnumerableElements<CharRleArray>(list, expected_list);
+            InterfaceTests.TestEnumerableElements(list, expected_list);
         }
 
         [TestMethod]
         public void UpdateRangeTest()
         {
-            var list = new BigRleArray<CharRleArray, char>();
+            var list = new BigRleArray<char>();
             list.AddRange('a', 2);
             list.AddRange('b', 3);
             list.UpdateRange(2, '0', 2);
             var expected_list = new CharRleArray[] { new CharRleArray('a', 0, 2), new CharRleArray('0', 2, 2), new CharRleArray('b', 4, 1) };
-            InterfaceTests.TestEnumerableElements<CharRleArray>(list, expected_list);
+            InterfaceTests.TestEnumerableElements(list, expected_list);
 
-            list = new BigRleArray<CharRleArray, char>();
+            list = new BigRleArray<char>();
             list.AddRange('a', 2);
             list.AddRange('b', 3);
             list.UpdateRange(3, '0', 1);
             expected_list = new CharRleArray[] { new CharRleArray('a', 0, 2), new CharRleArray('b', 2, 1), new CharRleArray('0', 3, 1), new CharRleArray('b', 4, 1) };
-            InterfaceTests.TestEnumerableElements<CharRleArray>(list, expected_list);
+            InterfaceTests.TestEnumerableElements(list, expected_list);
 
-            list = new BigRleArray<CharRleArray, char>();
+            list = new BigRleArray<char>();
             list.AddRange('a', 2);
             list.AddRange('b', 3);
             list.UpdateRange(3, '0', 2);
             expected_list = new CharRleArray[] { new CharRleArray('a', 0, 2), new CharRleArray('b', 2, 1), new CharRleArray('0', 3, 2)};
-            InterfaceTests.TestEnumerableElements<CharRleArray>(list, expected_list);
+            InterfaceTests.TestEnumerableElements(list, expected_list);
 
-            list = new BigRleArray<CharRleArray, char>();
+            list = new BigRleArray<char>();
             list.AddRange('a', 2);
             list.AddRange('b', 3);
             list.AddRange('c', 3);
             list.UpdateRange(1, '0', 5);
             expected_list = new CharRleArray[] { new CharRleArray('a', 0, 1), new CharRleArray('0', 1, 1), new CharRleArray('0', 2, 3), new CharRleArray('0', 5, 1), new CharRleArray('c', 6, 2) };
-            InterfaceTests.TestEnumerableElements<CharRleArray>(list, expected_list);
+            InterfaceTests.TestEnumerableElements(list, expected_list);
         }
 
         [TestMethod]
         public void RemoveTest()
         {
-            var list = new BigRleArray<CharRleArray, char>();
+            var list = new BigRleArray<char>();
             list.AddRange('a');
             list.AddRange('a');
             list.AddRange('a');
@@ -153,31 +132,31 @@ namespace UnitTest
             list.RemoveRange(1);
 
             var expected_list = new CharRleArray[] { new CharRleArray('a', 0, 2), new CharRleArray('b', 2, 2) };
-            InterfaceTests.TestEnumerableElements<CharRleArray>(list, expected_list);
+            InterfaceTests.TestEnumerableElements(list, expected_list);
 
-            list = new BigRleArray<CharRleArray, char>();
+            list = new BigRleArray<char>();
             list.AddRange('a', 2);
             list.AddRange('b', 3);
             list.RemoveRange(0,3);
             expected_list = new CharRleArray[] { new CharRleArray('b', 0, 2) };
-            InterfaceTests.TestEnumerableElements<CharRleArray>(list, expected_list);
+            InterfaceTests.TestEnumerableElements(list, expected_list);
 
-            list = new BigRleArray<CharRleArray, char>();
+            list = new BigRleArray<char>();
             list.AddRange('a', 2);
             list.AddRange('b', 3);
             list.RemoveRange(1, 4);
             expected_list = new CharRleArray[] { new CharRleArray('a', 0, 1) };
-            InterfaceTests.TestEnumerableElements<CharRleArray>(list, expected_list);
+            InterfaceTests.TestEnumerableElements(list, expected_list);
 
-            list = new BigRleArray<CharRleArray, char>();
+            list = new BigRleArray<char>();
             list.AddRange('a', 2);
             list.AddRange('b', 3);
             list.AddRange('c', 2);
             list.RemoveRange(1, 5);
             expected_list = new CharRleArray[] { new CharRleArray('a', 0, 1), new CharRleArray('c', 1, 1) };
-            InterfaceTests.TestEnumerableElements<CharRleArray>(list, expected_list);
+            InterfaceTests.TestEnumerableElements(list, expected_list);
 
-            list = new BigRleArray<CharRleArray, char>();
+            list = new BigRleArray<char>();
             list.AddRange('a',2);
             list.AddRange('b',3);
             list.RemoveRange(0, 5);
