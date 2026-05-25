@@ -39,6 +39,24 @@ namespace TextReaderDemo
     {
     }
 
+    [Verb("setmarker", HelpText = "Set Marker")]
+    public class SetMarkerCommnad : IJob
+    {
+        [Value(0, MetaName = "IndexValue")]
+        public int Index { get; set; }
+        [Value(1, MetaName = "CountValue")]
+        public int Count { get; set; }
+    }
+
+    [Verb("unsetmarker", HelpText = "Unset Marker")]
+    public class UnSetMarkerCommnad : IJob
+    {
+        [Value(0, MetaName = "IndexValue")]
+        public int Index { get; set; }
+        [Value(1, MetaName = "CountValue")]
+        public int Count { get; set; }
+    }
+
     [Verb("load", HelpText = "Load block")]
     public class LoadCommnad : IJob
     {

@@ -7,7 +7,9 @@ using System.Reflection.Emit;
 using System.Runtime;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Timers;
 using CommandLine;
+using EditorDemo;
 using FooProject.Collection;
 using FooProject.Collection.DataStore;
 using SharedDemoProgram;
@@ -63,6 +65,7 @@ BigList<char> biglist1 = new BigList<char>();
 biglist1.CustomBuilder = customConverter;
 biglist1.LeastFetchStore = customConverter;
 biglist1.BlockSize = 32768;
+MarkerCollection markerCollection = new MarkerCollection();
 
 var exitflag = false;
 while (exitflag == false)
@@ -72,7 +75,17 @@ while (exitflag == false)
     string cmd = Console.ReadLine();
 
     string[] cmds = cmd.Split(" ");
-    await Parser.Default.ParseArguments<LoadCommnad, LoadAllCommnad, LoadAsyncCommnad, LoadAsyncAllCommnad, SaveCommand, UsageCommnad, InsertCommand, RemoveCommand, ShowCommand, ExitCommnad, FindCommand>(cmds)
+    await Parser.Default.ParseArguments<SetMarkerCommnad,UnSetMarkerCommnad, LoadCommnad, LoadAllCommnad, LoadAsyncCommnad, LoadAsyncAllCommnad, SaveCommand, UsageCommnad, InsertCommand, RemoveCommand, ShowCommand, ExitCommnad, FindCommand>(cmds)
+        .WithParsed<SetMarkerCommnad>(opt =>
+        {
+            markerCollection.Set(opt.Index, opt.Count, Marker.Hilight);
+            Console.WriteLine($"success");
+        })
+        .WithParsed<UnSetMarkerCommnad>(opt =>
+        {
+            markerCollection.Unset(opt.Index, opt.Count, Marker.Hilight);
+            Console.WriteLine($"success");
+        })
         .WithParsed<LoadCommnad>(opt =>
         {
             var time = BenchmarkRunner.Run(() =>
@@ -86,6 +99,7 @@ while (exitflag == false)
                         break;
                     biglist1.Add(pinableContainer);
                 }
+                markerCollection.Add(Marker.None, opt.Count * biglist1.BlockSize);
             });
             Console.WriteLine($"success to load. elapsed time:{time} ms");
         })
@@ -99,6 +113,7 @@ while (exitflag == false)
                     if (pinableContainer == null)
                         break;
                     biglist1.Add(pinableContainer);
+                    markerCollection.Add(Marker.None, biglist1.Count);
                 }
             });
             Console.WriteLine($"success to load.elapsed time:{time} ms");
@@ -203,7 +218,17 @@ while (exitflag == false)
                 {
                     text = new string(biglist1.GetRangeEnumerable(number, length).ToArray());
                 });
+
+                var marker_count = 0;
+                for(int i = 0; i < length; i++)
+                {
+                    if(markerCollection.Get(number + i).HasFlag(Marker.Hilight))
+                    {
+                        marker_count++;
+                    }
+                }
                 Console.WriteLine(text);
+                Console.WriteLine($"marker_count:{marker_count}");
                 Console.WriteLine($"elapsed time:{time} ms");
             }
             else
@@ -264,6 +289,7 @@ while (exitflag == false)
                         return;
                     biglist1.Add(pinableContainer);
                 }
+                markerCollection.Add(Marker.None, opt.Count * biglist1.BlockSize);
             });
             Console.WriteLine($"success to load.elapsed time:{time} ms");
         })
@@ -279,6 +305,7 @@ while (exitflag == false)
                     if (pinableContainer == null)
                         break;
                     biglist1.Add(pinableContainer);
+                    markerCollection.Add(Marker.None, biglist1.Count);
                 }
             });
             Console.WriteLine($"success to load.elapsed time:{time} ms");
