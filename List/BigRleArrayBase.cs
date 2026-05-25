@@ -13,15 +13,34 @@ using System.Threading.Tasks;
 
 namespace FooProject.Collection
 {
+    /// <summary>
+    /// IRleArrayRangeインターフェイス
+    /// </summary>
+    /// <typeparam name="J"></typeparam>
     public interface IRleArrayRange<J> : IRange
     {
         J Value { get; set; }
     }
 
+    /// <summary>
+    /// RleArrayを格納するためのコレクションの基底クラス
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class BigRleArrayBase<T>: IEnumerable<IRleArrayRange<T>>
     {
         BigRangeList<IRleArrayRange<T>> _rleData = new BigRangeList<IRleArrayRange<T>>();
 
+        /// <summary>
+        /// IRleArrayRangeを格納しているコレクション
+        /// </summary>
+        protected BigRangeList<IRleArrayRange<T>> RleData
+        {
+            get { return _rleData; }
+        }
+
+        /// <summary>
+        /// 要素数
+        /// </summary>
         public int Count
         {
             get {
@@ -88,18 +107,24 @@ namespace FooProject.Collection
             return container.Value;
         }
 
-        public IRleArrayRange<T> Get(long absolute_index)
+        /// <summary>
+        ///　対応するIRleArrayRangeを取得する
+        /// </summary>
+        /// <param name="absolute_index">取得対象の絶対インデックス</param>
+        /// <returns></returns>
+        protected IRleArrayRange<T> Get(long absolute_index)
         {
             return this.Get(absolute_index, out _);
         }
 
         /// <summary>
-        /// 
+        ///　対応するIRleArrayRangeを取得する
         /// </summary>
-        /// <param name="absolute_index"></param>
+        /// <param name="absolute_index">取得対象の絶対インデックス</param>
+        /// <param name="index">IRleArrayRangeが存在するインデックス</param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public IRleArrayRange<T> Get(long absolute_index, out long index)
+        protected IRleArrayRange<T> Get(long absolute_index, out long index)
         {
             var i = _rleData.GetIndexFromAbsoluteIndexIntoRange(absolute_index);
             if (i == -1)
@@ -110,6 +135,10 @@ namespace FooProject.Collection
             return container;
         }
 
+        /// <summary>
+        /// 列挙子を返す
+        /// </summary>
+        /// <returns></returns>
         public IEnumerator<IRleArrayRange<T>> GetEnumerator()
         {
             foreach(var item in _rleData)
@@ -215,7 +244,14 @@ namespace FooProject.Collection
             }
         }
 
-        IRleArrayRange<T> defaultProcessItem(IRleArrayRange<T> container, long count, T input)
+        /// <summary>
+        /// デフォルトのアイテム処理用メソッド
+        /// </summary>
+        /// <param name="container">処理対象のコンテナー</param>
+        /// <param name="count">出力すべき数</param>
+        /// <param name="input">入力アイテム</param>
+        /// <returns>カスタム処理を実装したい場合、continerを複製してください。</returns>
+        protected virtual IRleArrayRange<T> defaultProcessItem(IRleArrayRange<T> container, long count, T input)
         {
             return CreateItem( length:count, value:input );
         }

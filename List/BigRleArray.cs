@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -21,12 +22,24 @@ namespace FooProject.Collection
             this.Value = v;
             this.start = index;
             this.length = length;
+            this.OnInit(v, index, length);
         }
 
         public BigRleArrayRange(T v, long length)
         {
             this.Value = v;
             this.length = length;
+            this.OnInit(v, start, length);
+        }
+
+        /// <summary>
+        /// 初期化時に呼び出される
+        /// </summary>
+        /// <param name="v"></param>
+        /// <param name="index"></param>
+        /// <param name="length"></param>
+        public virtual void OnInit(T v, long index, long length)
+        {
         }
 
         public IRange DeepCopy()
@@ -44,6 +57,11 @@ namespace FooProject.Collection
             if (other == null) return false;
             if (other.Value.Equals(this.Value) && other.length == this.length && other.start == this.start) return true;
             return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
         }
     }
 
