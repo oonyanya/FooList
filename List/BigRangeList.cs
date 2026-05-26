@@ -206,9 +206,28 @@ namespace FooProject.Collection
         /// <remarks>IRangeインターフェイスのstartの値は変換される</remarks>
         public override IEnumerator<T> GetEnumerator()
         {
-            for (int i = 0; i < this.Count; i++)
+            LeastFetchStore.ResetState();
+
+            LeafNode<T> current = GetNodeFromAbsoluteIndexIntoRange(0, out _);
+
+            var fetchedTotalRangeCount = 0L;
+            while (current != null)
             {
-                yield return GetWithConvertAbsolteIndex(i);
+                using (var pinnedContent = CustomBuilder.DataStore.Get(current.container))
+                {
+                    var nodeItems = pinnedContent.Content;
+                    foreach (T item in nodeItems)
+                    {
+                        T result = (T)item.DeepCopy();
+                        result.start = item.start + fetchedTotalRangeCount;
+                        result.length = item.length;
+                        yield return result;
+                    }
+                }
+
+                var rangeLeafNode = (RangeLeafNode<T>)current;
+                fetchedTotalRangeCount += rangeLeafNode.TotalRangeCount;
+                current = current.Next;
             }
         }
     }
