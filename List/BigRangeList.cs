@@ -126,12 +126,7 @@ namespace FooProject.Collection
             return GetIndexFromAbsoluteIndexIntoRange(indexIntoRange);
         }
 
-        /// <summary>
-        /// 絶対的な位置、すなわちインデックスに対応する要素の番号を返す
-        /// </summary>
-        /// <param name="index">0から始まる数値。絶対的な位置を指定しないといけない</param>
-        /// <returns>0から始まる要素の番号。見つからない場合は-1を返す</returns>
-        public long GetIndexFromAbsoluteIndexIntoRange(long indexIntoRange)
+        protected LeafNode<T> GetNodeFromAbsoluteIndexIntoRange(long indexIntoRange, out long resultRelativeIndexIntoRange)
         {
             RangeConverter<T> myCustomConverter = (RangeConverter<T>)LeastFetchStore;
             long relativeIndexIntoRange = indexIntoRange;
@@ -152,6 +147,22 @@ namespace FooProject.Collection
                     return NodeWalkDirection.Right;
                 }
             });
+
+            resultRelativeIndexIntoRange = relativeIndexIntoRange;
+            return (LeafNode<T>)node;
+        }
+
+        /// <summary>
+        /// 絶対的な位置、すなわちインデックスに対応する要素の番号を返す
+        /// </summary>
+        /// <param name="index">0から始まる数値。絶対的な位置を指定しないといけない</param>
+        /// <returns>0から始まる要素の番号。見つからない場合は-1を返す</returns>
+        public long GetIndexFromAbsoluteIndexIntoRange(long indexIntoRange)
+        {
+            RangeConverter<T> myCustomConverter = (RangeConverter<T>)LeastFetchStore;
+            long relativeIndexIntoRange;
+
+            var node = this.GetNodeFromAbsoluteIndexIntoRange(indexIntoRange, out relativeIndexIntoRange);
 
             long relativeIndex, relativeNearIndex;
             var leafNode = (LeafNode<T>)node;
