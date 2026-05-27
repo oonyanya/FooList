@@ -39,6 +39,36 @@ namespace UnitTest
         }
 
         [TestMethod]
+        public void GetRangeFromAbsoluteIndexIntoRangeTest()
+        {
+            BigRangeList<MyRange> list = new BigRangeList<MyRange>();
+            const int length = 3;
+            int index = 0;
+            for (int i = 0; i < 8; i++)
+            {
+                list.Add(new MyRange(index, length));
+                index += length;
+            }
+
+            var expected = new int[] { 0, 3, 6, };
+            index = 0;
+            foreach(var test_item in list.GetRangeFromAbsoluteIndexIntoRange(1, 6))
+            {
+                Assert.AreEqual(expected[index], test_item.start);
+                Assert.AreEqual(length, test_item.length);
+                index++;
+            }
+
+            index = 0;
+            foreach (var test_item in list.GetRangeFromAbsoluteIndexIntoRange(0, 6))
+            {
+                Assert.AreEqual(expected[index], test_item.start);
+                Assert.AreEqual(length, test_item.length);
+                index++;
+            }
+        }
+
+        [TestMethod]
         public void AddRangeTest()
         {
             var list = new BigRangeList<MyRange>();

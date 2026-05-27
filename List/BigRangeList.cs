@@ -206,9 +206,45 @@ namespace FooProject.Collection
         /// <remarks>IRangeインターフェイスのstartの値は変換される</remarks>
         public override IEnumerator<T> GetEnumerator()
         {
+            foreach(var item in this.GetFromAbsoluteIndexIntoRange(0))
+            {
+                yield return item;
+            }
+        }
+
+        /// <summary>
+        /// 範囲内の列挙子を取得する
+        /// </summary>
+        /// <param name="absolteIndex">開始インデックス</param>
+        /// <param name="count">長さ</param>
+        /// <returns>列挙子を取得する</returns>
+        /// <remarks>IRangeインターフェイスのstartの値は変換される</remarks>
+        public IEnumerable<T> GetRangeFromAbsoluteIndexIntoRange(long absolteIndex,long count)
+        {
+            var leftCount = count;
+            foreach (var item in this.GetFromAbsoluteIndexIntoRange(0))
+            {
+                if(leftCount < 0)
+                    yield break;
+
+                yield return item;
+
+                if(absolteIndex >= item.start && absolteIndex <= item.start + item.length)
+                {
+                    leftCount = absolteIndex - item.start;
+                }
+                else
+                {
+                    leftCount -= item.length;
+                }
+            }
+        }
+
+        IEnumerable<T> GetFromAbsoluteIndexIntoRange(long absolteIndex)
+        {
             LeastFetchStore.ResetState();
 
-            LeafNode<T> current = GetNodeFromAbsoluteIndexIntoRange(0, out _);
+            LeafNode<T> current = GetNodeFromAbsoluteIndexIntoRange(absolteIndex, out _);
 
             var fetchedTotalRangeCount = 0L;
             while (current != null)
