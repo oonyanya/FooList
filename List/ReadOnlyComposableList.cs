@@ -86,7 +86,7 @@ namespace FooProject.Collection
         /// <inheritdoc/>
         public ReadOnlySequence<T> Slice(int index, int count)
         {
-            return new ReadOnlySequence<T>(items.AsMemory());
+            return new ReadOnlySequence<T>(items.AsMemory(index,count));
         }
 
         /// <inheritdoc/>
