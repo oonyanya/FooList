@@ -145,7 +145,8 @@ namespace FooProject.Collection
         public IEnumerable<IRleArrayRange<T>> GetRangesAndClamp(long absolute_index,long count)
         {
             var left_count = count;
-            foreach(var item in _rleData.GetRangeFromAbsoluteIndexIntoRange(absolute_index, count))
+            var ranges = _rleData.GetRangeFromAbsoluteIndexIntoRange(absolute_index, count);
+            foreach (var item in ranges)
             {
                 var clamped_count = item.length;
                 if(absolute_index > item.start && absolute_index <= item.start + item.length)

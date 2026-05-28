@@ -231,7 +231,7 @@ namespace FooProject.Collection
 
                 if (absolteIndex >= item.start && absolteIndex <= item.start + item.length)
                 {
-                    leftCount = absolteIndex - item.start;
+                    leftCount -= item.length - (absolteIndex - item.start);
                 }
                 else
                 {

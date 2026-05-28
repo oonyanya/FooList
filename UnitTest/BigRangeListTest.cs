@@ -50,7 +50,7 @@ namespace UnitTest
                 index += length;
             }
 
-            var expected = new int[] { 0, 3, 6, };
+            var expected = new int[] { 0, 3, 6, 9 };
             index = 0;
             foreach(var test_item in list.GetRangeFromAbsoluteIndexIntoRange(1, 6))
             {
