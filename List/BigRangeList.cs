@@ -224,12 +224,12 @@ namespace FooProject.Collection
             var leftCount = count;
             foreach (var item in this.GetFromAbsoluteIndexIntoRange(0))
             {
-                if(leftCount < 0)
-                    yield break;
-
                 yield return item;
 
-                if(absolteIndex >= item.start && absolteIndex <= item.start + item.length)
+                if (leftCount < 0)
+                    yield break;
+
+                if (absolteIndex >= item.start && absolteIndex <= item.start + item.length)
                 {
                     leftCount = absolteIndex - item.start;
                 }

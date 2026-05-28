@@ -138,6 +138,36 @@ namespace FooProject.Collection
         /// <summary>
         /// 列挙子を返す
         /// </summary>
+        /// <param name="absolute_index">開始インデックス</param>
+        /// <param name="count">長さ</param>
+        /// <returns>列挙子</returns>
+        /// <remarks>IRleArrayRangeのstartとlengthは開始インデックスと長さの範囲内になるように調整されます</remarks>
+        public IEnumerable<IRleArrayRange<T>> GetRangesAndClamp(long absolute_index,long count)
+        {
+            var left_count = count;
+            foreach(var item in _rleData.GetRangeFromAbsoluteIndexIntoRange(absolute_index, count))
+            {
+                var clamped_count = item.length;
+                if(absolute_index > item.start && absolute_index <= item.start + item.length)
+                {
+                    clamped_count = item.length - absolute_index;
+                    yield return this.CreateItem(item.Value, absolute_index, clamped_count);
+                }
+                else if(left_count < clamped_count)
+                {
+                    yield return this.CreateItem(item.Value, item.start, left_count);
+                }
+                else
+                {
+                    yield return this.CreateItem(item.Value, item.start, clamped_count);
+                }
+                left_count -= clamped_count;
+            }
+        }
+
+        /// <summary>
+        /// 列挙子を返す
+        /// </summary>
         /// <returns></returns>
         public IEnumerator<IRleArrayRange<T>> GetEnumerator()
         {
