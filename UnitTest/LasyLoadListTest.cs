@@ -298,6 +298,14 @@ namespace UnitTest
                 Assert.AreEqual(str[i], list[i]);
             }
 
+            const int SEP_TEST_SIZE = 10;
+            var actual = list.GetRangeEnumerable(0, SEP_TEST_SIZE).ToArray();
+            Assert.AreEqual(SEP_TEST_SIZE, actual.Length);
+            for (int i = 0; i < actual.Length; i++)
+            {
+                Assert.AreEqual(str[i], actual[i]);
+            }
+
             datastore.CompleteAsync().Wait();
         }
 
@@ -402,6 +410,14 @@ namespace UnitTest
             for (int i = 0; i < str.Length; i++)
             {
                 Assert.AreEqual(str[i], list[i]);
+            }
+
+            const int SEP_TEST_SIZE = 10;
+            var actual = list.GetRangeEnumerable(0, SEP_TEST_SIZE).ToArray();
+            Assert.AreEqual(SEP_TEST_SIZE, actual.Length);
+            for (int i = 0; i < actual.Length; i++)
+            {
+                Assert.AreEqual(str[i], actual[i]);
             }
         }
 
