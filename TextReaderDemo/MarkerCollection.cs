@@ -11,7 +11,8 @@ namespace EditorDemo
     public enum Marker
     {
         None = 0,
-        Hilight = 1,
+        Important = 1,
+        Hilight = 2,
     }
 
     public class MarkerCollection
@@ -41,7 +42,9 @@ namespace EditorDemo
         {
             collection.UpdateRange(index, value, count, (container, require_count, inputed_value) =>
             {
-                var new_value = container.Value ^ inputed_value;
+                var new_value = Marker.None;
+                if (value != Marker.None)
+                    new_value = container.Value ^ inputed_value;
                 return new BigRleArrayRange<Marker>(new_value, require_count);
             });
         }

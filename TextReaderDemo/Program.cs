@@ -79,12 +79,20 @@ while (exitflag == false)
     await Parser.Default.ParseArguments<SetMarkerCommnad,UnSetMarkerCommnad, LoadCommnad, LoadAllCommnad, LoadAsyncCommnad, LoadAsyncAllCommnad, SaveCommand, UsageCommnad, InsertCommand, RemoveCommand, ShowCommand, ExitCommnad, FindCommand>(cmds)
         .WithParsed<SetMarkerCommnad>(opt =>
         {
-            markerCollection.Set(opt.Index, opt.Count, Marker.Hilight);
-            Console.WriteLine($"success");
+            var value = (Marker)opt.Type;
+            if(Enum.IsDefined(typeof(Marker),value))
+            {
+                markerCollection.Set(opt.Index, opt.Count, value);
+                Console.WriteLine($"success");
+            }
+            else
+            {
+                Console.WriteLine($"failed");
+            }
         })
         .WithParsed<UnSetMarkerCommnad>(opt =>
         {
-            markerCollection.Unset(opt.Index, opt.Count, Marker.Hilight);
+            markerCollection.Unset(opt.Index, opt.Count, Marker.None);
             Console.WriteLine($"success");
         })
         .WithParsed<LoadCommnad>(opt =>
@@ -226,10 +234,38 @@ while (exitflag == false)
 
                 foreach(var text in texts)
                 {
-                    if(text.Marker.HasFlag(Marker.Hilight))
-                        Console.Write("\u001b[31m{0}\u001b[0m", text.Text);
-                    else
-                        Console.Write(text.Text);
+                    StringBuilder esc_text = new StringBuilder();
+
+                    esc_text.Append("\u001b[");
+
+                    var has_maker_count = 0;
+
+                    if (text.Marker.HasFlag(Marker.Important))
+                    {
+                        esc_text.Append("31");
+                        has_maker_count++;
+                    }
+
+
+                    if (text.Marker.HasFlag(Marker.Hilight))
+                    {
+                        if (has_maker_count > 0)
+                            esc_text.Append(";");
+
+                        esc_text.Append("43");
+                        has_maker_count++;
+                    }
+
+                    if (has_maker_count == 0)
+                       esc_text.Append("0");
+
+                    esc_text.Append("m");
+
+                    Console.Write(esc_text);
+
+                    Console.Write(text.Text);
+
+                    Console.Write("\u001b[0m");
                 }
                 Console.WriteLine($"elapsed time:{time} ms");
             }

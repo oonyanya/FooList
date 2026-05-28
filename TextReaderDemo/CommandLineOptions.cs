@@ -46,6 +46,8 @@ namespace TextReaderDemo
         public int Index { get; set; }
         [Value(1, MetaName = "CountValue")]
         public int Count { get; set; }
+        [Value(2, MetaName = "TypeValue", HelpText = "See Marker class")]
+        public int Type { get; set; }
     }
 
     [Verb("unsetmarker", HelpText = "Unset Marker")]
@@ -55,6 +57,8 @@ namespace TextReaderDemo
         public int Index { get; set; }
         [Value(1, MetaName = "CountValue")]
         public int Count { get; set; }
+        [Value(2, MetaName = "TypeValue", Required = false)]
+        public int Type { get; set; }
     }
 
     [Verb("load", HelpText = "Load block")]
