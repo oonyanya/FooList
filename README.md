@@ -57,8 +57,13 @@ var list = new BigRleArray<char>();
 list.AddRange('a',2);
 list.AddRange('b',2);
 
-// レタリングを行う部分などで呼び出す
-var item = list.Get(0);
+foreach(var item in list.GetRangesAndClamp(1, 2))
+{
+	if(item.Value == 'a')
+	{
+		//レンダリングを行う
+	}
+}
 ```
 
 詳しい使い方はUnitTest/BigRleArrayTest.csを参照してください。
