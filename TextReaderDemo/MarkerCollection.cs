@@ -46,5 +46,10 @@ namespace EditorDemo
             });
         }
 
+        public IEnumerable<IRleArrayRange<Marker>> GetRanges(int index,int count)
+        {
+             return collection.GetRangesAndClamp(index, count);
+        }
+
     }
 }

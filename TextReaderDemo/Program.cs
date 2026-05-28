@@ -14,6 +14,7 @@ using FooProject.Collection;
 using FooProject.Collection.DataStore;
 using SharedDemoProgram;
 using TextReaderDemo;
+using static System.Net.Mime.MediaTypeNames;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 const int DEFAULT_SHOW_LENGTH = 1024;
@@ -213,22 +214,23 @@ while (exitflag == false)
                 {
                     length = biglist1.Count - number;
                 }
-                string text = string.Empty;
+                List<(string Text, Marker Marker)> texts = new List<(string, Marker)>();
                 var time = BenchmarkRunner.Run(() =>
                 {
-                    text = new string(biglist1.GetRangeEnumerable(number, length).ToArray());
+                    foreach(var data in markerCollection.GetRanges(number, length))
+                    {
+                        var text = new string(biglist1.GetRangeEnumerable(data.start, data.length).ToArray());
+                        texts.Add((text, data.Value));
+                    }
                 });
 
-                var marker_count = 0;
-                for(int i = 0; i < length; i++)
+                foreach(var text in texts)
                 {
-                    if(markerCollection.Get(number + i).HasFlag(Marker.Hilight))
-                    {
-                        marker_count++;
-                    }
+                    if(text.Marker.HasFlag(Marker.Hilight))
+                        Console.Write("\u001b[31m{0}\u001b[0m", text.Text);
+                    else
+                        Console.Write(text.Text);
                 }
-                Console.WriteLine(text);
-                Console.WriteLine($"marker_count:{marker_count}");
                 Console.WriteLine($"elapsed time:{time} ms");
             }
             else
