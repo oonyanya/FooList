@@ -126,7 +126,7 @@ namespace FooProject.Collection
             return GetIndexFromAbsoluteIndexIntoRange(indexIntoRange);
         }
 
-        protected LeafNode<T> GetNodeFromAbsoluteIndexIntoRange(long indexIntoRange, out long resultRelativeIndexIntoRange)
+        protected override LeafNode<T> GetNodeFromAbsoluteIndexIntoRange(long indexIntoRange, out long resultRelativeIndexIntoRange)
         {
             RangeConverter<T> myCustomConverter = (RangeConverter<T>)LeastFetchStore;
             long relativeIndexIntoRange = indexIntoRange;
@@ -152,120 +152,6 @@ namespace FooProject.Collection
             return (LeafNode<T>)node;
         }
 
-        /// <summary>
-        /// 絶対的な位置、すなわちインデックスに対応する要素の番号を返す
-        /// </summary>
-        /// <param name="index">0から始まる数値。絶対的な位置を指定しないといけない</param>
-        /// <returns>0から始まる要素の番号。見つからない場合は-1を返す</returns>
-        public long GetIndexFromAbsoluteIndexIntoRange(long indexIntoRange)
-        {
-            RangeConverter<T> myCustomConverter = (RangeConverter<T>)LeastFetchStore;
-            long relativeIndexIntoRange;
-
-            var node = this.GetNodeFromAbsoluteIndexIntoRange(indexIntoRange, out relativeIndexIntoRange);
-
-            long relativeIndex, relativeNearIndex;
-            var leafNode = (LeafNode<T>)node;
-            using (var pinnedContent = CustomBuilder.DataStore.Get(leafNode.container))
-            {
-                var leafNodeItems = pinnedContent.Content;
-                relativeIndex = this.IndexOfNearest(leafNodeItems, relativeIndexIntoRange, out relativeNearIndex);
-            }
-
-            if (relativeIndex == -1)
-            {
-                myCustomConverter.ResetState();
-                return -1;
-            }
-            return relativeIndex + myCustomConverter.customLeastFetch.TotalLeftCount;
-        }
-
-        int IndexOfNearest(IList<T> collection, long start, out long nearIndex)
-        {
-            return this.IndexOfNearest(collection, start, (s, line) => {
-                var lineHeadIndex = line.start;
-                if (s >= lineHeadIndex && s < lineHeadIndex + line.length)
-                {
-                    return 0;
-                }
-                if (start < lineHeadIndex)
-                {
-                    return -1;
-                }
-                else
-                {
-                    return 1;
-                }
-            }, out nearIndex);
-        }
-
-        /// <summary>
-        /// 列挙子を取得する
-        /// </summary>
-        /// <returns>列挙子を取得する</returns>
-        /// <remarks>IRangeインターフェイスのstartの値は変換される</remarks>
-        public override IEnumerator<T> GetEnumerator()
-        {
-            foreach(var item in this.GetFromAbsoluteIndexIntoRange(0))
-            {
-                yield return item;
-            }
-        }
-
-        /// <summary>
-        /// 範囲内の列挙子を取得する
-        /// </summary>
-        /// <param name="absolteIndex">開始インデックス</param>
-        /// <param name="count">長さ</param>
-        /// <returns>列挙子を取得する</returns>
-        /// <remarks>IRangeインターフェイスのstartの値は変換される</remarks>
-        public IEnumerable<T> GetRangeFromAbsoluteIndexIntoRange(long absolteIndex,long count)
-        {
-            var leftCount = count;
-            foreach (var item in this.GetFromAbsoluteIndexIntoRange(0))
-            {
-                yield return item;
-
-                if (leftCount < 0)
-                    yield break;
-
-                if (absolteIndex >= item.start && absolteIndex <= item.start + item.length)
-                {
-                    leftCount -= item.length - (absolteIndex - item.start);
-                }
-                else
-                {
-                    leftCount -= item.length;
-                }
-            }
-        }
-
-        IEnumerable<T> GetFromAbsoluteIndexIntoRange(long absolteIndex)
-        {
-            LeastFetchStore.ResetState();
-
-            LeafNode<T> current = GetNodeFromAbsoluteIndexIntoRange(absolteIndex, out _);
-
-            var fetchedTotalRangeCount = 0L;
-            while (current != null)
-            {
-                using (var pinnedContent = CustomBuilder.DataStore.Get(current.container))
-                {
-                    var nodeItems = pinnedContent.Content;
-                    foreach (T item in nodeItems)
-                    {
-                        T result = (T)item.DeepCopy();
-                        result.start = item.start + fetchedTotalRangeCount;
-                        result.length = item.length;
-                        yield return result;
-                    }
-                }
-
-                var rangeLeafNode = (RangeLeafNode<T>)current;
-                fetchedTotalRangeCount += rangeLeafNode.TotalRangeCount;
-                current = current.Next;
-            }
-        }
     }
 
     internal interface IRangeNode
