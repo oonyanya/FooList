@@ -121,7 +121,7 @@ namespace FooProject.Collection
             return GetIndexFromAbsoluteIndexIntoRange(indexIntoRange);
         }
 
-        public long GetIndexFromAbsoluteIndexIntoRange(long indexIntoRange)
+        public override long GetIndexFromAbsoluteIndexIntoRange(long indexIntoRange)
         {
             return this.GetIndexFromAbsoluteIndexIntoRange(indexIntoRange, out _, out _);
         }
@@ -137,28 +137,9 @@ namespace FooProject.Collection
         {
             RangeAndHeightConverter<T> myCustomConverter = (RangeAndHeightConverter<T>)LeastFetchStore;
             long relativeIndexIntoRange = indexIntoRange;
-
-            var node = WalkNode((current, leftCount) => {
-                var rangeLeftNode = (IRangeAndHeightNode)current.Left;
-                long leftTotalSumCount = rangeLeftNode.TotalRangeCount;
-                double leftTotalSumHeight = rangeLeftNode.TotalHeightCount;
-
-                if (relativeIndexIntoRange < leftTotalSumCount)
-                {
-                    return NodeWalkDirection.Left;
-                }
-                else
-                {
-                    relativeIndexIntoRange -= leftTotalSumCount;
-                    myCustomConverter.customLeastFetch.TotalLeftCount += leftCount;
-                    myCustomConverter.customLeastFetch.absoluteIndexIntoRange += leftTotalSumCount;
-                    myCustomConverter.customLeastFetch.absoluteSumHeight += leftTotalSumHeight;
-                    return NodeWalkDirection.Right;
-                }
-            });
+            var leafNode = GetNodeFromAbsoluteIndexIntoRange(indexIntoRange, out relativeIndexIntoRange);
 
             long relativeIndex, relativeNearIndex;
-            var leafNode = (LeafNode<T>)node;
             using (var pinnedContent = CustomBuilder.DataStore.Get(leafNode.container))
             {
                 var leafNodeItems = pinnedContent.Content;
@@ -251,7 +232,9 @@ namespace FooProject.Collection
             return relativeIndex + myCustomConverter.customLeastFetch.TotalLeftCount;
         }
 
-        int IndexOfNearest(IList<T> collection, long start, out long nearIndex)
+        //テストで落ちるので上書きする
+        //TODO:落ちないようにする
+        new int IndexOfNearest(IList<T> collection, long start, out long nearIndex)
         {
             return this.IndexOfNearest(collection, start, (s, line) => {
                 var lineHeadIndex = line.start;
@@ -289,16 +272,64 @@ namespace FooProject.Collection
             }, out nearIndex);
         }
 
-        /// <summary>
-        /// 列挙子を取得する
-        /// </summary>
-        /// <returns>列挙子を取得する</returns>
-        /// <remarks>IRangeインターフェイスのstartの値は変換される</remarks>
-        public override IEnumerator<T> GetEnumerator()
+        protected override LeafNode<T> GetNodeFromAbsoluteIndexIntoRange(long indexIntoRange, out long resultRelativeIndexIntoRange)
         {
-            for (int i = 0; i < this.Count; i++)
+            RangeAndHeightConverter<T> myCustomConverter = (RangeAndHeightConverter<T>)LeastFetchStore;
+            var relativeIndexIntoRange = indexIntoRange;
+            var node = WalkNode((current, leftCount) => {
+                var rangeLeftNode = (IRangeAndHeightNode)current.Left;
+                long leftTotalSumCount = rangeLeftNode.TotalRangeCount;
+                double leftTotalSumHeight = rangeLeftNode.TotalHeightCount;
+
+                if (relativeIndexIntoRange < leftTotalSumCount)
+                {
+                    return NodeWalkDirection.Left;
+                }
+                else
+                {
+                    relativeIndexIntoRange -= leftTotalSumCount;
+                    myCustomConverter.customLeastFetch.TotalLeftCount += leftCount;
+                    myCustomConverter.customLeastFetch.absoluteIndexIntoRange += leftTotalSumCount;
+                    myCustomConverter.customLeastFetch.absoluteSumHeight += leftTotalSumHeight;
+                    return NodeWalkDirection.Right;
+                }
+            });
+            resultRelativeIndexIntoRange = relativeIndexIntoRange;
+            return (LeafNode<T>)node;
+        }
+
+        /// <summary>
+        /// 列挙する
+        /// </summary>
+        /// <param name="absolteIndex">列挙を開始する開始インデックス</param>
+        /// <returns></returns>
+        protected override IEnumerable<T> GetFromAbsoluteIndexIntoRange(long absolteIndex)
+        {
+            LeastFetchStore.ResetState();
+
+            LeafNode<T> current = GetNodeFromAbsoluteIndexIntoRange(absolteIndex, out _);
+
+            var fetchedTotalRangeCount = 0L;
+            var fetchedTotalSumHeight = 0.0;
+            while (current != null)
             {
-                yield return GetWithConvertAbsolteIndex(i);
+                using (var pinnedContent = CustomBuilder.DataStore.Get(current.container))
+                {
+                    var nodeItems = pinnedContent.Content;
+                    foreach (T item in nodeItems)
+                    {
+                        T result = (T)item.DeepCopy();
+                        result.start = item.start + fetchedTotalRangeCount;
+                        result.length = item.length;
+                        result.sumHeight = item.sumHeight + fetchedTotalSumHeight;
+                        yield return result;
+                    }
+                }
+
+                var rangeLeafNode = (IRangeAndHeightNode)current;
+                fetchedTotalRangeCount += rangeLeafNode.TotalRangeCount;
+                fetchedTotalSumHeight += rangeLeafNode.TotalHeightCount;
+                current = current.Next;
             }
         }
     }

@@ -172,7 +172,7 @@ namespace FooProject.Collection
         /// </summary>
         /// <param name="absolteIndex">列挙を開始する開始インデックス</param>
         /// <returns></returns>
-        protected IEnumerable<T> GetFromAbsoluteIndexIntoRange(long absolteIndex)
+        protected virtual IEnumerable<T> GetFromAbsoluteIndexIntoRange(long absolteIndex)
         {
             LeastFetchStore.ResetState();
 
