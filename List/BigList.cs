@@ -291,11 +291,13 @@ namespace FooProject.Collection
         /// ノードを探索する
         /// </summary>
         /// <param name="fn">各ノードで呼び出される関数</param>
-        /// <returns>ノードを返す</returns>
+        /// <returns>NodeWalkDirectionを返す</returns>
         /// <exception cref="InvalidOperationException"></exception>
         /// <remarks>
         /// fnに渡されるパラメーターは現在訪問中のノード、ノード内にあるアイテムの数である。
-        /// fnでの処理が終了したら、左か右のどちらかを返さなければならない。
+        /// 基本的にはノード内にある〇〇の数すなわち、リーフノード以外では左側の〇〇合計数よりも小さければ、左を返し、そうでなければ、右を返す。
+        /// なお、右を返す時は左側の〇〇合計数を探索の目標となる奴から引く必要がある。
+        /// （実例はIndexOfNodeを参照すること）
         /// </remarks>
         protected Node<T> WalkNode(Func<Node<T>,long,NodeWalkDirection> fn)
         {
