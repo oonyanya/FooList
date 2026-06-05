@@ -18,7 +18,6 @@ namespace FooProject.Collection
     /// <remarks>連続した範囲でないとうまく動きません</remarks>
     public abstract class BigRangeListBase<T> : BigList<T> where T : IRange
     {
-
         protected override bool IsAllowDirectUseCollection(IComposableList<T> collection)
         {
             if (collection is FixedRangeList<T>)
@@ -167,17 +166,31 @@ namespace FooProject.Collection
             }, out nearIndex);
         }
 
+        protected virtual T DefaultGetFromAbsoluteIndexIntoRangeFn(T item,long item_start_count,long fetchedTotalRangeCount,long LeftCount)
+        {
+            T result = (T)item.DeepCopy();
+            result.start = item.start + fetchedTotalRangeCount;
+            result.length = item.length;
+            return result;
+        }
+
         /// <summary>
         /// 列挙する
         /// </summary>
         /// <param name="absolteIndex">列挙を開始する開始インデックス</param>
+        /// <param name="generate_fn">生成用の関数。nullでないなら、適切なTを返さないといけない。使い方はDefaultGetFromAbsoluteIndexIntoRangeFnを参照すること。入力元のアイテム、開始インデックス、今まで取得した範囲の数、残りの数である。</param>
         /// <returns></returns>
-        protected virtual IEnumerable<T> GetFromAbsoluteIndexIntoRange(long absolteIndex)
+        /// <remarks>generate_fnで指定された関数がnullを返した場合、列挙が止まる</remarks>
+        public IEnumerable<T> GetFromAbsoluteIndexIntoRange(long absolteIndex,long count,Func<T,long,long,long,T> generate_fn = null)
         {
+            if (generate_fn == null)
+                generate_fn = this.DefaultGetFromAbsoluteIndexIntoRangeFn;
+
             LeastFetchStore.ResetState();
 
             LeafNode<T> current = GetNodeFromAbsoluteIndexIntoRange(absolteIndex, out _);
 
+            var leftCount = count;
             var fetchedTotalRangeCount = 0L;
             while (current != null)
             {
@@ -186,10 +199,24 @@ namespace FooProject.Collection
                     var nodeItems = pinnedContent.Content;
                     foreach (T item in nodeItems)
                     {
-                        T result = (T)item.DeepCopy();
-                        result.start = item.start + fetchedTotalRangeCount;
-                        result.length = item.length;
-                        yield return result;
+                        var relative_start_index = 0L;
+
+                        if (absolteIndex >= item.start && absolteIndex <= item.start + item.length)
+                        {
+                            relative_start_index = absolteIndex - item.start;
+                        }
+
+                        var result = generate_fn(item, relative_start_index, fetchedTotalRangeCount,leftCount);
+
+                        if (result != null)
+                            yield return result;
+                        else
+                            yield break;
+
+                        if (leftCount < 0)
+                            yield break;
+
+                        leftCount -= item.length - relative_start_index;
                     }
                 }
 
@@ -206,7 +233,9 @@ namespace FooProject.Collection
         /// <remarks>IRangeインターフェイスのstartの値は変換される</remarks>
         public override IEnumerator<T> GetEnumerator()
         {
-            foreach (var item in this.GetFromAbsoluteIndexIntoRange(0))
+            var root = (IRangeNode)this.Root;
+
+            foreach (var item in this.GetFromAbsoluteIndexIntoRange(0,root.TotalRangeCount))
             {
                 yield return item;
             }
@@ -219,25 +248,9 @@ namespace FooProject.Collection
         /// <param name="count">長さ</param>
         /// <returns>列挙子を取得する</returns>
         /// <remarks>IRangeインターフェイスのstartの値は変換される</remarks>
-        public IEnumerable<T> GetRangeFromAbsoluteIndexIntoRange(long absolteIndex, long count)
+        public virtual IEnumerable<T> GetRangeFromAbsoluteIndexIntoRange(long absolteIndex, long count)
         {
-            var leftCount = count;
-            foreach (var item in this.GetFromAbsoluteIndexIntoRange(0))
-            {
-                yield return item;
-
-                if (leftCount < 0)
-                    yield break;
-
-                if (absolteIndex >= item.start && absolteIndex <= item.start + item.length)
-                {
-                    leftCount -= item.length - (absolteIndex - item.start);
-                }
-                else
-                {
-                    leftCount -= item.length;
-                }
-            }
+            return this.GetFromAbsoluteIndexIntoRange(absolteIndex, count);
         }
     }
 

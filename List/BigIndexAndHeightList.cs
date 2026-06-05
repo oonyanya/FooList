@@ -298,17 +298,34 @@ namespace FooProject.Collection
             return (LeafNode<T>)node;
         }
 
+
+        public override IEnumerator<T> GetEnumerator()
+        {
+            var root = (RangeConcatNode<T>)this.Root;
+
+            foreach (var item in this.MyGetFromAbsoluteIndexIntoRange(0, root.TotalRangeCount))
+            {
+                yield return item;
+            }
+        }
+
+        public override IEnumerable<T> GetRangeFromAbsoluteIndexIntoRange(long absolteIndex, long count)
+        {
+            return this.MyGetFromAbsoluteIndexIntoRange(absolteIndex, count);
+        }
+
         /// <summary>
         /// 列挙する
         /// </summary>
         /// <param name="absolteIndex">列挙を開始する開始インデックス</param>
         /// <returns></returns>
-        protected override IEnumerable<T> GetFromAbsoluteIndexIntoRange(long absolteIndex)
+        IEnumerable<T> MyGetFromAbsoluteIndexIntoRange(long absolteIndex,long count)
         {
             LeastFetchStore.ResetState();
 
             LeafNode<T> current = GetNodeFromAbsoluteIndexIntoRange(absolteIndex, out _);
 
+            var leftCount = count;
             var fetchedTotalRangeCount = 0L;
             var fetchedTotalSumHeight = 0.0;
             while (current != null)
@@ -318,11 +335,24 @@ namespace FooProject.Collection
                     var nodeItems = pinnedContent.Content;
                     foreach (T item in nodeItems)
                     {
+                        var relative_start_index = 0L;
+
+                        if (absolteIndex >= item.start && absolteIndex <= item.start + item.length)
+                        {
+                            relative_start_index = absolteIndex - item.start;
+                        }
+
                         T result = (T)item.DeepCopy();
                         result.start = item.start + fetchedTotalRangeCount;
                         result.length = item.length;
                         result.sumHeight = item.sumHeight + fetchedTotalSumHeight;
+
                         yield return result;
+
+                        if (leftCount < 0)
+                            yield break;
+
+                        leftCount -= item.length - relative_start_index;
                     }
                 }
 

@@ -144,26 +144,23 @@ namespace FooProject.Collection
         /// <remarks>IRleArrayRangeのstartとlengthは開始インデックスと長さの範囲内になるように調整されます</remarks>
         public IEnumerable<IRleArrayRange<T>> GetRangesAndClamp(long absolute_index,long count)
         {
-            var left_count = count;
-            var ranges = _rleData.GetRangeFromAbsoluteIndexIntoRange(absolute_index, count);
-            foreach (var item in ranges)
+            return _rleData.GetFromAbsoluteIndexIntoRange(absolute_index, count,(item, relative_start, total_fetched_count, left_count) =>
             {
                 var clamped_count = item.length;
-                if(absolute_index > item.start && absolute_index <= item.start + item.length)
+                if (relative_start > 0)
                 {
-                    clamped_count = item.length - absolute_index;
-                    yield return this.CreateItem(item.Value, absolute_index, clamped_count);
+                    clamped_count = item.length - relative_start;
+                    return this.CreateItem(item.Value, relative_start + total_fetched_count, clamped_count);
                 }
-                else if(left_count < clamped_count)
+                else if (left_count < clamped_count)
                 {
-                    yield return this.CreateItem(item.Value, item.start, left_count);
+                    return this.CreateItem(item.Value, item.start, left_count);
                 }
                 else
                 {
-                    yield return this.CreateItem(item.Value, item.start, clamped_count);
+                    return this.CreateItem(item.Value, item.start, clamped_count);
                 }
-                left_count -= clamped_count;
-            }
+            });
         }
 
         /// <summary>
@@ -172,7 +169,7 @@ namespace FooProject.Collection
         /// <returns></returns>
         public IEnumerator<IRleArrayRange<T>> GetEnumerator()
         {
-            foreach(var item in _rleData)
+            foreach (var item in _rleData)
                 yield return item;
         }
 
