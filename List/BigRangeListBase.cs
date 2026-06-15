@@ -200,15 +200,21 @@ namespace FooProject.Collection
                     foreach (T item in nodeItems)
                     {
                         var relative_start_index = 0L;
+                        var item_start_absolute_index = item.start + fetchedTotalRangeCount;
+                        var item_end_absoulte_index = item.start + item.length - 1 + fetchedTotalRangeCount;
 
-                        if (absolteIndex >= item.start && absolteIndex <= item.start + item.length)
+                        if(item_end_absoulte_index < absolteIndex)
+                        {
+                            continue;
+                        }
+                        else if (absolteIndex >= item_start_absolute_index && absolteIndex <= item_end_absoulte_index)
                         {
                             relative_start_index = absolteIndex - item.start;
                         }
 
                         var result = generate_fn(item, relative_start_index, fetchedTotalRangeCount,leftCount);
 
-                        if (result != null)
+                        if (result != null && result.length > 0)
                             yield return result;
                         else
                             yield break;
