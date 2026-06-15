@@ -5,6 +5,7 @@ using System.ComponentModel.Design;
 using System.Linq;
 using System.Numerics;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -211,15 +212,16 @@ namespace FooProject.Collection
                         {
                             relative_start_index = absolteIndex - item.start;
                         }
+                        else if(item_start_absolute_index > absolteIndex + count)
+                        {
+                            yield break;
+                        }
 
                         var result = generate_fn(item, relative_start_index, fetchedTotalRangeCount,leftCount);
 
                         if (result != null && result.length > 0)
                             yield return result;
                         else
-                            yield break;
-
-                        if (leftCount < 0)
                             yield break;
 
                         leftCount -= item.length - relative_start_index;

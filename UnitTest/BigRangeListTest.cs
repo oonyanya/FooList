@@ -1,10 +1,11 @@
-﻿using FooProject.Collection;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using FooProject.Collection;
+using static UnitTest.BigRleArrayTest;
 
 namespace UnitTest
 {
@@ -50,22 +51,18 @@ namespace UnitTest
                 index += length;
             }
 
-            var expected = new int[] { 0, 3, 6, 9 };
-            index = 0;
-            foreach(var test_item in list.GetRangeFromAbsoluteIndexIntoRange(1, 6))
-            {
-                Assert.AreEqual(expected[index], test_item.start);
-                Assert.AreEqual(length, test_item.length);
-                index++;
-            }
+            var expected_list = new MyRange[] { new MyRange(0, 3), new MyRange(3, 3), new MyRange(6, 3) };
+            InterfaceTests.TestEnumerableElements(list.GetRangeFromAbsoluteIndexIntoRange(0, 6), expected_list);
+            InterfaceTests.TestEnumerableElements(list.GetRangeFromAbsoluteIndexIntoRange(1, 6), expected_list);
 
-            index = 0;
-            foreach (var test_item in list.GetRangeFromAbsoluteIndexIntoRange(0, 6))
-            {
-                Assert.AreEqual(expected[index], test_item.start);
-                Assert.AreEqual(length, test_item.length);
-                index++;
-            }
+            expected_list = new MyRange[] { new MyRange(0, 3), new MyRange(3, 3) };
+            InterfaceTests.TestEnumerableElements(list.GetRangeFromAbsoluteIndexIntoRange(1, 2), expected_list);
+
+            expected_list = new MyRange[] { new MyRange(3, 3) };
+            InterfaceTests.TestEnumerableElements(list.GetRangeFromAbsoluteIndexIntoRange(3, 2), expected_list);
+
+            expected_list = new MyRange[] { new MyRange(3, 3), new MyRange(6, 3) };
+            InterfaceTests.TestEnumerableElements(list.GetRangeFromAbsoluteIndexIntoRange(3, 4), expected_list);
         }
 
         [TestMethod]
@@ -284,6 +281,14 @@ namespace UnitTest
         public IRange DeepCopy()
         {
             return new MyRange(start, length);
+        }
+
+        public override bool Equals(object? obj)
+        {
+            var other = obj as MyRange;
+            if (other == null) return false;
+            if (other.length == this.length && other.start == this.start) return true;
+            return false;
         }
     }
 }
