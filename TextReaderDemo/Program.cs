@@ -256,6 +256,15 @@ while (exitflag == false)
                         has_maker_count++;
                     }
 
+                    if (text.Marker.HasFlag(Marker.Solid))
+                    {
+                        if (has_maker_count > 0)
+                            esc_text.Append(";");
+
+                        esc_text.Append("4");
+                        has_maker_count++;
+                    }
+
                     if (has_maker_count == 0)
                        esc_text.Append("0");
 

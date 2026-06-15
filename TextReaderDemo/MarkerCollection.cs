@@ -13,6 +13,7 @@ namespace EditorDemo
         None = 0,
         Important = 1,
         Hilight = 2,
+        Solid = 4,
     }
 
     public class MarkerCollection
