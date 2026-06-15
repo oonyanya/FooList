@@ -1,0 +1,8 @@
+<Solution>
+  <Project Path="EditorDemo/EditorDemo.csproj" />
+  <Project Path="List/FooProject.Collection.csproj" />
+  <Project Path="SharedDemoProgram/SharedDemoProgram.shproj" />
+  <Project Path="TextReaderDemo/TextReaderDemo.csproj" />
+  <Project Path="UnitTest/UnitTest.csproj" />
+  <Project Path="UnitTest_net481/UnitTest_net481.csproj" />
+</Solution>
