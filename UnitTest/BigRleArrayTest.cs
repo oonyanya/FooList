@@ -78,6 +78,31 @@ namespace UnitTest
 
             expected_list = new CharRleArray[] { new CharRleArray('b', 3, 2), new CharRleArray('c', 5, 2) };
             InterfaceTests.TestEnumerableElements(list.GetRangesAndClamp(3, 4), expected_list);
+
+            list = new BigRleArray<char>(2);
+            list.AddRange('a', 3);
+            list.AddRange('b', 3);
+            list.AddRange('c', 3);
+            list.AddRange('d', 3);
+            list.AddRange('e', 3);
+            list.AddRange('f', 3);
+            expected_list = new CharRleArray[] {
+                new CharRleArray('a', 1, 2), 
+                new CharRleArray('b', 3, 3), 
+                new CharRleArray('c', 6, 3), 
+                new CharRleArray('d', 9, 3), 
+                new CharRleArray('e', 12, 1)};
+            InterfaceTests.TestEnumerableElements(list.GetRangesAndClamp(1, 12), expected_list);
+
+            expected_list = new CharRleArray[] {
+                new CharRleArray('a', 1, 2),
+                new CharRleArray('b', 3, 3),
+                new CharRleArray('c', 6, 3),
+                new CharRleArray('d', 9, 3),
+                new CharRleArray('e', 12, 3),
+                new CharRleArray('f', 15, 1),
+            };
+            InterfaceTests.TestEnumerableElements(list.GetRangesAndClamp(1, 15), expected_list);
         }
 
         [TestMethod]

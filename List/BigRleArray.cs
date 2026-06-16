@@ -67,6 +67,8 @@ namespace FooProject.Collection
 
     public class BigRleArray<T> : BigRleArrayBase<T>
     {
+        public BigRleArray(int block_size = 0) : base(block_size) { }
+
         protected override IRleArrayRange<T> CreateItem(T value, long start = -1, long length = -1)
         {
             if (start == -1)

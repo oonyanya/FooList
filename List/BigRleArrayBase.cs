@@ -28,7 +28,14 @@ namespace FooProject.Collection
     /// <typeparam name="T"></typeparam>
     public class BigRleArrayBase<T>: IEnumerable<IRleArrayRange<T>>
     {
-        BigRangeList<IRleArrayRange<T>> _rleData = new BigRangeList<IRleArrayRange<T>>();
+        BigRangeList<IRleArrayRange<T>> _rleData;
+
+        public BigRleArrayBase(int block_size = 0)
+        {
+            _rleData = new BigRangeList<IRleArrayRange<T>>();
+            if(block_size > 0 )
+                _rleData.BlockSize = block_size;
+        }
 
         /// <summary>
         /// IRleArrayRangeを格納しているコレクション
@@ -154,11 +161,11 @@ namespace FooProject.Collection
                 }
                 else if (left_count < clamped_count)
                 {
-                    return this.CreateItem(item.Value, item.start, left_count);
+                    return this.CreateItem(item.Value, item.start + total_fetched_count, left_count);
                 }
                 else
                 {
-                    return this.CreateItem(item.Value, item.start, clamped_count);
+                    return this.CreateItem(item.Value, item.start + total_fetched_count, clamped_count);
                 }
             });
         }
