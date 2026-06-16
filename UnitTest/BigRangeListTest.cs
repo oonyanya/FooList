@@ -43,9 +43,10 @@ namespace UnitTest
         public void GetRangeFromAbsoluteIndexIntoRangeTest()
         {
             BigRangeList<MyRange> list = new BigRangeList<MyRange>();
+            list.BlockSize = 8;
             const int length = 3;
             int index = 0;
-            for (int i = 0; i < 8; i++)
+            for (int i = 0; i < 24; i++)
             {
                 list.Add(new MyRange(index, length));
                 index += length;
@@ -63,6 +64,14 @@ namespace UnitTest
 
             expected_list = new MyRange[] { new MyRange(3, 3), new MyRange(6, 3) };
             InterfaceTests.TestEnumerableElements(list.GetRangeFromAbsoluteIndexIntoRange(3, 4), expected_list);
+
+            expected_list = Enumerable.Range(0, 24).Select((i) => new MyRange(i * length, 3)).ToArray();
+            InterfaceTests.TestEnumerableElements(list.GetRangeFromAbsoluteIndexIntoRange(0, 72), expected_list);
+            InterfaceTests.TestEnumerableElements(list.GetRangeFromAbsoluteIndexIntoRange(1, 70), expected_list);
+
+            expected_list = Enumerable.Range(1, 23).Select((i) => new MyRange(i * length, 3)).ToArray();
+            InterfaceTests.TestEnumerableElements(list.GetRangeFromAbsoluteIndexIntoRange(3, 66), expected_list);
+            InterfaceTests.TestEnumerableElements(list.GetRangeFromAbsoluteIndexIntoRange(4, 65), expected_list);
         }
 
         [TestMethod]
