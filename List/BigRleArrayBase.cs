@@ -157,7 +157,7 @@ namespace FooProject.Collection
                 if (relative_start > 0)
                 {
                     clamped_count = item.length - relative_start;
-                    return this.CreateItem(item.Value, relative_start + total_fetched_count, clamped_count);
+                    return this.CreateItem(item.Value, item.start + relative_start + total_fetched_count, clamped_count);
                 }
                 else if (left_count < clamped_count)
                 {

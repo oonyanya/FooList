@@ -95,6 +95,12 @@ namespace UnitTest
             InterfaceTests.TestEnumerableElements(list.GetRangesAndClamp(1, 12), expected_list);
 
             expected_list = new CharRleArray[] {
+                new CharRleArray('b', 4, 2),
+                new CharRleArray('c', 6, 3),
+                new CharRleArray('d', 9, 2)};
+            InterfaceTests.TestEnumerableElements(list.GetRangesAndClamp(4, 7), expected_list);
+
+            expected_list = new CharRleArray[] {
                 new CharRleArray('a', 1, 2),
                 new CharRleArray('b', 3, 3),
                 new CharRleArray('c', 6, 3),
