@@ -396,6 +396,14 @@ namespace FooProject.Collection
             this.RemoveRange(absolute_index, 1);
         }
 
+        /// <summary>
+        /// アイテムをすべて削除します
+        /// </summary>
+        public void Clear()
+        {
+            _rleData.Clear();
+        }
+
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();

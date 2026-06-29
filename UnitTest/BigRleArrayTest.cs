@@ -32,6 +32,21 @@ namespace UnitTest
         }
 
         [TestMethod]
+        public void ClearTest()
+        {
+            var list = new BigRleArray<char>();
+            list.AddRange('a');
+            list.AddRange('a');
+            list.AddRange('a');
+            list.AddRange('b');
+            list.AddRange('b');
+
+            list.Clear();
+
+            Assert.AreEqual(0, list.Count);
+        }
+
+        [TestMethod]
         public void GetValueTest()
         {
             var list = new BigRleArray<char>();
