@@ -48,6 +48,9 @@ namespace FooProject.Generator
 
         private void Emit(SourceProductionContext context, INamedTypeSymbol typeSymbol)
         {
+            if (typeSymbol == null)
+                return;
+
             // 名前空間を考える。partialクラスで定義するので同じ名前空間にする
             var ns = typeSymbol.ContainingNamespace.IsGlobalNamespace ? "" : $"namespace {typeSymbol.ContainingNamespace};";
 
