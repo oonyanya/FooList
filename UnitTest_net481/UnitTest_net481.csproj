@@ -20,6 +20,7 @@
     <Compile Include="..\UnitTest\BigRleArrayTest.cs" Link="BigRleArrayTest.cs" />
     <Compile Include="..\UnitTest\CacheTest.cs" Link="CacheTest.cs" />
     <Compile Include="..\UnitTest\DiskPinableContentDataStoreTest.cs" Link="DiskPinableContentDataStoreTest.cs" />
+    <Compile Include="..\UnitTest\EnumWithFlagsGeneratorTest.cs" Link="EnumWithFlagsGeneratorTest.cs" />
     <Compile Include="..\UnitTest\FixedListTest.cs" Link="FixedListTest.cs" />
     <Compile Include="..\UnitTest\ImmutableListTest.cs" Link="ImmutableListTest.cs" />
     <Compile Include="..\UnitTest\InterfaceTests.cs" Link="InterfaceTests.cs" />
@@ -34,7 +35,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\List\FooProject.Collection.csproj" />
+	  <ProjectReference Include="..\FooProject.Generator\FooProject.Generator.csproj" />
+	  <ProjectReference Include="..\FooProject.Generator\FooProject.Generator.csproj">
+		  <OutputItemType>Analyzer</OutputItemType>
+		  <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+	  </ProjectReference>
+	  <ProjectReference Include="..\List\FooProject.Collection.csproj" />
   </ItemGroup>
 
   <ItemGroup>

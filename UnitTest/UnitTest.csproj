@@ -17,7 +17,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\List\FooProject.Collection.csproj" />
+	  <ProjectReference Include="..\FooProject.Generator\FooProject.Generator.csproj" />
+	  <ProjectReference Include="..\FooProject.Generator\FooProject.Generator.csproj">
+		  <OutputItemType>Analyzer</OutputItemType>
+		  <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+	  </ProjectReference>
+	  <ProjectReference Include="..\List\FooProject.Collection.csproj" />
   </ItemGroup>
 
   <ItemGroup>

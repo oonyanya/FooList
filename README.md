@@ -68,6 +68,46 @@ foreach(var item in list.GetRangesAndClamp(1, 2))
 
 詳しい使い方はUnitTest/BigRleArrayTest.csを参照してください。
 
+また、Flags属性とBigRleArrayFlags属性をenumにつけることでビット操作用のクラスが〇〇Colltcionという名前で自動的に生成されます。
+例えば、TestMarkerの場合、TestMarkerCollectionという名前になります。
+
+```
+using FooProject.Collection;
+using FooProject.Generator;
+
+namespace UnitTest
+{
+	[BigRleArrayFlags]
+	[Flags]
+	public enum TestMarker
+	{
+		None = 0,
+		Important = 1,
+	}
+
+	class Foo
+	{
+		public void Run()
+		{
+			var collection = new TestMarkerCollection();
+
+			collection.Add(TestMarker.None, 1000);
+			collection.Add(TestMarker.Important, 1000);
+
+			collection.Set(10, 500, TestMarker.Important);
+
+			var r = collection.Get(0);
+			//取得して何かを行う
+
+			collection.Unset(10, 500, TestMarker.Important);
+		}
+	}
+}
+
+```
+
+なお、enumはpublicでないと動作せず、インナークラスとして定義することはできません。
+詳しい使い方はUnitTest/EnumWithFlagsGeneratorTest.csを参照してください。
 
 ## 特徴
 
