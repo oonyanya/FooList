@@ -24,11 +24,11 @@ namespace FooProject.Generator
         {
             var source = context.SyntaxProvider.ForAttributeWithMetadataName(
                 "FooProject.Generator.BigRleArrayFlagsAttribute",
-                (node, token) =>
+                static (node, token) =>
                 {
                     return node.IsKind(SyntaxKind.EnumDeclaration);
                 },
-                (ctx, token) =>
+                static (ctx, token) =>
                 {
                     var classDeclaration = (EnumDeclarationSyntax)ctx.TargetNode;
                     var symbol = ctx.SemanticModel.GetDeclaredSymbol(classDeclaration) as INamedTypeSymbol;
@@ -59,16 +59,16 @@ namespace FooProject.Generator
 
     public class {{typeSymbol.Name}}Collection
     {
-        BigRleArray<Marker> collection = new BigRleArray<Marker>();
+        BigRleArray<{{typeSymbol.Name}}> collection = new BigRleArray<{{typeSymbol.Name}}>();
 
         public void Add({{typeSymbol.Name}} m,int length)
         {
             collection.AddRange(m, length);
         }
 
-        public Marker Get(long index)
+        public {{typeSymbol.Name}} Get(long index)
         {
-            return (Marker)collection.GetValue(index);
+            return ({{typeSymbol.Name}})collection.GetValue(index);
         }
 
         public void Set(int index,int count, {{typeSymbol.Name}} value)
