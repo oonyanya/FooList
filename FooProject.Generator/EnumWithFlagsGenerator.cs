@@ -26,10 +26,12 @@ namespace FooProject.Generator
                 "FooProject.Generator.BigRleArrayFlagsAttribute",
                 static (node, token) =>
                 {
+                    token.ThrowIfCancellationRequested();
                     return node.IsKind(SyntaxKind.EnumDeclaration);
                 },
                 static (ctx, token) =>
                 {
+                    token.ThrowIfCancellationRequested();
                     var classDeclaration = (EnumDeclarationSyntax)ctx.TargetNode;
                     var symbol = ctx.SemanticModel.GetDeclaredSymbol(classDeclaration) as INamedTypeSymbol;
 
