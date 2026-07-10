@@ -4,9 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using FooProject.Collection;
+using FooProject.Generator;
 
-namespace EditorDemo
+namespace TextReaderDemo
 {
+    [BigRleArrayFlagsAttribute]
     [Flags]
     public enum Marker
     {
@@ -16,44 +18,4 @@ namespace EditorDemo
         Solid = 4,
     }
 
-    public class MarkerCollection
-    {
-        BigRleArray<Marker> collection = new BigRleArray<Marker>();
-
-        public void Add(Marker m,int length)
-        {
-            collection.AddRange(m, length);
-        }
-
-        public Marker Get(long index)
-        {
-            return (Marker)collection.GetValue(index);
-        }
-
-        public void Set(int index,int count, Marker value)
-        {
-            collection.UpdateRange(index, value, count, (container, require_count, inputed_value) =>
-            {
-                var new_value = container.Value | inputed_value;
-                return new BigRleArrayRange<Marker>(new_value, require_count); 
-            });
-        }
-
-        public void Unset(int index, int count, Marker value)
-        {
-            collection.UpdateRange(index, value, count, (container, require_count, inputed_value) =>
-            {
-                var new_value = Marker.None;
-                if (value != Marker.None)
-                    new_value = container.Value ^ inputed_value;
-                return new BigRleArrayRange<Marker>(new_value, require_count);
-            });
-        }
-
-        public IEnumerable<IRleArrayRange<Marker>> GetRanges(int index,int count)
-        {
-             return collection.GetRangesAndClamp(index, count);
-        }
-
-    }
 }

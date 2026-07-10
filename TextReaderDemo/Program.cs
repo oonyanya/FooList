@@ -9,13 +9,10 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Timers;
 using CommandLine;
-using EditorDemo;
 using FooProject.Collection;
 using FooProject.Collection.DataStore;
 using SharedDemoProgram;
 using TextReaderDemo;
-using static System.Net.Mime.MediaTypeNames;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 const int DEFAULT_SHOW_LENGTH = 1024;
 

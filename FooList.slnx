@@ -1,5 +1,6 @@
 <Solution>
   <Project Path="EditorDemo/EditorDemo.csproj" />
+  <Project Path="FooProject.Generator/FooProject.Generator.csproj" Id="a2766611-2e44-440c-a831-561dcf0dd85f" />
   <Project Path="List/FooProject.Collection.csproj" />
   <Project Path="SharedDemoProgram/SharedDemoProgram.shproj" />
   <Project Path="TextReaderDemo/TextReaderDemo.csproj" />
