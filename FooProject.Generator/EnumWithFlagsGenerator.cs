@@ -1,8 +1,9 @@
-﻿using System;
-using System.Linq;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System;
+using System.Diagnostics;
+using System.Linq;
 
 namespace FooProject.Generator
 {
@@ -15,6 +16,25 @@ namespace FooProject.Generator
     [AttributeUsage(AttributeTargets.Enum, AllowMultiple = false, Inherited = false)]
     public sealed class BigRleArrayFlagsAttribute : Attribute
     {
+        public string GeneratedClassName { get; private set; }
+
+        /// <summary>
+        /// コンストラクター
+        /// </summary>
+        /// <remarks>何も指定しない場合はEnumのクラス名＋Collectionという名前になります</remarks>
+        public BigRleArrayFlagsAttribute()
+        {
+            this.GeneratedClassName = string.Empty;
+        }
+
+        /// <summary>
+        /// コンストラクター
+        /// </summary>
+        /// <param name="generatedClassName">生成したいコレクションクラス名</param>
+        public BigRleArrayFlagsAttribute(string generatedClassName)
+        {
+            this.GeneratedClassName = generatedClassName;
+        }
     }
 
     [Generator(LanguageNames.CSharp)]
@@ -22,8 +42,15 @@ namespace FooProject.Generator
     {
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
+//ジェネレーターのデバック用
+#if false
+            if (!Debugger.IsAttached)
+            {
+                Debugger.Launch();
+            }
+#endif 
             var source = context.SyntaxProvider.ForAttributeWithMetadataName(
-                "FooProject.Generator.BigRleArrayFlagsAttribute",
+            "FooProject.Generator.BigRleArrayFlagsAttribute",
                 static (node, token) =>
                 {
                     token.ThrowIfCancellationRequested();
@@ -54,6 +81,28 @@ namespace FooProject.Generator
             // 名前空間を考える。partialクラスで定義するので同じ名前空間にする
             var ns = typeSymbol.ContainingNamespace.IsGlobalNamespace ? "" : $"namespace {typeSymbol.ContainingNamespace};";
 
+            //コレクションクラスの名前を取得する
+            string collectionSymbolName = string.Empty;
+            var attributeData = typeSymbol.GetAttributes().Where((data)=> {
+                return data.AttributeClass.Name == "BigRleArrayFlagsAttribute";
+            }).FirstOrDefault();
+            if(attributeData != null)
+            {
+                var overridenNameOpt =
+                    attributeData.NamedArguments.SingleOrDefault(kvp => kvp.Key == "generatedClassName").Value;
+                if (overridenNameOpt.IsNull)
+                {
+                    if (attributeData.ConstructorArguments.Length == 1)
+                        overridenNameOpt = attributeData.ConstructorArguments[0];
+                }
+                var targetTypeSymbolName = overridenNameOpt.IsNull ? typeSymbol.Name + "Collection" : overridenNameOpt.Value.ToString();
+                collectionSymbolName = targetTypeSymbolName;
+            }
+            else
+            {
+                collectionSymbolName = typeSymbol.Name + "Collection";
+            }
+
             // ソースを考える
             var code =
                 $$"""
@@ -62,7 +111,7 @@ namespace FooProject.Generator
 
     {{ns}}
 
-    public class {{typeSymbol.Name}}Collection
+    public class {{collectionSymbolName}}
     {
         BigRleArray<{{typeSymbol.Name}}> collection = new BigRleArray<{{typeSymbol.Name}}>();
 
@@ -111,7 +160,7 @@ namespace FooProject.Generator
                 .Replace(">", "_");
 
             // 拡張子はg.csとする
-            context.AddSource($"{fullType}.EnumWithFlagsGenerator.g.cs", code);
+            context.AddSource($"{fullType}.{collectionSymbolName}.EnumWithFlagsGenerator.g.cs", code);
         }
     }
 }

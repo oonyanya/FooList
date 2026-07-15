@@ -20,6 +20,22 @@ namespace UnitTest
         Mark = 2,
     }
 
+    [BigRleArrayFlags("FooTestMarker2Collection")]
+    [Flags]
+    public enum TestMarker2
+    {
+        None = 0,
+        Important = 1,
+    }
+
+    [BigRleArrayFlags(generatedClassName: "FooTestMarker3Collection")]
+    [Flags]
+    public enum TestMarker3
+    {
+        None = 0,
+        Important = 1,
+    }
+
     [TestClass]
     public class EnumWithFlagsGeneratorTest
     {
@@ -59,6 +75,10 @@ namespace UnitTest
                 new BigRleArrayRange<TestMarker>(TestMarker.Important, 1000, 100)
             };
             InterfaceTests.TestEnumerableElements<IRleArrayRange<TestMarker>>(collection.GetRanges(0, 1100), expected_list);
+
+            FooTestMarker2Collection collection2 = new FooTestMarker2Collection();
+
+            FooTestMarker3Collection collection3 = new FooTestMarker3Collection();
         }
     }
 }
