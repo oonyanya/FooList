@@ -7,6 +7,13 @@
 	  <LangVersion>11</LangVersion>
 	  <VersionPrefix>-alpha2</VersionPrefix>
 	  <Version>1.0.0$(VersionPrefix)</Version>
+
+	  <!-- NuGet package metadata -->
+	  <PackageId>FooProject.Generator</PackageId>
+	  <Authors>FooProject</Authors>
+	  <Description>A source generator for FooProject.Collection.BigRleArray</Description>
+	  <PackageTags>csharp sourcegenerator enum flags biglist</PackageTags>
+	  <PackageProjectUrl>https://github.com/oonyanya/FooList</PackageProjectUrl>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,4 +24,8 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.6.0" />
   </ItemGroup>
 
+	<ItemGroup>
+    <!-- Pack the generator DLL into analyzers/dotnet/cs -->
+    <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs/" />
+  </ItemGroup>
 </Project>
