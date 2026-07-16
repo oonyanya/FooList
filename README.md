@@ -10,7 +10,9 @@ EditorDemo　ベンチマーク用デモ
 
 TextReaderDemo　コマンドベース簡易テキストエディタ。メモリーマップドファイルみたいなことをしているので、開くのは早いですが、上書き保存はできない仕様になってます。
 
-List　BigListなどのクラスライブラリ
+FooProject.Collection　BigListなどのクラスライブラリー
+
+FooProject.Generator ソースコード生成用のライブラリー
 
 UnitTest　ユニットテスト
 
