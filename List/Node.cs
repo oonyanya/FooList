@@ -978,6 +978,8 @@ namespace FooProject.Collection
                 leftLeaf.Count += 1;
                 leftLeaf.NotifyUpdate(0, 1, args);
                 this.Count += 1;
+                //強制的に更新をかけないとカスタムノードを突っ込んだ時にうまく動かない
+                this.OnNewNode(this.Left, this.Right);
                 return this;
             }
             else

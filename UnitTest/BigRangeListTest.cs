@@ -140,6 +140,17 @@ namespace UnitTest
             expected = new int[] { 0, 3, 6, 9, 12, 15, 18, 21, 24, 27, };
             AssertAreRangeEqual(expected, list);
             Assert.AreEqual(30, list.TotalRangeCount);
+
+            list = new BigRangeList<MyRange>();
+            list.Add(new MyRange(0, 3));
+            list.Add(new MyRange(3, 3));
+            for (int i = 0; i < 8; i++)
+            {
+                list.Insert(0, new MyRange(0, length));
+            }
+            expected = new int[] { 0, 3, 6, 9, 12, 15, 18, 21, 24, 27, };
+            AssertAreRangeEqual(expected, list);
+            Assert.AreEqual(30, list.TotalRangeCount);
         }
 
         [TestMethod]
