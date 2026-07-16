@@ -56,6 +56,17 @@ namespace FooProject.Collection
         }
 
         /// <summary>
+        /// 全ての範囲の長さを合計した値を返す
+        /// </summary>
+        public long TotalRangeCount
+        {
+            get
+            {
+                return _rleData.TotalRangeCount;
+            }
+        }
+
+        /// <summary>
         /// アイテムを作成する
         /// </summary>
         /// <param name="value">値</param>
@@ -403,12 +414,12 @@ namespace FooProject.Collection
         /// <summary>
         /// アイテムを削除します
         /// </summary>
-        /// <param name="absolute_index">削除するインデックス</param>
+        /// <param name="index">削除するインデックス</param>
         /// <exception cref="InvalidOperationException"></exception>
         /// <remarks>アイテムの長さを変えます。0になった場合、アイテム自体が削除されます。</remarks>
-        public void RemoveAt(int absolute_index)
+        public void RemoveAt(int index)
         {
-            this.RemoveRange(absolute_index, 1);
+            this._rleData.RemoveAt(index);
         }
 
         /// <summary>

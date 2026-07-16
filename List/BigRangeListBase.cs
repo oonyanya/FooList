@@ -19,6 +19,18 @@ namespace FooProject.Collection
     /// <remarks>連続した範囲でないとうまく動きません</remarks>
     public abstract class BigRangeListBase<T> : BigList<T> where T : IRange
     {
+        /// <summary>
+        /// 全ての範囲の合計値
+        /// </summary>
+        public long TotalRangeCount
+        {
+            get
+            {
+                var root = (RangeConcatNode<T>)this.Root;
+                return root.TotalRangeCount;
+            }
+        }
+
         protected override bool IsAllowDirectUseCollection(IComposableList<T> collection)
         {
             if (collection is FixedRangeList<T>)

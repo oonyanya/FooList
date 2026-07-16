@@ -37,6 +37,8 @@ namespace UnitTest
 
             var expected = new int[] { 0, 3, 6, 9, 12, 15, 18, 21, 24, 27, };
             AssertAreRangeEqual(expected, list);
+
+            Assert.AreEqual(30, list.TotalRangeCount);
         }
 
         [TestMethod]
@@ -92,6 +94,8 @@ namespace UnitTest
 
             var expected = new int[] { 0, 3, 6, 9, 12, 15, 18, 21, 24, 27, };
             AssertAreRangeEqual(expected, list);
+
+            Assert.AreEqual(30, list.TotalRangeCount);
         }
 
         [TestMethod]
@@ -109,6 +113,7 @@ namespace UnitTest
             }
             var expected = new int[] { 0, 3, 6, 9, 12, 15, 18, 21, 24, 27, };
             AssertAreRangeEqual(expected, list);
+            Assert.AreEqual(30, list.TotalRangeCount);
 
             list = new BigRangeList<MyRange>();
             list.Add(new MyRange(0, 3));
@@ -121,6 +126,7 @@ namespace UnitTest
             }
             expected = new int[] { 0, 3, 6, 9, 12, 15, 18, 21, 24, 27, };
             AssertAreRangeEqual(expected, list);
+            Assert.AreEqual(30, list.TotalRangeCount);
 
             list = new BigRangeList<MyRange>();
             list.Add(new MyRange(0, 3));
@@ -133,6 +139,7 @@ namespace UnitTest
             }
             expected = new int[] { 0, 3, 6, 9, 12, 15, 18, 21, 24, 27, };
             AssertAreRangeEqual(expected, list);
+            Assert.AreEqual(30, list.TotalRangeCount);
         }
 
         [TestMethod]
@@ -154,6 +161,7 @@ namespace UnitTest
 
             var expected = new int[] { 0, 3, 6, 9, 12, 15, 18, 21, 24, 27, };
             AssertAreRangeEqual(expected, list);
+            Assert.AreEqual(30, list.TotalRangeCount);
 
             list = new BigRangeList<MyRange>();
             list.Add(new MyRange(0, length));
@@ -162,6 +170,7 @@ namespace UnitTest
 
             expected = new int[] { 0, 3, 6, 9, 12, 15, 18, 21, 24, 27, };
             AssertAreRangeEqual(expected, list);
+            Assert.AreEqual(30, list.TotalRangeCount);
 
             list = new BigRangeList<MyRange>();
             list.Add(new MyRange(0, length));
@@ -170,6 +179,7 @@ namespace UnitTest
 
             expected = new int[] { 0, 3, 6, 9, 12, 15, 18, 21, 24, 27, };
             AssertAreRangeEqual(expected, list);
+            Assert.AreEqual(30, list.TotalRangeCount);
         }
 
         [TestMethod]
@@ -192,8 +202,9 @@ namespace UnitTest
             list.RemoveAt(3);
             list.RemoveAt(5);
 
-            var expected = new int[] { 0, 3, 6, 9, 12, 15,   };
+            var expected = new int[] { 0, 3, 6, 9, 12,  };
             AssertAreRangeEqual(expected, list);
+            Assert.AreEqual(15, list.TotalRangeCount);
         }
 
         [TestMethod]
@@ -213,8 +224,9 @@ namespace UnitTest
             list.RemoveRange(0, 2);
             list.RemoveRange(2, 2);
             list.RemoveRange(5, 1);
-            var expected = new int[] { 0, 3, 6, 9, 12, 15, };
+            var expected = new int[] { 0, 3, 6, 9, 12, };
             AssertAreRangeEqual(expected, list);
+            Assert.AreEqual(15, list.TotalRangeCount);
         }
 
         [TestMethod]

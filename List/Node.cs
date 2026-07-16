@@ -815,6 +815,8 @@ namespace FooProject.Collection
                 System.Diagnostics.Debug.Assert(rightLeaf.Count > 0);
                 rightLeaf.NotifyUpdate(rightLeaf.Count - 1, 1, args);
                 this.Count += 1;
+                //強制的に更新をかけないとカスタムノードを突っ込んだ時にうまく動かない
+                this.OnNewNode(this.Left, this.Right);
                 return this;
             }
             else
