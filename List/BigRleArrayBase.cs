@@ -149,6 +149,21 @@ namespace FooProject.Collection
         /// <param name="count">長さ</param>
         /// <returns>列挙子</returns>
         /// <remarks>IRleArrayRangeのstartとlengthは開始インデックスと長さの範囲内になるように調整されます</remarks>
+        public IEnumerable<IRleArrayRange<T>> GetRanges(long absolute_index, long count)
+        {
+            return _rleData.GetFromAbsoluteIndexIntoRange(absolute_index, count, (item, relative_start, total_fetched_count, left_count) =>
+            {
+                return this.CreateItem(item.Value, item.start + total_fetched_count, item.length);
+            });
+        }
+
+        /// <summary>
+        /// 列挙子を返す
+        /// </summary>
+        /// <param name="absolute_index">開始インデックス</param>
+        /// <param name="count">長さ</param>
+        /// <returns>列挙子</returns>
+        /// <remarks>IRleArrayRangeのstartとlengthは開始インデックスと長さの範囲内になるように調整されます</remarks>
         public IEnumerable<IRleArrayRange<T>> GetRangesAndClamp(long absolute_index,long count)
         {
             return _rleData.GetFromAbsoluteIndexIntoRange(absolute_index, count,(item, relative_start, total_fetched_count, left_count) =>
