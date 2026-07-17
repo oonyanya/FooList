@@ -342,10 +342,13 @@ namespace FooProject.Collection
         /// <param name="container">処理対象のコンテナー</param>
         /// <param name="count">出力すべき数</param>
         /// <param name="input">入力アイテム</param>
-        /// <returns>カスタム処理を実装したい場合、continerを複製してください。</returns>
+        /// <returns>カスタム処理を実装したい場合、continerを複製してください。なお、countとinput_itemの長さが同じ場合は複製する必要はありません</returns>
         protected virtual IRleArrayRange<T> defaultProcessItem(IRleArrayRange<T> container, long count, IRleArrayRange<T> input_item)
         {
-            return CreateItem( length:count, value: input_item.Value );
+            if (input_item.length == count)
+                return input_item;
+            else
+                return CreateItem( length:count, value: input_item.Value );
         }
 
         /// <summary>
