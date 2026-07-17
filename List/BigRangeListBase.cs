@@ -26,7 +26,7 @@ namespace FooProject.Collection
         {
             get
             {
-                var root = (RangeConcatNode<T>)this.Root;
+                var root = (IRangeNode)this.Root;
                 return root.TotalRangeCount;
             }
         }
@@ -71,6 +71,7 @@ namespace FooProject.Collection
         {
             var args = new BigListArgs<T>(CustomBuilder, LeastFetchStore, this.BlockSize, UpdateType.Overwrite);
             Root.SetAtInPlace(index, value, leafNodeEnumrator, args);
+            LeastFetchStore.ResetState();
         }
 
         protected int IndexOfNearest<J>(IList<T> collection,J start, Func<J,T,int> fn,out long nearIndex)

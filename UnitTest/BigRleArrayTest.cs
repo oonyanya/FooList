@@ -68,6 +68,26 @@ namespace UnitTest
         }
 
         [TestMethod]
+        public void GetAtAndSetAtTest()
+        {
+            var list = new BigRleArray<char>();
+            list.AddRange('a');
+            list.AddRange('a');
+            list.AddRange('a');
+            list.AddRange('b');
+            list.AddRange('b');
+
+            var item = list.GetAt(0);
+            item.length += 1;
+            list.SetAt(0,item);
+
+            var expected_list = new CharRleArray[] { new CharRleArray('a', 0, 4), new CharRleArray('b', 4, 2)};
+            InterfaceTests.TestEnumerableElements(list, expected_list);
+
+            Assert.AreEqual(6, list.TotalRangeCount);
+        }
+
+        [TestMethod]
         public void GetRangesAndClampTest()
         {
             var list = new BigRleArray<char>();

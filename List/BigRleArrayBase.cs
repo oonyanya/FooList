@@ -147,7 +147,7 @@ namespace FooProject.Collection
         /// </summary>
         /// <param name="absolute_index">取得対象の絶対インデックス</param>
         /// <returns></returns>
-        protected IRleArrayRange<T> Get(long absolute_index)
+        public IRleArrayRange<T> Get(long absolute_index)
         {
             return this.Get(absolute_index, out _);
         }
@@ -159,7 +159,7 @@ namespace FooProject.Collection
         /// <param name="index">IRleArrayRangeが存在するインデックス</param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        protected IRleArrayRange<T> Get(long absolute_index, out long index)
+        public IRleArrayRange<T> Get(long absolute_index, out long index)
         {
             var i = _rleData.GetIndexFromAbsoluteIndexIntoRange(absolute_index);
             if (i == -1)
@@ -168,6 +168,16 @@ namespace FooProject.Collection
             var container = _rleData.Get(i);
             index = i;
             return container;
+        }
+
+        /// <summary>
+        /// アイテムを更新します
+        /// </summary>
+        /// <param name="index">更新するインデックス</param>
+        /// <param name="item">新しいアイテム</param>
+        public void SetAt(long index, IRleArrayRange<T> item)
+        {
+            this._rleData.Set(index, item);
         }
 
         /// <summary>
@@ -286,7 +296,7 @@ namespace FooProject.Collection
         /// <summary>
         /// アイテムを削除します
         /// </summary>
-        /// <param name="absolute_index">削除するインデックス</param>
+        /// <param name="absolute_index">削除する絶対インデックス</param>
         /// <exception cref="InvalidOperationException"></exception>
         /// <remarks>アイテムの長さを変えます。0になった場合、アイテム自体が削除されます。</remarks>
         public void RemoveRange(int absolute_index,int count = 1)
@@ -450,7 +460,7 @@ namespace FooProject.Collection
         /// <summary>
         /// アイテムを更新します
         /// </summary>
-        /// <param name="absolute_index">更新するインデックス</param>
+        /// <param name="absolute_index">更新する絶対インデックス</param>
         /// <param name="count">長さ</param>
         /// <param name="input_value">アイテム</param>
         /// <param name="processItem">処理用のメソッド。nullの場合、単純に上書きされます。arg1は処理対象のコンテナー、arg2は出力すべき数、arg3は入力アイテムを表します。</param>
