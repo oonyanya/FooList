@@ -127,20 +127,20 @@ namespace FooProject.Generator
 
         public void Set(int index,int count, {{typeSymbol.Name}} value)
         {
-            collection.UpdateRange(index, value, count, (container, require_count, inputed_value) =>
+            collection.UpdateRange(index, value, count, (container, require_count, inputed_item) =>
             {
-                var new_value = container.Value | inputed_value;
+                var new_value = container.Value | inputed_item.Value;
                 return new BigRleArrayRange<{{typeSymbol.Name}}>(new_value, require_count); 
             });
         }
 
         public void Unset(int index, int count, {{typeSymbol.Name}} value)
         {
-            collection.UpdateRange(index, value, count, (container, require_count, inputed_value) =>
+            collection.UpdateRange(index, value, count, (container, require_count, inputed_item) =>
             {
                 var new_value = {{typeSymbol.Name}}.None;
                 if (value != {{typeSymbol.Name}}.None)
-                    new_value = container.Value ^ inputed_value;
+                    new_value = container.Value ^ inputed_item.Value;
                 return new BigRleArrayRange<{{typeSymbol.Name}}>(new_value, require_count);
             });
         }

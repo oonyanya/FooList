@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using FooProject.Collection;
+using static UnitTest.BigRleArrayTest;
 
 namespace UnitTest
 {
@@ -127,6 +128,17 @@ namespace UnitTest
         }
 
         [TestMethod]
+        public void AddItemTest()
+        {
+            var list = new BigRleArray<char>();
+            list.Add(new CharRleArray('a', 0, 3));
+            list.Add(new CharRleArray('b', 3, 2));
+
+            var expected_list = new CharRleArray[] { new CharRleArray('a', 0, 3), new CharRleArray('b', 3, 2) };
+            InterfaceTests.TestEnumerableElements(list, expected_list);
+        }
+
+        [TestMethod]
         public void AddTest()
         {
             var list = new BigRleArray<char>();
@@ -136,6 +148,24 @@ namespace UnitTest
             list.AddRange('b',2);
 
             var expected_list = new CharRleArray[] { new CharRleArray('a', 0, 3), new CharRleArray('b', 3, 2) };
+            InterfaceTests.TestEnumerableElements(list, expected_list);
+        }
+
+        [TestMethod]
+        public void InsertItemTest()
+        {
+            var list = new BigRleArray<char>();
+            list.AddRange('a');
+            list.AddRange('a');
+            list.AddRange('a');
+            list.AddRange('b');
+            list.AddRange('b');
+            list.AddRange('b');
+            list.AddRange('b');
+            list.Insert(new CharRleArray('a', 0, 1));
+            list.Insert(new CharRleArray('c', 4, 1));
+
+            var expected_list = new CharRleArray[] { new CharRleArray('a', 0, 4), new CharRleArray('c', 4, 1), new CharRleArray('b', 5, 4) };
             InterfaceTests.TestEnumerableElements(list, expected_list);
         }
 

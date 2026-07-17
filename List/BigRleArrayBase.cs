@@ -84,29 +84,36 @@ namespace FooProject.Collection
         /// </summary>
         /// <param name="item">追加するアイテム</param>
         /// <remarks>既に存在するアイテムの場合、アイテムの長さが変わります</remarks>
-        public void AddRange(T item,int count = 1)
+        public void Add(IRleArrayRange<T> item)
         {
             if (_rleData.Count > 0)
             {
                 var last = _rleData[_rleData.Count - 1];
-                if (last.Value.Equals(item))
+                if (last.Value.Equals(item.Value))
                 {
-                    last.length += count;
+                    last.length += item.length;
                     _rleData[_rleData.Count - 1] = last;
                 }
                 else
                 {
-                    var new_value = this.CreateItem(value: item, length: count);
-                    new_value.Value = item;
-                    new_value.length = count;
-                    _rleData.Add(new_value);
+                    _rleData.Add(item);
                 }
             }
             else
             {
-                var new_value = this.CreateItem(value:item,length:count);
-                _rleData.Add(new_value);
+                _rleData.Add(item);
             }
+        }
+
+        /// <summary>
+        /// アイテムを追加する
+        /// </summary>
+        /// <param name="item">追加するアイテム</param>
+        /// <remarks>既に存在するアイテムの場合、アイテムの長さが変わります</remarks>
+        public void AddRange(T item,int count = 1)
+        {
+            var new_value = this.CreateItem(value: item, length: count);
+            this.Add(new_value);
         }
 
         /// <summary>
@@ -123,6 +130,16 @@ namespace FooProject.Collection
 
             var container = _rleData.Get(i);
             return container.Value;
+        }
+
+        /// <summary>
+        /// アイテムを取得する
+        /// </summary>
+        /// <param name="index">インデックス</param>
+        /// <returns></returns>
+        public IRleArrayRange<T> GetAt(long index)
+        {
+            return _rleData.Get(index);
         }
 
         /// <summary>
@@ -207,26 +224,26 @@ namespace FooProject.Collection
         }
 
         /// <summary>
-        /// アイテムを挿入します
+        /// アイテムを挿入する
         /// </summary>
-        /// <param name="absolute_index">挿入対象の絶対インデックス</param>
-        /// <param name="item">挿入対象のアイテム</param>
+        /// <param name="item">挿入したいアイテム</param>
         /// <exception cref="InvalidOperationException"></exception>
-        /// <remarks>既に存在するアイテムの場合、アイテムの長さが変わります。また、既に存在するアイテムに別のアイテムを挿入した場合、分割されます</remarks>
-        public void InsertRange(int absolute_index, T item,int count = 1)
+        /// <remarks>既に存在するアイテムの場合、当該アイテムの長さが変わります。また、既に存在するアイテムに別のアイテムを挿入した場合、分割されます</remarks>
+        public void Insert(IRleArrayRange<T> item)
         {
+            var absolute_index = item.start;
             if (absolute_index == _rleData.Count)
             {
-                AddRange(item);
+                Add(item);
                 return;
             }
 
             var i = _rleData.GetIndexFromAbsoluteIndexIntoRange(absolute_index);
-            if(i == -1)
+            if (i == -1)
                 throw new InvalidOperationException("absoulte range is invaild or not found");
 
             var container = _rleData.Get(i);
-            if (container.Value.Equals(item))
+            if (container.Value.Equals(item.Value))
             {
                 container.length++;
                 _rleData.Set(i, container);
@@ -240,16 +257,30 @@ namespace FooProject.Collection
 
                 if (offset > 0)
                 {
-                    _rleData.Set(i, this.CreateItem( value:container.Value, length :offset));
-                    _rleData.Insert(i + 1, this.CreateItem(value : item, length : count ));
-                    _rleData.Insert(i + 2, this.CreateItem(value : container.Value, length : length ));
+                    _rleData.Set(i, this.CreateItem(value: container.Value, length: offset));
+                    _rleData.Insert(i + 1, item);
+                    _rleData.Insert(i + 2, this.CreateItem(value: container.Value, length: length));
                 }
                 else
                 {
-                    _rleData.Set(i, this.CreateItem(value : item, length : count ));
-                    _rleData.Insert(i + 1, this.CreateItem(value : container.Value, length : length ));
+                    _rleData.Set(i, item);
+                    _rleData.Insert(i + 1, this.CreateItem(value: container.Value, length: length));
                 }
             }
+
+        }
+
+        /// <summary>
+        /// アイテムを挿入します
+        /// </summary>
+        /// <param name="absolute_index">挿入対象の絶対インデックス</param>
+        /// <param name="item">挿入対象のアイテム</param>
+        /// <exception cref="InvalidOperationException"></exception>
+        /// <remarks>既に存在するアイテムの場合、アイテムの長さが変わります。また、既に存在するアイテムに別のアイテムを挿入した場合、分割されます</remarks>
+        public void InsertRange(int absolute_index, T item,int count = 1)
+        {
+            var new_item = this.CreateItem(value: item, start:absolute_index, length: count);
+            this.Insert(new_item);
         }
 
         /// <summary>
@@ -312,27 +343,29 @@ namespace FooProject.Collection
         /// <param name="count">出力すべき数</param>
         /// <param name="input">入力アイテム</param>
         /// <returns>カスタム処理を実装したい場合、continerを複製してください。</returns>
-        protected virtual IRleArrayRange<T> defaultProcessItem(IRleArrayRange<T> container, long count, T input)
+        protected virtual IRleArrayRange<T> defaultProcessItem(IRleArrayRange<T> container, long count, IRleArrayRange<T> input_item)
         {
-            return CreateItem( length:count, value:input );
+            return CreateItem( length:count, value: input_item.Value );
         }
 
         /// <summary>
         /// アイテムを更新します
         /// </summary>
-        /// <param name="absolute_index">更新するインデックス</param>
-        /// <param name="count">長さ</param>
         /// <param name="input_value">アイテム</param>
         /// <param name="processItem">処理用のメソッド。nullの場合、単純に上書きされます。arg1は処理対象のコンテナー、arg2は出力すべき数、arg3は入力アイテムを表します。</param>
         /// <exception cref="InvalidOperationException"></exception>
-        /// <remarks>何もしない場合、input_valueの値で置き換えます。カスタム処理を実装したい場合、continerを複製してください。</remarks>
-        public void UpdateRange(int absolute_index, T input_value, int count = 1, Func<IRleArrayRange<T>, long, T, IRleArrayRange<T>> processItem = null)
+        /// <remarks>何もしない場合、input_itemの値で置き換えます。カスタム処理を実装したい場合、continerを複製してください。</remarks>
+        public void Update(IRleArrayRange<T> input_item, Func<IRleArrayRange<T>, long, IRleArrayRange<T>, IRleArrayRange<T>> processItem = null)
         {
+            var absolute_index = input_item.start;
+            var count = input_item.length;
+            var input_value = input_item.Value;
+
             var index = _rleData.GetIndexFromAbsoluteIndexIntoRange(absolute_index);
             if (index == -1)
                 throw new InvalidOperationException("absoulte range is invaild");
 
-            if(processItem == null)
+            if (processItem == null)
             {
                 processItem = defaultProcessItem;
             }
@@ -343,7 +376,7 @@ namespace FooProject.Collection
                 if (container.length == count)
                 {
                     _rleData.RemoveAt(index);
-                    var new_item = processItem(container, container.length, input_value);
+                    var new_item = processItem(container, container.length, input_item);
                     _rleData.Insert(index, new_item);
                 }
                 else
@@ -353,16 +386,16 @@ namespace FooProject.Collection
 
                     if (offset > 0)
                     {
-                        _rleData.Set(index, this.CreateItem( value :container.Value, length : offset ));
-                        _rleData.Insert(index + 1, processItem(container, count, input_value));
+                        _rleData.Set(index, this.CreateItem(value: container.Value, length: offset));
+                        _rleData.Insert(index + 1, processItem(container, count, input_item));
                         var new_item_length = offseted_length - count;
                         if (new_item_length > 0)
-                            _rleData.Insert(index + 2, this.CreateItem(value:container.Value, length:new_item_length ));
+                            _rleData.Insert(index + 2, this.CreateItem(value: container.Value, length: new_item_length));
                     }
                     else
                     {
-                        _rleData.Set(index, processItem(container, count, input_value));
-                        _rleData.Insert(index + 1, this.CreateItem(value : container.Value, length : offseted_length - count ));
+                        _rleData.Set(index, processItem(container, count, input_item));
+                        _rleData.Insert(index + 1, this.CreateItem(value: container.Value, length: offseted_length - count));
                     }
                 }
             }
@@ -378,7 +411,7 @@ namespace FooProject.Collection
                     if (container.length == remove_length)
                     {
                         _rleData.RemoveAt(index);
-                        var new_item = processItem(container, container.length, input_value);
+                        var new_item = processItem(container, container.length, input_item);
                         _rleData.Insert(index, new_item);
                     }
                     else
@@ -387,12 +420,12 @@ namespace FooProject.Collection
                         {
                             container.length -= remove_length;
                             _rleData.Set(index, container);
-                            var new_item = processItem(container, remove_length, input_value);
+                            var new_item = processItem(container, remove_length, input_item);
                             _rleData.Insert(index + 1, new_item);
                         }
                         else
                         {
-                            var new_item = processItem(container, remove_length, input_value);
+                            var new_item = processItem(container, remove_length, input_item);
                             _rleData.Insert(index, new_item);
                             container.length -= remove_length;
                             _rleData.Set(index + 1, container);
@@ -409,6 +442,21 @@ namespace FooProject.Collection
                     container = this.Get(current_index, out index);
                 }
             }
+        }
+
+        /// <summary>
+        /// アイテムを更新します
+        /// </summary>
+        /// <param name="absolute_index">更新するインデックス</param>
+        /// <param name="count">長さ</param>
+        /// <param name="input_value">アイテム</param>
+        /// <param name="processItem">処理用のメソッド。nullの場合、単純に上書きされます。arg1は処理対象のコンテナー、arg2は出力すべき数、arg3は入力アイテムを表します。</param>
+        /// <exception cref="InvalidOperationException"></exception>
+        /// <remarks>何もしない場合、input_valueの値で置き換えます。カスタム処理を実装したい場合、continerを複製してください。</remarks>
+        public void UpdateRange(int absolute_index, T input_value, int count = 1, Func<IRleArrayRange<T>, long, IRleArrayRange<T>, IRleArrayRange<T>> processItem = null)
+        {
+            var new_item = this.CreateItem(input_value, absolute_index, count);
+            this.Update(new_item, processItem);
         }
 
         /// <summary>
