@@ -156,6 +156,11 @@ namespace UnitTest
 
             var expected_list = new CharRleArray[] { new CharRleArray('a', 0, 3), new CharRleArray('b', 3, 2) };
             InterfaceTests.TestEnumerableElements(list, expected_list);
+
+            list = new BigRleArray<char>();
+            list.Add(new CharRleArray('a', 0, 0));
+            list.Add(new CharRleArray('a', 0, 10));
+            expected_list = new CharRleArray[] { new CharRleArray('a', 0, 10) };
         }
 
         [TestMethod]
@@ -187,6 +192,11 @@ namespace UnitTest
 
             var expected_list = new CharRleArray[] { new CharRleArray('a', 0, 4), new CharRleArray('c', 4, 1), new CharRleArray('b', 5, 4) };
             InterfaceTests.TestEnumerableElements(list, expected_list);
+
+            list = new BigRleArray<char>();
+            list.Add(new CharRleArray('a', 0, 0));
+            list.Insert(new CharRleArray('a', 0, 10));
+            expected_list = new CharRleArray[] { new CharRleArray('a', 0, 10) };
         }
 
         [TestMethod]
