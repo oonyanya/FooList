@@ -85,6 +85,12 @@ namespace UnitTest
             InterfaceTests.TestEnumerableElements(list, expected_list);
 
             Assert.AreEqual(6, list.TotalRangeCount);
+
+            list = new BigRleArray<char>();
+            list.Add(new CharRleArray('a', 0, 0));
+            list.SetAt(list.IndexOf(0), new CharRleArray('a', 0, 10));
+            expected_list = new CharRleArray[] { new CharRleArray('a', 0, 10) };
+            Assert.AreEqual(10, list.TotalRangeCount);
         }
 
         [TestMethod]
@@ -252,11 +258,6 @@ namespace UnitTest
             list.UpdateRange(1, '0', 5);
             expected_list = new CharRleArray[] { new CharRleArray('a', 0, 1), new CharRleArray('0', 1, 1), new CharRleArray('0', 2, 3), new CharRleArray('0', 5, 1), new CharRleArray('c', 6, 2) };
             InterfaceTests.TestEnumerableElements(list, expected_list);
-
-            list = new BigRleArray<char>();
-            list.Add(new CharRleArray('a', 0, 0));
-            list.Update(0, 0, new CharRleArray('a', 0, 10));
-            expected_list = new CharRleArray[] { new CharRleArray('a', 0, 10) };
         }
 
         [TestMethod]

@@ -167,6 +167,18 @@ namespace FooProject.Collection
         }
 
         /// <summary>
+        /// 対応するインデックスを取得する
+        /// </summary>
+        /// <param name="absolute_index">取得対象の絶対インデックス</param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
+        public long IndexOf(long absolute_index)
+        {
+            var i = this.GetIndexFromAbsoluteIndexIntoRange(absolute_index);
+            return i;
+        }
+
+        /// <summary>
         /// アイテムを更新します
         /// </summary>
         /// <param name="index">更新するインデックス</param>
@@ -389,7 +401,7 @@ namespace FooProject.Collection
         /// <param name="input_item">アイテム</param>
         /// <param name="processItem">処理用のメソッド。nullの場合、単純に上書きされます。arg1は処理対象のコンテナー、arg2は出力すべき数、arg3は入力アイテムを表します。</param>
         /// <exception cref="InvalidOperationException"></exception>
-        /// <remarks>何もしない場合、input_itemの値で置き換えます。カスタム処理を実装したい場合、continerを複製してください。</remarks>
+        /// <remarks>何もしない場合、input_itemの値で置き換えます。カスタム処理を実装したい場合、continerを複製してください。なお、absolute_indexとinput_item.start、countとinput_item.lengthの値は一致させること</remarks>
         public void Update(int absolute_index, int count , IRleArrayRange<T> input_item, Func<IRleArrayRange<T>, long, IRleArrayRange<T>, IRleArrayRange<T>> processItem = null)
         {
             var input_value = input_item.Value;
