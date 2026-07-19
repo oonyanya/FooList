@@ -124,9 +124,7 @@ namespace FooProject.Collection
         /// <exception cref="InvalidOperationException"></exception>
         public T GetValue(long absolute_index)
         {
-            var i = _rleData.GetIndexFromAbsoluteIndexIntoRange(absolute_index);
-            if (i == -1)
-                throw new InvalidOperationException("absoulte range is invaild or not found");
+            var i = this.GetIndexFromAbsoluteIndexIntoRange(absolute_index);
 
             var container = _rleData.Get(i);
             return container.Value;
@@ -161,9 +159,7 @@ namespace FooProject.Collection
         /// <exception cref="InvalidOperationException"></exception>
         public IRleArrayRange<T> Get(long absolute_index, out long index)
         {
-            var i = _rleData.GetIndexFromAbsoluteIndexIntoRange(absolute_index);
-            if (i == -1)
-                throw new InvalidOperationException("absoulte range is invaild or not found");
+            var i = this.GetIndexFromAbsoluteIndexIntoRange(absolute_index);
 
             var container = _rleData.Get(i);
             index = i;
@@ -301,9 +297,7 @@ namespace FooProject.Collection
         /// <remarks>アイテムの長さを変えます。0になった場合、アイテム自体が削除されます。</remarks>
         public void RemoveRange(int absolute_index,int count = 1)
         {
-            var index = _rleData.GetIndexFromAbsoluteIndexIntoRange(absolute_index);
-            if (index == -1)
-                throw new InvalidOperationException("absoulte range is invaild");
+            var index = this.GetIndexFromAbsoluteIndexIntoRange(absolute_index);
 
             var container = _rleData.Get(index);
             if (count <= container.length)
@@ -361,22 +355,46 @@ namespace FooProject.Collection
                 return CreateItem( length:count, value: input_item.Value );
         }
 
+        internal long GetIndexFromAbsoluteIndexIntoRange(long absolute_index)
+        {
+            var index = 0L;
+
+            if(absolute_index == 0)
+            {
+                if (this._rleData.Count > 0)
+                    index = 0;
+                else
+                    index = -1;
+            }
+            else if(absolute_index == this.TotalRangeCount)
+            {
+                index = this.Count - 1;
+            }
+            else
+            {
+                index = _rleData.GetIndexFromAbsoluteIndexIntoRange(absolute_index);
+            }
+
+            if (index == -1)
+                throw new InvalidOperationException("absoulte range is invaild");
+
+            return index;
+        }
+
         /// <summary>
         /// アイテムを更新します
         /// </summary>
-        /// <param name="input_value">アイテム</param>
+        /// <param name="absolute_index">更新する絶対インデックス</param>
+        /// <param name="count">更新する長さ</param>
+        /// <param name="input_item">アイテム</param>
         /// <param name="processItem">処理用のメソッド。nullの場合、単純に上書きされます。arg1は処理対象のコンテナー、arg2は出力すべき数、arg3は入力アイテムを表します。</param>
         /// <exception cref="InvalidOperationException"></exception>
         /// <remarks>何もしない場合、input_itemの値で置き換えます。カスタム処理を実装したい場合、continerを複製してください。</remarks>
-        public void Update(IRleArrayRange<T> input_item, Func<IRleArrayRange<T>, long, IRleArrayRange<T>, IRleArrayRange<T>> processItem = null)
+        public void Update(int absolute_index, int count , IRleArrayRange<T> input_item, Func<IRleArrayRange<T>, long, IRleArrayRange<T>, IRleArrayRange<T>> processItem = null)
         {
-            var absolute_index = input_item.start;
-            var count = input_item.length;
             var input_value = input_item.Value;
 
-            var index = _rleData.GetIndexFromAbsoluteIndexIntoRange(absolute_index);
-            if (index == -1)
-                throw new InvalidOperationException("absoulte range is invaild");
+            var index = this.GetIndexFromAbsoluteIndexIntoRange(absolute_index);
 
             if (processItem == null)
             {
@@ -469,7 +487,7 @@ namespace FooProject.Collection
         public void UpdateRange(int absolute_index, T input_value, int count = 1, Func<IRleArrayRange<T>, long, IRleArrayRange<T>, IRleArrayRange<T>> processItem = null)
         {
             var new_item = this.CreateItem(input_value, absolute_index, count);
-            this.Update(new_item, processItem);
+            this.Update(absolute_index, count, new_item, processItem);
         }
 
         /// <summary>
