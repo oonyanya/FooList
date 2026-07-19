@@ -1,10 +1,11 @@
-﻿using System;
+﻿using FooProject.Collection;
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using FooProject.Collection;
 using static UnitTest.BigRleArrayTest;
 
 namespace UnitTest
@@ -39,6 +40,28 @@ namespace UnitTest
             AssertAreRangeEqual(expected, list);
 
             Assert.AreEqual(30, list.TotalRangeCount);
+        }
+
+        [TestMethod]
+        public void GetEnumeratorTest()
+        {
+            var list = new BigRangeList<MyRange>();
+            list.Add(new MyRange(0, 0));
+            var expected = new MyRange[] { new MyRange(0, 0) };
+            InterfaceTests.TestEnumerableElements(list, expected);
+            Assert.AreEqual(0, list.TotalRangeCount);
+
+            list = new BigRangeList<MyRange>();
+            const int length = 3;
+            int index = 0;
+            for (int i = 0; i < 9; i++)
+            {
+                list.Add(new MyRange(index, length));
+                index += length;
+            }
+            expected = Enumerable.Range(0, 9).Select((i) => { return new MyRange(i * length, length); }).ToArray();
+            InterfaceTests.TestEnumerableElements(list, expected);
+            Assert.AreEqual(27, list.TotalRangeCount);
         }
 
         [TestMethod]
