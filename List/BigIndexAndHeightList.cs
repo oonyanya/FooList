@@ -301,7 +301,7 @@ namespace FooProject.Collection
 
         public override IEnumerator<T> GetEnumerator()
         {
-            var root = (RangeConcatNode<T>)this.Root;
+            var root = (IRangeAndHeightNode)this.Root;
 
             foreach (var item in this.MyGetFromAbsoluteIndexIntoRange(0, root.TotalRangeCount))
             {
