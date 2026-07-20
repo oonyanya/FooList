@@ -110,7 +110,7 @@ namespace FooProject.Collection
         /// </summary>
         /// <param name="item">追加するアイテム</param>
         /// <remarks>既に存在するアイテムの場合、アイテムの長さが変わります</remarks>
-        public void AddRange(T item,int count = 1)
+        public void AddRange(T item,long count = 1)
         {
             var new_value = this.CreateItem(value: item, length: count);
             this.Add(new_value);
@@ -295,7 +295,7 @@ namespace FooProject.Collection
         /// <param name="item">挿入対象のアイテム</param>
         /// <exception cref="InvalidOperationException"></exception>
         /// <remarks>既に存在するアイテムの場合、アイテムの長さが変わります。また、既に存在するアイテムに別のアイテムを挿入した場合、分割されます</remarks>
-        public void InsertRange(int absolute_index, T item,int count = 1)
+        public void InsertRange(long absolute_index, T item, long count = 1)
         {
             var new_item = this.CreateItem(value: item, start:absolute_index, length: count);
             this.Insert(new_item);
@@ -307,7 +307,7 @@ namespace FooProject.Collection
         /// <param name="absolute_index">削除する絶対インデックス</param>
         /// <exception cref="InvalidOperationException"></exception>
         /// <remarks>アイテムの長さを変えます。0になった場合、アイテム自体が削除されます。</remarks>
-        public void RemoveRange(int absolute_index,int count = 1)
+        public void RemoveRange(long absolute_index, long count = 1)
         {
             var index = this.GetIndexFromAbsoluteIndexIntoRange(absolute_index);
 
@@ -402,7 +402,7 @@ namespace FooProject.Collection
         /// <param name="processItem">処理用のメソッド。nullの場合、単純に上書きされます。arg1は処理対象のコンテナー、arg2は出力すべき数、arg3は入力アイテムを表します。</param>
         /// <exception cref="InvalidOperationException"></exception>
         /// <remarks>何もしない場合、input_itemの値で置き換えます。カスタム処理を実装したい場合、continerを複製してください。なお、absolute_indexとinput_item.start、countとinput_item.lengthの値は一致させること</remarks>
-        public void Update(int absolute_index, int count , IRleArrayRange<T> input_item, Func<IRleArrayRange<T>, long, IRleArrayRange<T>, IRleArrayRange<T>> processItem = null)
+        public void Update(long absolute_index, long count , IRleArrayRange<T> input_item, Func<IRleArrayRange<T>, long, IRleArrayRange<T>, IRleArrayRange<T>> processItem = null)
         {
             var input_value = input_item.Value;
 
@@ -496,7 +496,7 @@ namespace FooProject.Collection
         /// <param name="processItem">処理用のメソッド。nullの場合、単純に上書きされます。arg1は処理対象のコンテナー、arg2は出力すべき数、arg3は入力アイテムを表します。</param>
         /// <exception cref="InvalidOperationException"></exception>
         /// <remarks>何もしない場合、input_valueの値で置き換えます。カスタム処理を実装したい場合、continerを複製してください。</remarks>
-        public void UpdateRange(int absolute_index, T input_value, int count = 1, Func<IRleArrayRange<T>, long, IRleArrayRange<T>, IRleArrayRange<T>> processItem = null)
+        public void UpdateRange(long absolute_index, T input_value, long count = 1, Func<IRleArrayRange<T>, long, IRleArrayRange<T>, IRleArrayRange<T>> processItem = null)
         {
             var new_item = this.CreateItem(input_value, absolute_index, count);
             this.Update(absolute_index, count, new_item, processItem);
@@ -508,7 +508,7 @@ namespace FooProject.Collection
         /// <param name="index">削除するインデックス</param>
         /// <exception cref="InvalidOperationException"></exception>
         /// <remarks>アイテムの長さを変えます。0になった場合、アイテム自体が削除されます。</remarks>
-        public void RemoveAt(int index)
+        public void RemoveAt(long index)
         {
             this._rleData.RemoveAt(index);
         }
