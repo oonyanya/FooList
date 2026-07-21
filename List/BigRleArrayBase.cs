@@ -412,45 +412,51 @@ namespace FooProject.Collection
         {
             var input_value = input_item.Value;
 
-            var index = this.GetIndexFromAbsoluteIndexIntoRange(absolute_index);
+            var current_index = this.GetIndexFromAbsoluteIndexIntoRange(absolute_index);
 
             if (processItem == null)
             {
                 processItem = defaultProcessItem;
             }
 
-            var container = _rleData.Get(index);
+            var container = _rleData.Get(current_index);
             if (count <= container.length)
             {
                 if (container.length == count)
                 {
-                    _rleData.RemoveAt(index);
+                    _rleData.RemoveAt(current_index);
                     var new_item = processItem(container, container.length, input_item);
-                    _rleData.Insert(index, new_item);
+                    _rleData.Insert(current_index, new_item);
                 }
                 else
                 {
+                    if(container.Value.Equals(input_item.Value))
+                    {
+                        container.length += input_item.length;
+                        _rleData.Set(current_index, container);
+                        return;
+                    }
+
                     var offset = absolute_index - container.start;
                     var offseted_length = container.length - offset;
 
                     if (offset > 0)
                     {
-                        _rleData.Set(index, this.CreateItem(value: container.Value, length: offset));
-                        _rleData.Insert(index + 1, processItem(container, count, input_item));
+                        _rleData.Set(current_index, this.CreateItem(value: container.Value, length: offset));
+                        _rleData.Insert(current_index + 1, processItem(container, count, input_item));
                         var new_item_length = offseted_length - count;
                         if (new_item_length > 0)
-                            _rleData.Insert(index + 2, this.CreateItem(value: container.Value, length: new_item_length));
+                            _rleData.Insert(current_index + 2, this.CreateItem(value: container.Value, length: new_item_length));
                     }
                     else
                     {
-                        _rleData.Set(index, processItem(container, count, input_item));
-                        _rleData.Insert(index + 1, this.CreateItem(value: container.Value, length: offseted_length - count));
+                        _rleData.Set(current_index, processItem(container, count, input_item));
+                        _rleData.Insert(current_index + 1, this.CreateItem(value: container.Value, length: offseted_length - count));
                     }
                 }
             }
             else
             {
-                long current_index = absolute_index;
                 long total_remove_length = count;
                 while (true)
                 {
@@ -459,25 +465,28 @@ namespace FooProject.Collection
                     var remove_length = Math.Min(total_remove_length, offseted_length);
                     if (container.length == remove_length)
                     {
-                        _rleData.RemoveAt(index);
+                        _rleData.RemoveAt(current_index);
                         var new_item = processItem(container, container.length, input_item);
-                        _rleData.Insert(index, new_item);
+                        _rleData.Insert(current_index, new_item);
+                        current_index++;
                     }
                     else
                     {
                         if (total_remove_length == count)    //先頭かどうか判別する
                         {
                             container.length -= remove_length;
-                            _rleData.Set(index, container);
+                            _rleData.Set(current_index, container);
                             var new_item = processItem(container, remove_length, input_item);
-                            _rleData.Insert(index + 1, new_item);
+                            _rleData.Insert(current_index + 1, new_item);
+                            current_index += 2;
                         }
                         else
                         {
                             var new_item = processItem(container, remove_length, input_item);
-                            _rleData.Insert(index, new_item);
+                            _rleData.Insert(current_index, new_item);
                             container.length -= remove_length;
-                            _rleData.Set(index + 1, container);
+                            _rleData.Set(current_index + 1, container);
+                            current_index += 2;
                         }
                     }
 
@@ -486,9 +495,7 @@ namespace FooProject.Collection
                     if (total_remove_length <= 0)
                         break;
 
-                    current_index += remove_length;
-
-                    container = this.Get(current_index, out index);
+                    container = _rleData.Get(current_index);
                 }
             }
         }
