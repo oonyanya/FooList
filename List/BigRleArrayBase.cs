@@ -370,6 +370,7 @@ namespace FooProject.Collection
         internal long GetIndexFromAbsoluteIndexIntoRange(long absolute_index)
         {
             var index = 0L;
+            var nearest_index = 0L;
 
             if(absolute_index == 0)
             {
@@ -384,11 +385,16 @@ namespace FooProject.Collection
             }
             else
             {
-                index = _rleData.GetIndexFromAbsoluteIndexIntoRange(absolute_index);
+
+                index = _rleData.GetIndexFromAbsoluteIndexIntoRange(absolute_index,out nearest_index);
             }
 
             if (index == -1)
-                throw new InvalidOperationException("absoulte range is invaild");
+            {
+                if(nearest_index == -1)
+                    throw new InvalidOperationException("absoulte range is invaild");
+                index = nearest_index;
+            }
 
             return index;
         }

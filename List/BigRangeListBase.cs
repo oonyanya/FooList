@@ -133,6 +133,17 @@ namespace FooProject.Collection
         /// <returns>0から始まる要素の番号。見つからない場合は-1を返す</returns>
         public virtual long GetIndexFromAbsoluteIndexIntoRange(long indexIntoRange)
         {
+            return this.GetIndexFromAbsoluteIndexIntoRange(indexIntoRange, out _);
+        }
+
+        /// <summary>
+        /// 絶対的な位置、すなわちインデックスに対応する要素の番号を返す
+        /// </summary>
+        /// <param name="index">0から始まる数値。絶対的な位置を指定しないといけない</param>
+        /// <param name="nearestIndex">一番近いインデックスが設定される</param>
+        /// <returns>0から始まる要素の番号。見つからない場合は-1を返す</returns>
+        public virtual long GetIndexFromAbsoluteIndexIntoRange(long indexIntoRange,out long nearestIndex)
+        {
             RangeConverter<T> myCustomConverter = (RangeConverter<T>)LeastFetchStore;
             long relativeIndexIntoRange;
 
@@ -144,6 +155,7 @@ namespace FooProject.Collection
             {
                 var leafNodeItems = pinnedContent.Content;
                 relativeIndex = this.IndexOfNearest(leafNodeItems, relativeIndexIntoRange, out relativeNearIndex);
+                nearestIndex = relativeNearIndex + myCustomConverter.customLeastFetch.TotalLeftCount;
             }
 
             if (relativeIndex == -1)
