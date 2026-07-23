@@ -412,7 +412,9 @@ namespace FooProject.Collection
         {
             var input_value = input_item.Value;
 
-            var current_index = this.GetIndexFromAbsoluteIndexIntoRange(absolute_index);
+            var first_index = this.GetIndexFromAbsoluteIndexIntoRange(absolute_index);
+            var last_index = this.GetIndexFromAbsoluteIndexIntoRange(absolute_index + count);
+            var current_index = first_index;
 
             if (processItem == null)
             {
@@ -472,13 +474,14 @@ namespace FooProject.Collection
                     }
                     else
                     {
-                        if (total_remove_length == count)    //先頭かどうか判別する
+                        if (current_index == first_index)    //先頭かどうか判別する
                         {
                             container.length -= remove_length;
                             _rleData.Set(current_index, container);
                             var new_item = processItem(container, remove_length, input_item);
                             _rleData.Insert(current_index + 1, new_item);
                             current_index += 2;
+                            last_index++;
                         }
                         else
                         {
@@ -487,12 +490,13 @@ namespace FooProject.Collection
                             container.length -= remove_length;
                             _rleData.Set(current_index + 1, container);
                             current_index += 2;
+                            last_index++;
                         }
                     }
 
                     total_remove_length -= remove_length;
 
-                    if (total_remove_length <= 0)
+                    if (current_index > last_index)
                         break;
 
                     container = _rleData.Get(current_index);
