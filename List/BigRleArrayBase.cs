@@ -309,7 +309,10 @@ namespace FooProject.Collection
         /// <remarks>アイテムの長さを変えます。0になった場合、アイテム自体が削除されます。</remarks>
         public void RemoveRange(long absolute_index, long count = 1)
         {
-            var index = this.GetIndexFromAbsoluteIndexIntoRange(absolute_index);
+            var first_index = this.GetIndexFromAbsoluteIndexIntoRange(absolute_index);
+            var last_index = this.GetIndexFromAbsoluteIndexIntoRange(absolute_index + count);
+
+            var index = first_index;
 
             var container = _rleData.Get(index);
             if (count <= container.length)
@@ -335,19 +338,21 @@ namespace FooProject.Collection
                     if (container.length == remove_length)
                     {
                         _rleData.RemoveAt(index);
+                        last_index--;
                     }
                     else
                     {
                         container.length -= remove_length;
                         _rleData.Set(index, container);
+                        index++;
                     }
 
                     total_remove_length -= remove_length;
 
-                    if (total_remove_length <= 0)
+                    if (index > last_index)
                         break;
 
-                    container = this.Get(absolute_index, out index);
+                    container = _rleData.Get(index);
                 }
             }
         }
