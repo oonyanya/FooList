@@ -250,7 +250,7 @@ namespace FooProject.Collection
         public void Insert(IRleArrayRange<T> item)
         {
             var absolute_index = item.start;
-            if (absolute_index == _rleData.TotalRangeCount)
+            if (_rleData.Count == 0 || absolute_index == _rleData.TotalRangeCount)
             {
                 Add(item);
                 return;
