@@ -263,7 +263,7 @@ namespace FooProject.Collection
             var container = _rleData.Get(i);
             if (container.Value.Equals(item.Value))
             {
-                container.length++;
+                container.length += item.length;
                 _rleData.Set(i, container);
             }
             else
