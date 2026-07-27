@@ -17,30 +17,47 @@ namespace FooProject.Collection
     /// IRleArrayRangeインターフェイス
     /// </summary>
     /// <typeparam name="J"></typeparam>
-    public interface IRleArrayRange<J> : IRange
+    public interface IRleArrayRangeItem<J> : IRange
     {
         J Value { get; set; }
+    }
+
+    public interface IBigRleArrayCollection<T> : IEnumerable<IRleArrayRangeItem<T>>
+    {
+        int Count { get; }
+        long TotalRangeCount { get; }
+
+        void Add(IRleArrayRangeItem<T> item);
+        void Clear();
+        IRleArrayRangeItem<T> GetAt(long index);
+        IRleArrayRangeItem<T> Get(long absolute_index, out long index);
+        IEnumerable<IRleArrayRangeItem<T>> GetRanges(long absolute_index, long count);
+        long IndexOf(long absolute_index);
+        void Insert(IRleArrayRangeItem<T> item);
+        void RemoveAt(long index);
+        void SetAt(long index, IRleArrayRangeItem<T> item);
+        void Update(long absolute_index, long count, IRleArrayRangeItem<T> input_item, Func<IRleArrayRangeItem<T>, long, IRleArrayRangeItem<T>, IRleArrayRangeItem<T>> processItem = null);
     }
 
     /// <summary>
     /// RleArrayを格納するためのコレクションの基底クラス
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class BigRleArrayBase<T>: IEnumerable<IRleArrayRange<T>>
+    public class BigRleArrayCollectionBase<T> : IBigRleArrayCollection<T>
     {
-        BigRangeList<IRleArrayRange<T>> _rleData;
+        BigRangeList<IRleArrayRangeItem<T>> _rleData;
 
-        public BigRleArrayBase(int block_size = 0)
+        public BigRleArrayCollectionBase(int block_size = 0)
         {
-            _rleData = new BigRangeList<IRleArrayRange<T>>();
-            if(block_size > 0 )
+            _rleData = new BigRangeList<IRleArrayRangeItem<T>>();
+            if (block_size > 0)
                 _rleData.BlockSize = block_size;
         }
 
         /// <summary>
         /// IRleArrayRangeを格納しているコレクション
         /// </summary>
-        protected BigRangeList<IRleArrayRange<T>> RleData
+        protected BigRangeList<IRleArrayRangeItem<T>> RleData
         {
             get { return _rleData; }
         }
@@ -50,7 +67,8 @@ namespace FooProject.Collection
         /// </summary>
         public int Count
         {
-            get {
+            get
+            {
                 return _rleData.Count;
             }
         }
@@ -74,7 +92,7 @@ namespace FooProject.Collection
         /// <param name="length">長さ。特に指定してない場合は-1</param>
         /// <returns>IRleArrayRangeを継承したクラスを返す。nullを返してはならない</returns>
         /// <exception cref="NotImplementedException"></exception>
-        protected virtual IRleArrayRange<T> CreateItem(T value,long start = -1,long length = -1)
+        protected virtual IRleArrayRangeItem<T> CreateItem(T value, long start = -1, long length = -1)
         {
             throw new NotImplementedException();
         }
@@ -84,7 +102,7 @@ namespace FooProject.Collection
         /// </summary>
         /// <param name="item">追加するアイテム</param>
         /// <remarks>既に存在するアイテムの場合、アイテムの長さが変わります</remarks>
-        public void Add(IRleArrayRange<T> item)
+        public void Add(IRleArrayRangeItem<T> item)
         {
             if (_rleData.Count > 0)
             {
@@ -110,7 +128,7 @@ namespace FooProject.Collection
         /// </summary>
         /// <param name="item">追加するアイテム</param>
         /// <remarks>既に存在するアイテムの場合、アイテムの長さが変わります</remarks>
-        public void AddRange(T item,long count = 1)
+        public void AddRange(T item, long count = 1)
         {
             var new_value = this.CreateItem(value: item, length: count);
             this.Add(new_value);
@@ -135,7 +153,7 @@ namespace FooProject.Collection
         /// </summary>
         /// <param name="index">インデックス</param>
         /// <returns></returns>
-        public IRleArrayRange<T> GetAt(long index)
+        public IRleArrayRangeItem<T> GetAt(long index)
         {
             return _rleData.Get(index);
         }
@@ -145,7 +163,7 @@ namespace FooProject.Collection
         /// </summary>
         /// <param name="absolute_index">取得対象の絶対インデックス</param>
         /// <returns></returns>
-        public IRleArrayRange<T> Get(long absolute_index)
+        public IRleArrayRangeItem<T> Get(long absolute_index)
         {
             return this.Get(absolute_index, out _);
         }
@@ -157,7 +175,7 @@ namespace FooProject.Collection
         /// <param name="index">IRleArrayRangeが存在するインデックス</param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public IRleArrayRange<T> Get(long absolute_index, out long index)
+        public IRleArrayRangeItem<T> Get(long absolute_index, out long index)
         {
             var i = this.GetIndexFromAbsoluteIndexIntoRange(absolute_index);
 
@@ -183,7 +201,7 @@ namespace FooProject.Collection
         /// </summary>
         /// <param name="index">更新するインデックス</param>
         /// <param name="item">新しいアイテム</param>
-        public void SetAt(long index, IRleArrayRange<T> item)
+        public void SetAt(long index, IRleArrayRangeItem<T> item)
         {
             this._rleData.Set(index, item);
         }
@@ -195,7 +213,7 @@ namespace FooProject.Collection
         /// <param name="count">長さ</param>
         /// <returns>列挙子</returns>
         /// <remarks>IRleArrayRangeのstartとlengthは開始インデックスと長さの範囲内になるように調整されます</remarks>
-        public IEnumerable<IRleArrayRange<T>> GetRanges(long absolute_index, long count)
+        public IEnumerable<IRleArrayRangeItem<T>> GetRanges(long absolute_index, long count)
         {
             return _rleData.GetFromAbsoluteIndexIntoRange(absolute_index, count, (item, relative_start, total_fetched_count, left_count) =>
             {
@@ -210,9 +228,9 @@ namespace FooProject.Collection
         /// <param name="count">長さ</param>
         /// <returns>列挙子</returns>
         /// <remarks>IRleArrayRangeのstartとlengthは開始インデックスと長さの範囲内になるように調整されます</remarks>
-        public IEnumerable<IRleArrayRange<T>> GetRangesAndClamp(long absolute_index,long count)
+        public IEnumerable<IRleArrayRangeItem<T>> GetRangesAndClamp(long absolute_index, long count)
         {
-            return _rleData.GetFromAbsoluteIndexIntoRange(absolute_index, count,(item, relative_start, total_fetched_count, left_count) =>
+            return _rleData.GetFromAbsoluteIndexIntoRange(absolute_index, count, (item, relative_start, total_fetched_count, left_count) =>
             {
                 var clamped_count = item.length;
                 if (relative_start > 0)
@@ -235,7 +253,7 @@ namespace FooProject.Collection
         /// 列挙子を返す
         /// </summary>
         /// <returns></returns>
-        public IEnumerator<IRleArrayRange<T>> GetEnumerator()
+        public IEnumerator<IRleArrayRangeItem<T>> GetEnumerator()
         {
             foreach (var item in _rleData)
                 yield return item;
@@ -247,7 +265,7 @@ namespace FooProject.Collection
         /// <param name="item">挿入したいアイテム</param>
         /// <exception cref="InvalidOperationException"></exception>
         /// <remarks>既に存在するアイテムの場合、当該アイテムの長さが変わります。また、既に存在するアイテムに別のアイテムを挿入した場合、分割されます</remarks>
-        public void Insert(IRleArrayRange<T> item)
+        public void Insert(IRleArrayRangeItem<T> item)
         {
             var absolute_index = item.start;
             if (_rleData.Count == 0 || absolute_index == _rleData.TotalRangeCount)
@@ -268,7 +286,7 @@ namespace FooProject.Collection
             }
             else
             {
-                var CustomConverter = (RangeConverter<IRleArrayRange<T>>)_rleData.LeastFetchStore;
+                var CustomConverter = (RangeConverter<IRleArrayRangeItem<T>>)_rleData.LeastFetchStore;
                 var converter = CustomConverter.customLeastFetch.absoluteIndexIntoRange;
                 var offset = absolute_index - container.start;
                 var length = container.length - offset;
@@ -297,7 +315,7 @@ namespace FooProject.Collection
         /// <remarks>既に存在するアイテムの場合、アイテムの長さが変わります。また、既に存在するアイテムに別のアイテムを挿入した場合、分割されます</remarks>
         public void InsertRange(long absolute_index, T item, long count = 1)
         {
-            var new_item = this.CreateItem(value: item, start:absolute_index, length: count);
+            var new_item = this.CreateItem(value: item, start: absolute_index, length: count);
             this.Insert(new_item);
         }
 
@@ -364,12 +382,12 @@ namespace FooProject.Collection
         /// <param name="count">出力すべき数</param>
         /// <param name="input">入力アイテム</param>
         /// <returns>カスタム処理を実装したい場合、continerを複製してください。なお、countとinput_itemの長さが同じ場合は複製する必要はありません</returns>
-        protected virtual IRleArrayRange<T> defaultProcessItem(IRleArrayRange<T> container, long count, IRleArrayRange<T> input_item)
+        protected virtual IRleArrayRangeItem<T> defaultProcessItem(IRleArrayRangeItem<T> container, long count, IRleArrayRangeItem<T> input_item)
         {
             if (input_item.length == count)
                 return input_item;
             else
-                return CreateItem( length:count, value: input_item.Value );
+                return CreateItem(length: count, value: input_item.Value);
         }
 
         internal long GetIndexFromAbsoluteIndexIntoRange(long absolute_index)
@@ -377,26 +395,26 @@ namespace FooProject.Collection
             var index = 0L;
             var nearest_index = 0L;
 
-            if(absolute_index == 0)
+            if (absolute_index == 0)
             {
                 if (this._rleData.Count > 0)
                     index = 0;
                 else
                     index = -1;
             }
-            else if(absolute_index == this.TotalRangeCount)
+            else if (absolute_index == this.TotalRangeCount)
             {
                 index = this.Count - 1;
             }
             else
             {
 
-                index = _rleData.GetIndexFromAbsoluteIndexIntoRange(absolute_index,out nearest_index);
+                index = _rleData.GetIndexFromAbsoluteIndexIntoRange(absolute_index, out nearest_index);
             }
 
             if (index == -1)
             {
-                if(nearest_index == -1)
+                if (nearest_index == -1)
                     throw new InvalidOperationException("absoulte range is invaild");
                 index = nearest_index;
             }
@@ -413,7 +431,7 @@ namespace FooProject.Collection
         /// <param name="processItem">処理用のメソッド。nullの場合、単純に上書きされます。arg1は処理対象のコンテナー、arg2は出力すべき数、arg3は入力アイテムを表します。</param>
         /// <exception cref="InvalidOperationException"></exception>
         /// <remarks>何もしない場合、input_itemの値で置き換えます。カスタム処理を実装したい場合、continerを複製してください。なお、absolute_indexとinput_item.start、countとinput_item.lengthの値は一致させること</remarks>
-        public void Update(long absolute_index, long count , IRleArrayRange<T> input_item, Func<IRleArrayRange<T>, long, IRleArrayRange<T>, IRleArrayRange<T>> processItem = null)
+        public void Update(long absolute_index, long count, IRleArrayRangeItem<T> input_item, Func<IRleArrayRangeItem<T>, long, IRleArrayRangeItem<T>, IRleArrayRangeItem<T>> processItem = null)
         {
             var input_value = input_item.Value;
 
@@ -437,7 +455,7 @@ namespace FooProject.Collection
                 }
                 else
                 {
-                    if(container.Value.Equals(input_item.Value))
+                    if (container.Value.Equals(input_item.Value))
                     {
                         container.length += input_item.length;
                         _rleData.Set(current_index, container);
@@ -481,7 +499,7 @@ namespace FooProject.Collection
                         if (privious_item.Value.Equals(new_item.Value))
                         {
                             privious_item.length += new_item.length;
-                            _rleData.Set(privious_index,privious_item);
+                            _rleData.Set(privious_index, privious_item);
                             last_index--;
                         }
                         else
@@ -555,7 +573,7 @@ namespace FooProject.Collection
         /// <param name="processItem">処理用のメソッド。nullの場合、単純に上書きされます。arg1は処理対象のコンテナー、arg2は出力すべき数、arg3は入力アイテムを表します。</param>
         /// <exception cref="InvalidOperationException"></exception>
         /// <remarks>何もしない場合、input_valueの値で置き換えます。カスタム処理を実装したい場合、continerを複製してください。</remarks>
-        public void UpdateRange(long absolute_index, T input_value, long count = 1, Func<IRleArrayRange<T>, long, IRleArrayRange<T>, IRleArrayRange<T>> processItem = null)
+        public void UpdateRange(long absolute_index, T input_value, long count = 1, Func<IRleArrayRangeItem<T>, long, IRleArrayRangeItem<T>, IRleArrayRangeItem<T>> processItem = null)
         {
             var new_item = this.CreateItem(input_value, absolute_index, count);
             this.Update(absolute_index, count, new_item, processItem);

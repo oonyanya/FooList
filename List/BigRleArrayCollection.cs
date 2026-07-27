@@ -7,17 +7,17 @@ using System.Threading.Tasks;
 
 namespace FooProject.Collection
 {
-    public class BigRleArrayRange<T> : IRleArrayRange<T>
+    public class BigRleArrayRangeItem<T> : IRleArrayRangeItem<T>
     {
         public T Value { get; set; }
         public long start { get; set; }
         public long length { get; set; }
 
-        public BigRleArrayRange()
+        public BigRleArrayRangeItem()
         {
         }
 
-        public BigRleArrayRange(T v, long index, long length)
+        public BigRleArrayRangeItem(T v, long index, long length)
         {
             this.Value = v;
             this.start = index;
@@ -25,7 +25,7 @@ namespace FooProject.Collection
             this.OnInit(v, index, length);
         }
 
-        public BigRleArrayRange(T v, long length)
+        public BigRleArrayRangeItem(T v, long length)
         {
             this.Value = v;
             this.length = length;
@@ -44,7 +44,7 @@ namespace FooProject.Collection
 
         public IRange DeepCopy()
         {
-            var new_item = new BigRleArrayRange<T>();
+            var new_item = new BigRleArrayRangeItem<T>();
             new_item.start = start;
             new_item.Value = Value;
             new_item.length = length;
@@ -53,7 +53,7 @@ namespace FooProject.Collection
 
         public override bool Equals(object obj)
         {
-            var other = obj as BigRleArrayRange<T>;
+            var other = obj as BigRleArrayRangeItem<T>;
             if (other == null) return false;
             if (other.Value.Equals(this.Value) && other.length == this.length && other.start == this.start) return true;
             return false;
@@ -65,19 +65,19 @@ namespace FooProject.Collection
         }
     }
 
-    public class BigRleArray<T> : BigRleArrayBase<T>
+    public class BigRleArrayCollection<T> : BigRleArrayCollectionBase<T>
     {
-        public BigRleArray(int block_size = 0) : base(block_size) { }
+        public BigRleArrayCollection(int block_size = 0) : base(block_size) { }
 
-        protected override IRleArrayRange<T> CreateItem(T value, long start = -1, long length = -1)
+        protected override IRleArrayRangeItem<T> CreateItem(T value, long start = -1, long length = -1)
         {
             if (start == -1)
             {
-                return new BigRleArrayRange<T>(value, length);
+                return new BigRleArrayRangeItem<T>(value, length);
             }
             else
             {
-                return new BigRleArrayRange<T>(value, start, length);
+                return new BigRleArrayRangeItem<T>(value, start, length);
             }
         }
     }

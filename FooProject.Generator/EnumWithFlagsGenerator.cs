@@ -113,7 +113,7 @@ namespace FooProject.Generator
 
     public class {{collectionSymbolName}}
     {
-        BigRleArray<{{typeSymbol.Name}}> collection = new BigRleArray<{{typeSymbol.Name}}>();
+        BigRleArrayCollection<{{typeSymbol.Name}}> collection = new BigRleArrayCollection<{{typeSymbol.Name}}>();
 
         public void Add({{typeSymbol.Name}} m,int length)
         {
@@ -130,7 +130,7 @@ namespace FooProject.Generator
             collection.UpdateRange(index, value, count, (container, require_count, inputed_item) =>
             {
                 var new_value = container.Value | inputed_item.Value;
-                return new BigRleArrayRange<{{typeSymbol.Name}}>(new_value, require_count); 
+                return new BigRleArrayRangeItem<{{typeSymbol.Name}}>(new_value, require_count); 
             });
         }
 
@@ -141,11 +141,11 @@ namespace FooProject.Generator
                 var new_value = {{typeSymbol.Name}}.None;
                 if (value != {{typeSymbol.Name}}.None)
                     new_value = container.Value ^ inputed_item.Value;
-                return new BigRleArrayRange<{{typeSymbol.Name}}>(new_value, require_count);
+                return new BigRleArrayRangeItem<{{typeSymbol.Name}}>(new_value, require_count);
             });
         }
 
-        public IEnumerable<IRleArrayRange<{{typeSymbol.Name}}>> GetRanges(int index,int count)
+        public IEnumerable<IRleArrayRangeItem<{{typeSymbol.Name}}>> GetRanges(int index,int count)
         {
              return collection.GetRangesAndClamp(index, count);
         }

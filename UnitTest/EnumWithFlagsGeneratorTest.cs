@@ -54,13 +54,13 @@ namespace UnitTest
             Assert.AreEqual(TestMarker.Important, collection.Get(1001));
             Assert.AreEqual(TestMarker.Mark, collection.Get(10));
 
-            var expected_list = new BigRleArrayRange<TestMarker>[] { 
-                new BigRleArrayRange<TestMarker>(TestMarker.None, 0, 10), 
-                new BigRleArrayRange<TestMarker>(TestMarker.Mark, 10, 500),
-                new BigRleArrayRange<TestMarker>(TestMarker.None, 510, 490),
-                new BigRleArrayRange<TestMarker>(TestMarker.Important, 1000, 100)
+            var expected_list = new BigRleArrayRangeItem<TestMarker>[] { 
+                new BigRleArrayRangeItem<TestMarker>(TestMarker.None, 0, 10), 
+                new BigRleArrayRangeItem<TestMarker>(TestMarker.Mark, 10, 500),
+                new BigRleArrayRangeItem<TestMarker>(TestMarker.None, 510, 490),
+                new BigRleArrayRangeItem<TestMarker>(TestMarker.Important, 1000, 100)
             };
-            InterfaceTests.TestEnumerableElements<IRleArrayRange<TestMarker>>(collection.GetRanges(0,1100), expected_list);
+            InterfaceTests.TestEnumerableElements<IRleArrayRangeItem<TestMarker>>(collection.GetRanges(0,1100), expected_list);
 
 
             collection.Unset(10, 500, TestMarker.Mark);
@@ -68,13 +68,13 @@ namespace UnitTest
             Assert.AreEqual(TestMarker.None, collection.Get(10));
             Assert.AreEqual(TestMarker.Important, collection.Get(1001));
 
-            expected_list = new BigRleArrayRange<TestMarker>[] {
-                new BigRleArrayRange<TestMarker>(TestMarker.None, 0, 10),
-                new BigRleArrayRange<TestMarker>(TestMarker.None, 10, 500),
-                new BigRleArrayRange<TestMarker>(TestMarker.None, 510, 490),
-                new BigRleArrayRange<TestMarker>(TestMarker.Important, 1000, 100)
+            expected_list = new BigRleArrayRangeItem<TestMarker>[] {
+                new BigRleArrayRangeItem<TestMarker>(TestMarker.None, 0, 10),
+                new BigRleArrayRangeItem<TestMarker>(TestMarker.None, 10, 500),
+                new BigRleArrayRangeItem<TestMarker>(TestMarker.None, 510, 490),
+                new BigRleArrayRangeItem<TestMarker>(TestMarker.Important, 1000, 100)
             };
-            InterfaceTests.TestEnumerableElements<IRleArrayRange<TestMarker>>(collection.GetRanges(0, 1100), expected_list);
+            InterfaceTests.TestEnumerableElements<IRleArrayRangeItem<TestMarker>>(collection.GetRanges(0, 1100), expected_list);
 
             FooTestMarker2Collection collection2 = new FooTestMarker2Collection();
 
