@@ -470,32 +470,69 @@ namespace FooProject.Collection
                     var offset = Math.Max(0, absolute_index - container.start);
                     var offseted_length = container.length - offset;
                     var remove_length = Math.Min(total_remove_length, offseted_length);
+
                     if (container.length == remove_length)
                     {
                         _rleData.RemoveAt(current_index);
                         var new_item = processItem(container, container.length, input_item);
-                        _rleData.Insert(current_index, new_item);
-                        current_index++;
+
+                        var privious_index = current_index > 0 ? current_index - 1 : 0;
+                        var privious_item = _rleData.Get(privious_index);
+                        if (privious_item.Value.Equals(new_item.Value))
+                        {
+                            privious_item.length += new_item.length;
+                            _rleData.Set(privious_index,privious_item);
+                            last_index--;
+                        }
+                        else
+                        {
+                            _rleData.Insert(current_index, new_item);
+                            current_index++;
+                        }
+
                     }
                     else
                     {
                         if (current_index == first_index)    //先頭かどうか判別する
                         {
                             container.length -= remove_length;
-                            _rleData.Set(current_index, container);
                             var new_item = processItem(container, remove_length, input_item);
-                            _rleData.Insert(current_index + 1, new_item);
-                            current_index += 2;
-                            last_index++;
+                            if (container.Value.Equals(new_item.Value))
+                            {
+                                container.length += new_item.length;
+                                _rleData.Set(current_index, container);
+                                current_index++;
+                            }
+                            else
+                            {
+                                _rleData.Set(current_index, container);
+                                _rleData.Insert(current_index + 1, new_item);
+                                current_index += 2;
+                                last_index++;
+                            }
                         }
                         else
                         {
                             var new_item = processItem(container, remove_length, input_item);
-                            _rleData.Insert(current_index, new_item);
-                            container.length -= remove_length;
-                            _rleData.Set(current_index + 1, container);
-                            current_index += 2;
-                            last_index++;
+
+                            var privious_index = current_index > 0 ? current_index - 1 : 0;
+                            var privious_item = _rleData.Get(privious_index);
+                            if (privious_item.Value.Equals(new_item.Value))
+                            {
+                                privious_item.length += new_item.length;
+                                _rleData.Set(privious_index, privious_item);
+                                container.length -= remove_length;
+                                _rleData.Set(current_index, container);
+                                current_index++;
+                            }
+                            else
+                            {
+                                _rleData.Insert(current_index, new_item);
+                                container.length -= remove_length;
+                                _rleData.Set(current_index + 1, container);
+                                current_index += 2;
+                                last_index++;
+                            }
                         }
                     }
 

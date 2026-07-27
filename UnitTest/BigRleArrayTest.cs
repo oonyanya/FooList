@@ -256,7 +256,15 @@ namespace UnitTest
             list.AddRange('b', 3);
             list.AddRange('c', 3);
             list.UpdateRange(1, '0', 5);
-            expected_list = new CharRleArray[] { new CharRleArray('a', 0, 1), new CharRleArray('0', 1, 1), new CharRleArray('0', 2, 3), new CharRleArray('0', 5, 1), new CharRleArray('c', 6, 2) };
+            expected_list = new CharRleArray[] { new CharRleArray('a', 0, 1), new CharRleArray('0', 1, 5) , new CharRleArray('c', 6, 2) };
+            InterfaceTests.TestEnumerableElements(list, expected_list);
+
+            list = new BigRleArray<char>();
+            list.AddRange('a', 2);
+            list.AddRange('b', 3);
+            list.AddRange('c', 3);
+            list.UpdateRange(1, 'a', 5);
+            expected_list = new CharRleArray[] { new CharRleArray('a', 0, 6), new CharRleArray('c', 6, 2) };
             InterfaceTests.TestEnumerableElements(list, expected_list);
         }
 
