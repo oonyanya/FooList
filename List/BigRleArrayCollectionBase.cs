@@ -22,28 +22,11 @@ namespace FooProject.Collection
         J Value { get; set; }
     }
 
-    public interface IBigRleArrayCollection<T> : IEnumerable<IRleArrayRangeItem<T>>
-    {
-        int Count { get; }
-        long TotalRangeCount { get; }
-
-        void Add(IRleArrayRangeItem<T> item);
-        void Clear();
-        IRleArrayRangeItem<T> GetAt(long index);
-        IRleArrayRangeItem<T> Get(long absolute_index, out long index);
-        IEnumerable<IRleArrayRangeItem<T>> GetRanges(long absolute_index, long count);
-        long IndexOf(long absolute_index);
-        void Insert(IRleArrayRangeItem<T> item);
-        void RemoveAt(long index);
-        void SetAt(long index, IRleArrayRangeItem<T> item);
-        void Update(long absolute_index, long count, IRleArrayRangeItem<T> input_item, Func<IRleArrayRangeItem<T>, long, IRleArrayRangeItem<T>, IRleArrayRangeItem<T>> processItem = null);
-    }
-
     /// <summary>
     /// RleArrayを格納するためのコレクションの基底クラス
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class BigRleArrayCollectionBase<T> : IBigRleArrayCollection<T>
+    public class BigRleArrayCollectionBase<T> : IEnumerable<IRleArrayRangeItem<T>>
     {
         BigRangeList<IRleArrayRangeItem<T>> _rleData;
 
