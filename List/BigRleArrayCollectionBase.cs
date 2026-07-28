@@ -257,9 +257,7 @@ namespace FooProject.Collection
                 return;
             }
 
-            var i = _rleData.GetIndexFromAbsoluteIndexIntoRange(absolute_index);
-            if (i == -1)
-                throw new InvalidOperationException("absoulte range is invaild or not found");
+            var i = this.GetIndexFromAbsoluteIndexIntoRange(absolute_index);
 
             var container = _rleData.Get(i);
             if (container.Value.Equals(item.Value))
