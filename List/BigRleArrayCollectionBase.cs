@@ -379,9 +379,14 @@ namespace FooProject.Collection
             if (absolute_index == 0)
             {
                 if (this._rleData.Count > 0)
-                    index = 0;
+                {
+
+                }
                 else
-                    index = -1;
+                {
+                    var str = $"absoulte range is invaild and collection is empty.absolute_index is {absolute_index}";
+                    throw new InvalidOperationException(str);
+                }
             }
             else if (absolute_index == this.TotalRangeCount)
             {
@@ -396,7 +401,10 @@ namespace FooProject.Collection
             if (index == -1)
             {
                 if (nearest_index == -1)
-                    throw new InvalidOperationException("absoulte range is invaild");
+                {
+                    var str = $"absoulte range is invaild.absolute_index is {absolute_index}";
+                    throw new InvalidOperationException(str);
+                }
                 index = nearest_index;
             }
 
