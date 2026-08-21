@@ -87,7 +87,7 @@ namespace UnitTest
             Assert.AreEqual(6, list.TotalRangeCount);
 
             list = new BigRleArrayCollection<char>();
-            list.Add(new CharRleArray('a', 0, 0));
+            list.AddRange('a');
             list.SetAt(list.IndexOf(0), new CharRleArray('a', 0, 10));
             expected_list = new CharRleArray[] { new CharRleArray('a', 0, 10) };
             Assert.AreEqual(10, list.TotalRangeCount);
@@ -157,15 +157,15 @@ namespace UnitTest
         public void AddItemTest()
         {
             var list = new BigRleArrayCollection<char>();
-            list.Add(new CharRleArray('a', 0, 3));
-            list.Add(new CharRleArray('b', 3, 2));
+            list.AddRange('a', 3);
+            list.AddRange('b', 2);
 
             var expected_list = new CharRleArray[] { new CharRleArray('a', 0, 3), new CharRleArray('b', 3, 2) };
             InterfaceTests.TestEnumerableElements(list, expected_list);
 
             list = new BigRleArrayCollection<char>();
-            list.Add(new CharRleArray('a', 0, 0));
-            list.Add(new CharRleArray('a', 0, 10));
+            list.AddRange('a');
+            list.AddRange('a', 10);
             expected_list = new CharRleArray[] { new CharRleArray('a', 0, 10) };
         }
 
@@ -193,15 +193,15 @@ namespace UnitTest
             list.AddRange('b');
             list.AddRange('b');
             list.AddRange('b');
-            list.Insert(new CharRleArray('a', 0, 1));
-            list.Insert(new CharRleArray('c', 4, 1));
+            list.InsertRange(0, 'a', 1);
+            list.InsertRange(4, 'c', 1);
 
             var expected_list = new CharRleArray[] { new CharRleArray('a', 0, 4), new CharRleArray('c', 4, 1), new CharRleArray('b', 5, 4) };
             InterfaceTests.TestEnumerableElements(list, expected_list);
 
             list = new BigRleArrayCollection<char>();
-            list.Add(new CharRleArray('a', 0, 0));
-            list.Insert(new CharRleArray('a', 0, 10));
+            list.AddRange('a');
+            list.InsertRange(0, 'a', 10);
             expected_list = new CharRleArray[] { new CharRleArray('a', 0, 10) };
         }
 
