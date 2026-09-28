@@ -115,41 +115,41 @@ namespace FooProject.Generator
     {
         BigRleArrayCollection<{{typeSymbol.Name}}> collection = new BigRleArrayCollection<{{typeSymbol.Name}}>();
 
-        public void Add({{typeSymbol.Name}} m,int length)
+        public void Add({{typeSymbol.Name}} value, int length)
         {
-            collection.AddRange(m, length);
+            collection.AddRange(new BigRleArrayRangeItem<{{typeSymbol.Name}}>(value, length));
         }
-
         public {{typeSymbol.Name}} Get(long index)
         {
-            return ({{typeSymbol.Name}})collection.GetValue(index);
+            return collection.GetValue(index).Value;
         }
 
         public void Set(int index,int count, {{typeSymbol.Name}} value)
         {
-            collection.UpdateRange(index, value, count, (container, require_count, inputed_value) =>
+            var new_item = new BigRleArrayRangeItem<{{typeSymbol.Name}}>(value, count);
+            collection.UpdateRange(index, new_item, (container, require_count, inputed_value) =>
             {
-                var new_value = container.Value | inputed_value;
+                var new_value = container.Value | inputed_value.Value;
                 return new BigRleArrayRangeItem<{{typeSymbol.Name}}>(new_value, require_count); 
             });
         }
 
         public void Unset(int index, int count, {{typeSymbol.Name}} value)
         {
-            collection.UpdateRange(index, value, count, (container, require_count, inputed_value) =>
+            var new_item = new BigRleArrayRangeItem<{{typeSymbol.Name}}>(value, count);
+            collection.UpdateRange(index, new_item, (container, require_count, inputed_value) =>
             {
                 var new_value = {{typeSymbol.Name}}.None;
-                if (value != {{typeSymbol.Name}}.None)
-                    new_value = container.Value ^ inputed_value;
+                if (inputed_value.Value != {{typeSymbol.Name}}.None)
+                    new_value = container.Value ^ inputed_value.Value;
                 return new BigRleArrayRangeItem<{{typeSymbol.Name}}>(new_value, require_count);
             });
         }
-
-        public IEnumerable<IRleArrayRangeItem<{{typeSymbol.Name}}>> GetRanges(int index,int count)
+        
+        public IEnumerable<BigRleArrayRangeItem<{{typeSymbol.Name}}>> GetRanges(int index, int count)
         {
-             return collection.GetRangesAndClamp(index, count);
+            return collection.GetRangesAndClamp(index, count);
         }
-
     }
     """;
 

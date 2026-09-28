@@ -1,13 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using FooProject.Collection;
 
 namespace FooProject.Collection
 {
-    public class BigRleArrayRangeItem<T> : IRleArrayRangeItem<T>
+    public class BigRleArrayRangeItem<T> : IRleArrayRangeItem
     {
         public T Value { get; set; }
         public long start { get; set; }
@@ -63,22 +65,51 @@ namespace FooProject.Collection
         {
             return base.GetHashCode();
         }
+
+        public bool EqualsValue(IRleArrayRangeItem other)
+        {
+            BigRleArrayRangeItem<T> other_item = (BigRleArrayRangeItem<T>)other;
+            return this.Value.Equals(other_item.Value);
+        }
     }
 
-    public class BigRleArrayCollection<T> : BigRleArrayCollectionBase<T>
+    public class BigRleArrayCollection<J> : BigRleArrayCollectionBase<BigRleArrayRangeItem<J>>
     {
         public BigRleArrayCollection(int block_size = 0) : base(block_size) { }
 
-        protected override IRleArrayRangeItem<T> CreateItem(T value, long start = -1, long length = -1)
+        protected override BigRleArrayRangeItem<J> CreateItem(BigRleArrayRangeItem<J> value, long start = -1, long length = -1)
         {
             if (start == -1)
             {
-                return new BigRleArrayRangeItem<T>(value, length);
+                return new BigRleArrayRangeItem<J>(value.Value, length);
             }
             else
             {
-                return new BigRleArrayRangeItem<T>(value, start, length);
+                return new BigRleArrayRangeItem<J>(value.Value, start, length);
             }
+        }
+
+        public void AddRange(J item,int count = -1)
+        {
+            if (count == -1)
+                this.AddRange(new BigRleArrayRangeItem<J>(item, 1));
+            else
+                this.AddRange(new BigRleArrayRangeItem<J>(item,count));
+        }
+
+        public void InsertRange(int index,J item, int count = -1)
+        {
+            if (count == -1)
+                this.InsertRange(index, new BigRleArrayRangeItem<J>(item, 1));
+            else
+                this.InsertRange(index, new BigRleArrayRangeItem<J>(item, count));
+        }
+        public void UpdateRange(int index, J item, int count = -1)
+        {
+            if (count == -1)
+                this.UpdateRange(index, new BigRleArrayRangeItem<J>(item, 1));
+            else
+                this.UpdateRange(index, new BigRleArrayRangeItem<J>(item, count));
         }
     }
 }

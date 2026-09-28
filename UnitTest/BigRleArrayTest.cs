@@ -38,7 +38,6 @@ namespace UnitTest
             var list = new BigRleArrayCollection<char>();
             list.AddRange('a');
             list.AddRange('a');
-            list.AddRange('a');
             list.AddRange('b');
             list.AddRange('b');
 
@@ -58,13 +57,13 @@ namespace UnitTest
             list.AddRange('b');
 
             var item = list.GetValue(0);
-            Assert.AreEqual('a', item);
+            Assert.AreEqual('a', item.Value);
 
             var item2 = list.GetValue(1);
-            Assert.AreEqual('a', item2);
+            Assert.AreEqual('a', item2.Value);
 
             var item3 = list.GetValue(4);
-            Assert.AreEqual('b', item3);
+            Assert.AreEqual('b', item3.Value);
         }
 
         [TestMethod]

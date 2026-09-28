@@ -17,22 +17,22 @@ namespace FooProject.Collection
     /// IRleArrayRangeインターフェイス
     /// </summary>
     /// <typeparam name="J"></typeparam>
-    public interface IRleArrayRangeItem<J> : IRange
+    public interface IRleArrayRangeItem : IRange
     {
-        J Value { get; set; }
+        bool EqualsValue(IRleArrayRangeItem other);
     }
 
     /// <summary>
     /// RleArrayを格納するためのコレクションの基底クラス
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class BigRleArrayCollectionBase<T> : IEnumerable<IRleArrayRangeItem<T>>
+    public class BigRleArrayCollectionBase<T> : IEnumerable<T> where T : IRleArrayRangeItem
     {
-        BigRangeList<IRleArrayRangeItem<T>> _rleData;
+        BigRangeList<T> _rleData;
 
         public BigRleArrayCollectionBase(int block_size = 0)
         {
-            _rleData = new BigRangeList<IRleArrayRangeItem<T>>();
+            _rleData = new BigRangeList<T>();
             if (block_size > 0)
                 _rleData.BlockSize = block_size;
         }
@@ -40,7 +40,7 @@ namespace FooProject.Collection
         /// <summary>
         /// IRleArrayRangeを格納しているコレクション
         /// </summary>
-        protected BigRangeList<IRleArrayRangeItem<T>> RleData
+        protected BigRangeList<T> RleData
         {
             get { return _rleData; }
         }
@@ -75,7 +75,7 @@ namespace FooProject.Collection
         /// <param name="length">長さ。特に指定してない場合は-1</param>
         /// <returns>IRleArrayRangeを継承したクラスを返す。nullを返してはならない</returns>
         /// <exception cref="NotImplementedException"></exception>
-        protected virtual IRleArrayRangeItem<T> CreateItem(T value, long start = -1, long length = -1)
+        protected virtual T CreateItem(T value, long start = -1, long length = -1)
         {
             throw new NotImplementedException();
         }
@@ -85,12 +85,13 @@ namespace FooProject.Collection
         /// </summary>
         /// <param name="item">追加するアイテム</param>
         /// <remarks>既に存在するアイテムの場合、アイテムの長さが変わります</remarks>
-        public void AddRange(T item, long count = 1)
+        public void AddRange(T item)
         {
+            var count = item.length;
             if (_rleData.Count > 0)
             {
                 var last = _rleData[_rleData.Count - 1];
-                if (last.Value.Equals(item))
+                if (last.EqualsValue(item))
                 {
                     last.length += count;
                     _rleData[_rleData.Count - 1] = last;
@@ -119,7 +120,7 @@ namespace FooProject.Collection
             var i = this.GetIndexFromAbsoluteIndexIntoRange(absolute_index);
 
             var container = _rleData.Get(i);
-            return container.Value;
+            return container;
         }
 
         /// <summary>
@@ -127,7 +128,7 @@ namespace FooProject.Collection
         /// </summary>
         /// <param name="index">インデックス</param>
         /// <returns></returns>
-        public IRleArrayRangeItem<T> GetAt(long index)
+        public T GetAt(long index)
         {
             return _rleData.Get(index);
         }
@@ -137,7 +138,7 @@ namespace FooProject.Collection
         /// </summary>
         /// <param name="absolute_index">取得対象の絶対インデックス</param>
         /// <returns></returns>
-        public IRleArrayRangeItem<T> Get(long absolute_index)
+        public T Get(long absolute_index)
         {
             return this.Get(absolute_index, out _);
         }
@@ -149,7 +150,7 @@ namespace FooProject.Collection
         /// <param name="index">IRleArrayRangeが存在するインデックス</param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public IRleArrayRangeItem<T> Get(long absolute_index, out long index)
+        public T Get(long absolute_index, out long index)
         {
             var i = this.GetIndexFromAbsoluteIndexIntoRange(absolute_index);
 
@@ -175,7 +176,7 @@ namespace FooProject.Collection
         /// </summary>
         /// <param name="index">更新するインデックス</param>
         /// <param name="item">新しいアイテム</param>
-        public void SetAt(long index, IRleArrayRangeItem<T> item)
+        public void SetAt(long index, T item)
         {
             this._rleData.Set(index, item);
         }
@@ -187,11 +188,11 @@ namespace FooProject.Collection
         /// <param name="count">長さ</param>
         /// <returns>列挙子</returns>
         /// <remarks>IRleArrayRangeのstartとlengthは開始インデックスと長さの範囲内になるように調整されます</remarks>
-        public IEnumerable<IRleArrayRangeItem<T>> GetRanges(long absolute_index, long count)
+        public IEnumerable<T> GetRanges(long absolute_index, long count)
         {
             return _rleData.GetFromAbsoluteIndexIntoRange(absolute_index, count, (item, relative_start, total_fetched_count, left_count) =>
             {
-                return this.CreateItem(item.Value, item.start + total_fetched_count, item.length);
+                return this.CreateItem(item, item.start + total_fetched_count, item.length);
             });
         }
 
@@ -202,7 +203,7 @@ namespace FooProject.Collection
         /// <param name="count">長さ</param>
         /// <returns>列挙子</returns>
         /// <remarks>IRleArrayRangeのstartとlengthは開始インデックスと長さの範囲内になるように調整されます</remarks>
-        public IEnumerable<IRleArrayRangeItem<T>> GetRangesAndClamp(long absolute_index, long count)
+        public IEnumerable<T> GetRangesAndClamp(long absolute_index, long count)
         {
             return _rleData.GetFromAbsoluteIndexIntoRange(absolute_index, count, (item, relative_start, total_fetched_count, left_count) =>
             {
@@ -210,15 +211,15 @@ namespace FooProject.Collection
                 if (relative_start > 0)
                 {
                     clamped_count = item.length - relative_start;
-                    return this.CreateItem(item.Value, item.start + relative_start + total_fetched_count, clamped_count);
+                    return this.CreateItem(item, item.start + relative_start + total_fetched_count, clamped_count);
                 }
                 else if (left_count < clamped_count)
                 {
-                    return this.CreateItem(item.Value, item.start + total_fetched_count, left_count);
+                    return this.CreateItem(item, item.start + total_fetched_count, left_count);
                 }
                 else
                 {
-                    return this.CreateItem(item.Value, item.start + total_fetched_count, clamped_count);
+                    return this.CreateItem(item, item.start + total_fetched_count, clamped_count);
                 }
             });
         }
@@ -227,7 +228,7 @@ namespace FooProject.Collection
         /// 列挙子を返す
         /// </summary>
         /// <returns></returns>
-        public IEnumerator<IRleArrayRangeItem<T>> GetEnumerator()
+        public IEnumerator<T> GetEnumerator()
         {
             foreach (var item in _rleData)
                 yield return item;
@@ -240,8 +241,9 @@ namespace FooProject.Collection
         /// <param name="item">挿入対象のアイテム</param>
         /// <exception cref="InvalidOperationException"></exception>
         /// <remarks>既に存在するアイテムの場合、アイテムの長さが変わります。また、既に存在するアイテムに別のアイテムを挿入した場合、分割されます</remarks>
-        public void InsertRange(long absolute_index, T item, long count = 1)
+        public void InsertRange(long absolute_index, T item)
         {
+            var count = item.length;
             if (_rleData.Count == 0 || absolute_index == _rleData.TotalRangeCount)
             {
                 AddRange(item);
@@ -251,14 +253,14 @@ namespace FooProject.Collection
             var i = this.GetIndexFromAbsoluteIndexIntoRange(absolute_index);
 
             var container = _rleData.Get(i);
-            if (container.Value.Equals(item))
+            if (container.EqualsValue(item))
             {
                 container.length += count;
                 _rleData.Set(i, container);
             }
             else
             {
-                var CustomConverter = (RangeConverter<IRleArrayRangeItem<T>>)_rleData.LeastFetchStore;
+                var CustomConverter = (RangeConverter<T>)_rleData.LeastFetchStore;
                 var converter = CustomConverter.customLeastFetch.absoluteIndexIntoRange;
                 var offset = absolute_index - container.start;
                 var length = container.length - offset;
@@ -266,15 +268,15 @@ namespace FooProject.Collection
                 if (offset > 0)
                 {
                     var new_item = this.CreateItem(value: item, start: absolute_index, length: count);
-                    _rleData.Set(i, this.CreateItem(value: container.Value, length: offset));
+                    _rleData.Set(i, this.CreateItem(value: container, length: offset));
                     _rleData.Insert((int)i + 1, new_item);
-                    _rleData.Insert((int)i + 2, this.CreateItem(value: container.Value, length: length));
+                    _rleData.Insert((int)i + 2, this.CreateItem(value: container, length: length));
                 }
                 else
                 {
                     var new_item = this.CreateItem(value: item, start: absolute_index, length: count);
                     _rleData.Set(i, new_item);
-                    _rleData.Insert(i + 1, this.CreateItem(value: container.Value, length: length));
+                    _rleData.Insert(i + 1, this.CreateItem(value: container, length: length));
                 }
             }
         }
@@ -342,7 +344,7 @@ namespace FooProject.Collection
         /// <param name="count">出力すべき数</param>
         /// <param name="input">入力アイテム</param>
         /// <returns>カスタム処理を実装したい場合、continerを複製してください。なお、countとinput_itemの長さが同じ場合は複製する必要はありません</returns>
-        protected virtual IRleArrayRangeItem<T> defaultProcessItem(IRleArrayRangeItem<T> container, long count, T input_item)
+        protected virtual T defaultProcessItem(T container, long count, T input_item)
         {
             return CreateItem(length: count, value: input_item);
         }
@@ -396,8 +398,9 @@ namespace FooProject.Collection
         /// <param name="processItem">処理用のメソッド。nullの場合、単純に上書きされます。arg1は処理対象のコンテナー、arg2は出力すべき数、arg3は入力アイテムを表します。</param>
         /// <exception cref="InvalidOperationException"></exception>
         /// <remarks>何もしない場合、input_valueの値で置き換えます。カスタム処理を実装したい場合、continerを複製してください。</remarks>
-        public void UpdateRange(long absolute_index, T input_value, long count = 1, Func<IRleArrayRangeItem<T>, long, T, IRleArrayRangeItem<T>> processItem = null)
+        public void UpdateRange(long absolute_index, T input_value, Func<T, long, T, T> processItem = null)
         {
+            var count = input_value.length;
             var first_index = this.GetIndexFromAbsoluteIndexIntoRange(absolute_index);
             var last_index = this.GetIndexFromAbsoluteIndexIntoRange(absolute_index + count);
             var current_index = first_index;
@@ -418,7 +421,7 @@ namespace FooProject.Collection
                 }
                 else
                 {
-                    if (container.Value.Equals(input_value))
+                    if (container.EqualsValue(input_value))
                     {
                         container.length += count;
                         _rleData.Set(current_index, container);
@@ -430,16 +433,16 @@ namespace FooProject.Collection
 
                     if (offset > 0)
                     {
-                        _rleData.Set(current_index, this.CreateItem(value: container.Value, length: offset));
+                        _rleData.Set(current_index, this.CreateItem(value: container, length: offset));
                         _rleData.Insert(current_index + 1, processItem(container, count, input_value));
                         var new_item_length = offseted_length - count;
                         if (new_item_length > 0)
-                            _rleData.Insert(current_index + 2, this.CreateItem(value: container.Value, length: new_item_length));
+                            _rleData.Insert(current_index + 2, this.CreateItem(value: container, length: new_item_length));
                     }
                     else
                     {
                         _rleData.Set(current_index, processItem(container, count, input_value));
-                        _rleData.Insert(current_index + 1, this.CreateItem(value: container.Value, length: offseted_length - count));
+                        _rleData.Insert(current_index + 1, this.CreateItem(value: container, length: offseted_length - count));
                     }
                 }
             }
@@ -459,7 +462,7 @@ namespace FooProject.Collection
 
                         var privious_index = current_index > 0 ? current_index - 1 : 0;
                         var privious_item = _rleData.Get(privious_index);
-                        if (privious_item.Value.Equals(new_item.Value))
+                        if (privious_item.EqualsValue(new_item))
                         {
                             privious_item.length += new_item.length;
                             _rleData.Set(privious_index, privious_item);
@@ -478,7 +481,7 @@ namespace FooProject.Collection
                         {
                             container.length -= remove_length;
                             var new_item = processItem(container, remove_length, input_value);
-                            if (container.Value.Equals(new_item.Value))
+                            if (container.EqualsValue(new_item))
                             {
                                 container.length += new_item.length;
                                 _rleData.Set(current_index, container);
@@ -498,7 +501,7 @@ namespace FooProject.Collection
 
                             var privious_index = current_index > 0 ? current_index - 1 : 0;
                             var privious_item = _rleData.Get(privious_index);
-                            if (privious_item.Value.Equals(new_item.Value))
+                            if (privious_item.EqualsValue(new_item))
                             {
                                 privious_item.length += new_item.length;
                                 _rleData.Set(privious_index, privious_item);

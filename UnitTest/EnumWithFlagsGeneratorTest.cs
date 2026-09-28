@@ -60,7 +60,7 @@ namespace UnitTest
                 new BigRleArrayRangeItem<TestMarker>(TestMarker.None, 510, 490),
                 new BigRleArrayRangeItem<TestMarker>(TestMarker.Important, 1000, 100)
             };
-            InterfaceTests.TestEnumerableElements<IRleArrayRangeItem<TestMarker>>(collection.GetRanges(0,1100), expected_list);
+            InterfaceTests.TestEnumerableElements<BigRleArrayRangeItem<TestMarker>>(collection.GetRanges(0,1100), expected_list);
 
 
             collection.Unset(10, 500, TestMarker.Mark);
@@ -74,7 +74,7 @@ namespace UnitTest
                 new BigRleArrayRangeItem<TestMarker>(TestMarker.None, 510, 490),
                 new BigRleArrayRangeItem<TestMarker>(TestMarker.Important, 1000, 100)
             };
-            InterfaceTests.TestEnumerableElements<IRleArrayRangeItem<TestMarker>>(collection.GetRanges(0, 1100), expected_list);
+            InterfaceTests.TestEnumerableElements<BigRleArrayRangeItem<TestMarker>>(collection.GetRanges(0, 1100), expected_list);
 
             FooTestMarker2Collection collection2 = new FooTestMarker2Collection();
 
