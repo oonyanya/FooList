@@ -380,15 +380,6 @@ namespace FooProject.Collection
                 index = _rleData.GetIndexFromAbsoluteIndexIntoRange(absolute_index, out nearest_index);
             }
 
-            if (index == -1)
-            {
-                if (nearest_index == -1)
-                {
-                    return -1;
-                }
-                index = nearest_index;
-            }
-
             return index;
         }
 

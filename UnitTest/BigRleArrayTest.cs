@@ -41,6 +41,7 @@ namespace UnitTest
             var index = 0L;
             var nearest_index = 0L;
             index = list.TryIndexOfNearst(4, out nearest_index);
+            Assert.AreEqual(-1, index);
             Assert.AreEqual(0, nearest_index);
         }
 
