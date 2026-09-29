@@ -33,6 +33,29 @@ namespace UnitTest
         }
 
         [TestMethod]
+        public void TryIndexOfNearstTest()
+        {
+            var list = new BigRleArrayCollection<char>();
+            list.AddRange('a', 2);
+
+            var index = 0L;
+            var nearest_index = 0L;
+            index = list.TryIndexOfNearst(4, out nearest_index);
+            Assert.AreEqual(0, nearest_index);
+        }
+
+        [TestMethod]
+        public void GetIndexFromAbsoluteIndexIntoRange()
+        {
+            var list = new BigRleArrayCollection<char>();
+            list.AddRange('a', 2);
+
+            var index = 0L;
+            index = list.GetIndexFromAbsoluteIndexIntoRange(4);
+            Assert.AreEqual(0, index);
+        }
+
+        [TestMethod]
         public void ClearTest()
         {
             var list = new BigRleArrayCollection<char>();

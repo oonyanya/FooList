@@ -349,21 +349,26 @@ namespace FooProject.Collection
             return CreateItem(length: count, value: input_item);
         }
 
-        internal long GetIndexFromAbsoluteIndexIntoRange(long absolute_index)
+        /// <summary>
+        /// 対応するアイテムのインデックスを取得する
+        /// </summary>
+        /// <param name="absolute_index">絶対インデックス</param>
+        /// <param name="nearest_index">一番近くのアイテムのインデックス</param>
+        /// <returns>インデックス</returns>
+        public long TryIndexOfNearst(long absolute_index, out long nearest_index)
         {
             var index = 0L;
-            var nearest_index = 0L;
+            nearest_index = 0L;
 
             if (absolute_index == 0)
             {
                 if (this._rleData.Count > 0)
                 {
-
                 }
                 else
                 {
-                    var str = $"absoulte range is invaild and collection is empty.absolute_index is {absolute_index}";
-                    throw new InvalidOperationException(str);
+                    nearest_index = -1;
+                    return -1;
                 }
             }
             else if (absolute_index == this.TotalRangeCount)
@@ -372,7 +377,6 @@ namespace FooProject.Collection
             }
             else
             {
-
                 index = _rleData.GetIndexFromAbsoluteIndexIntoRange(absolute_index, out nearest_index);
             }
 
@@ -380,7 +384,32 @@ namespace FooProject.Collection
             {
                 if (nearest_index == -1)
                 {
-                    var str = $"absoulte range is invaild.absolute_index is {absolute_index}";
+                    return -1;
+                }
+                index = nearest_index;
+            }
+
+            return index;
+        }
+
+
+        /// <summary>
+        /// 対応するアイテムのインデックスを取得する
+        /// </summary>
+        /// <param name="absolute_index">絶対インデックス</param>
+        /// <returns>インデックス</returns>
+        /// <exception cref="InvalidOperationException"></exception>
+        /// <remarks>存在しない場合、一番近くのインデックスを取得します。取得できないときは例外を吐きます</remarks>
+        public long GetIndexFromAbsoluteIndexIntoRange(long absolute_index)
+        {
+            var nearest_index = 0L;
+            var index = this.TryIndexOfNearst(absolute_index,out nearest_index);
+
+            if (index == -1)
+            {
+                if (nearest_index == -1)
+                {
+                    var str = $"absoulte range is invaild or empty.absolute_index is {absolute_index}";
                     throw new InvalidOperationException(str);
                 }
                 index = nearest_index;
