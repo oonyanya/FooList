@@ -34,6 +34,13 @@ namespace FooProject.Collection
             this.OnInit(v, start, length);
         }
 
+        public BigRleArrayRangeItem(T v)
+        {
+            this.Value = v;
+            this.length = 1;
+            this.OnInit(v, start, 1);
+        }
+
         /// <summary>
         /// 初期化時に呼び出される
         /// </summary>
