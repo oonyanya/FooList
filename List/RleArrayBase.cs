@@ -69,7 +69,7 @@ namespace Sgry.Azuki
     /// </summary>
     public class RleArrayBase<T> : IEnumerable<T> where T : class, IRleArrayRangeItem
     {
-        internal BigList<T> _Nodes;
+        internal BigRangeList<T> _Nodes;
         int _TotalCount = 0;
 
         #region Init / Dispose
@@ -85,7 +85,7 @@ namespace Sgry.Azuki
         /// </summary>
         public RleArrayBase(int initCapacity)
         {
-            _Nodes = new BigList<T>();
+            _Nodes = new BigRangeList<T>();
             __check_sanity__();
         }
         #endregion
@@ -473,6 +473,17 @@ namespace Sgry.Azuki
         }
 
         /// <summary>
+        /// 全ての範囲の長さを合計した値を返す
+        /// </summary>
+        public long TotalRangeCount
+        {
+            get
+            {
+                return this._Nodes.TotalRangeCount;
+            }
+        }
+
+        /// <summary>
         /// Gets a value indicating whether this instance is read only.
         /// </summary>
         /// <value>
@@ -503,6 +514,46 @@ namespace Sgry.Azuki
         #endregion
 
         #region Utilities
+        /// <summary>
+        /// 対応するアイテムのインデックスを取得する
+        /// </summary>
+        /// <param name="absolute_index">絶対インデックス</param>
+        /// <param name="nearest_index">一番近くのアイテムのインデックス</param>
+        /// <returns>インデックス</returns>
+        public long TryIndexOfNearst(long absolute_index, out long nearest_index, out long indexInNode)
+        {
+            var index = 0L;
+            nearest_index = 0L;
+
+            if (absolute_index == 0)
+            {
+                if (this._Nodes.Count > 0)
+                {
+                    indexInNode = 0;
+                }
+                else
+                {
+                    nearest_index = -1;
+                    indexInNode = -1;
+                    return -1;
+                }
+            }
+            else if (absolute_index == this.TotalRangeCount)
+            {
+                index = this.Count - 1;
+                indexInNode = this._Nodes[this.Count - 1].length;
+            }
+            else
+            {
+                index = _Nodes.GetIndexFromAbsoluteIndexIntoRange(absolute_index, out nearest_index);
+                var CustomConverter = (RangeConverter<T>)_Nodes.LeastFetchStore;
+                var headIndexInNode = CustomConverter.customLeastFetch.absoluteIndexIntoRange;
+                indexInNode = index - headIndexInNode;
+            }
+
+            return index;
+        }
+
         long FindNodeIndex(long index)
         {
             long nodeIndex, indexInNode;
@@ -514,6 +565,7 @@ namespace Sgry.Azuki
 
         void FindNodeIndex(long index, out long nodeIndex, out long indexInNode)
         {
+            /*
             Debug.Assert(0 <= index);
 
             var sum = 0L;
@@ -533,6 +585,20 @@ namespace Sgry.Azuki
 
             nodeIndex = -1;
             indexInNode = -1;
+            */
+            var nearest_index = 0L;
+            nodeIndex = this.TryIndexOfNearst(index, out nearest_index, out indexInNode);
+
+            if (nodeIndex == -1)
+            {
+                if (nearest_index == -1)
+                {
+                    nodeIndex = -1;
+                    indexInNode = -1;
+                    return;
+                }
+                nodeIndex = nearest_index;
+            }
         }
 
         [Conditional("TEST")]
