@@ -26,7 +26,7 @@ namespace FooProject.Collection
     /// RleArrayを格納するためのコレクションの基底クラス
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class BigRleArrayCollectionBase<T> : IEnumerable<T> where T : IRleArrayRangeItem
+    public class BigRleArrayCollectionBase<T> : IEnumerable<T> where T : class, IRleArrayRangeItem
     {
         BigRangeList<T> _rleData;
 

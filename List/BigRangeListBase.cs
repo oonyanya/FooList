@@ -17,7 +17,7 @@ namespace FooProject.Collection
     /// 範囲を変換するための基底クラス
     /// </summary>
     /// <remarks>連続した範囲でないとうまく動きません</remarks>
-    public abstract class BigRangeListBase<T> : BigList<T> where T : IRange
+    public abstract class BigRangeListBase<T> : BigList<T> where T : class,IRange
     {
         /// <summary>
         /// 全ての範囲の合計値

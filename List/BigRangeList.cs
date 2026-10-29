@@ -33,7 +33,7 @@ namespace FooProject.Collection
     /// </summary>
     /// <typeparam name="T">IRangeを実装したT</typeparam>
     /// <remarks>連続した範囲でないとうまく動きません</remarks>
-    public class BigRangeList<T> : BigRangeListBase<T> where T : IRange
+    public class BigRangeList<T> : BigRangeListBase<T> where T : class, IRange
     {
         /// <summary>
         /// コンストラクター

@@ -27,7 +27,7 @@ namespace FooProject.Collection
     /// </summary>
     /// <typeparam name="T">IRangeWithHeightを実装したT</typeparam>
     /// <remarks>連続した範囲でないとうまく動きません</remarks>
-    public class BigIndexAndHeightList<T> : BigRangeListBase<T> where T : IRangeWithHeight
+    public class BigIndexAndHeightList<T> : BigRangeListBase<T> where T : class, IRangeWithHeight
     {
         /// <summary>
         /// コンストラクター
