@@ -3,7 +3,7 @@
  *  https://github.com/timdetering/Wintellect.PowerCollections
  *  Fooproject modify
  */
-#define MODIFY_NODE_BY_NORECURSIVE
+//#define MODIFY_NODE_BY_NORECURSIVE
 using System;
 using System.Collections;
 using System.Collections.Generic;
