@@ -3,7 +3,7 @@
  *  https://github.com/timdetering/Wintellect.PowerCollections
  *  Fooproject modify
  */
-//#define MODIFY_NODE_BY_NORECURSIVE
+#define MODIFY_NODE_BY_NORECURSIVE
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -41,12 +41,23 @@ namespace FooProject.Collection
 
         public UpdateType Type { get; set; }
 
+        public Func<T, T> ProcessItems { get; set; }
+
         public BigListArgs(ICustomBuilder<T> builder, IStateStore<T> conv, int blockSize, UpdateType type) 
         {
             LeastFetchStore = conv;
             CustomBuilder = builder;
             BlockSize = blockSize;
             Type = type;
+            ProcessItems = null;
+        }
+        public BigListArgs(ICustomBuilder<T> builder, IStateStore<T> conv, int blockSize, Func<T, T> fn, UpdateType type)
+        {
+            LeastFetchStore = conv;
+            CustomBuilder = builder;
+            BlockSize = blockSize;
+            Type = type;
+            ProcessItems = fn;
         }
     }
 
@@ -215,6 +226,27 @@ namespace FooProject.Collection
                     return items[(int)relativeIndex];
                 }
             }
+        }
+
+        /// <summary>
+        /// 取得と更新を同時に行う
+        /// </summary>
+        /// <param name="index">更新したい要素のインデックス</param>
+        /// <param name="fn">更新のための関数。Tを返さなければならない</param>
+        public virtual void GetAndUpdate(long index,Func<T,T> fn)
+        {
+            // This could just be a simple call to GetAt on the root.
+            // It is recoded as an interative algorithm for performance.
+
+            if (_root == null || index < 0 || index >= _root.Count)
+                throw new ArgumentOutOfRangeException("index");
+            if(fn == null)
+                throw new ArgumentNullException("fn must not be null");
+
+            long relativeIndex;
+            LeafNode<T> curLeaf = (LeafNode<T>)IndexOfNode(index, out relativeIndex);
+            var args = new BigListArgs<T>(CustomBuilder, LeastFetchStore, this.BlockSize, fn, UpdateType.Overwrite);
+            curLeaf.GetAndSetAtInPlace(relativeIndex, leafNodeEnumrator, args);
         }
 
         /// <summary>

@@ -69,6 +69,8 @@ namespace FooProject.Collection
             return (Depth == 0 || (Depth - 1 <= BigList<T>.MAXFIB && NodeCount >= BigList<T>.FIBONACCI[Depth - 1]));
         }
 
+        public abstract Node<T> GetAndSetAtInPlace(long index, LeafNodeEnumrator<T> leafNodeEnumrator, BigListArgs<T> args);
+
         public abstract Node<T> SetAtInPlace(long index, T item, LeafNodeEnumrator<T> leafNodeEnumrator, BigListArgs<T> args);
 
         public abstract Node<T> PrependInPlace(Node<T> node, LeafNodeEnumrator<T> leafNodeEnumrator, LeafNodeEnumrator<T> nodeBelongLeafNodeEnumrator,BigListArgs<T> args);
@@ -106,6 +108,33 @@ namespace FooProject.Collection
             Count = count;
         }
 
+        public override Node<T> GetAndSetAtInPlace(long index, LeafNodeEnumrator<T> leafNodeEnumrator, BigListArgs<T> args)
+        {
+            bool requireSetNotInPlace = false;
+            T item;
+            using (var pinnedContent = args.CustomBuilder.DataStore.Get(this.container))
+            {
+                var items = pinnedContent.Content;
+                item = items[(int)index];
+                if (pinnedContent.Content.QueryUpdate((int)index, item))
+                {
+                    items[(int)index] = args.ProcessItems(item);
+                    pinnedContent.NotifyWriteContent();
+                }
+                else
+                {
+                    requireSetNotInPlace = true;
+                }
+            }
+            if (requireSetNotInPlace)
+            {
+                var node = this.RemoveRangeInPlace(index, index, leafNodeEnumrator, args);
+                return node.InsertInPlace(index, args.ProcessItems(item), leafNodeEnumrator, args);
+            }
+            NotifyUpdate(index, 1, args);
+            return this;
+        }
+
         public override Node<T> SetAtInPlace(long index, T item, LeafNodeEnumrator<T> leafNodeEnumrator, BigListArgs<T> args)
         {
             bool requireSetNotInPlace = false;
@@ -114,7 +143,10 @@ namespace FooProject.Collection
                 if (pinnedContent.Content.QueryUpdate((int)index, item))
                 {
                     var items = pinnedContent.Content;
-                    items[(int)index] = item;
+                    if (args.ProcessItems != null)
+                        items[(int)index] = args.ProcessItems(item);
+                    else
+                        items[(int)index] = item;
                     pinnedContent.NotifyWriteContent();
                 }
                 else
@@ -667,6 +699,75 @@ namespace FooProject.Collection
                 Depth = (short)(Right.Depth + 1);
             this.OnNewNode(Left, Right);
             return this;
+        }
+
+        public override Node<T> GetAndSetAtInPlace(long index, LeafNodeEnumrator<T> leafNodeEnumrator, BigListArgs<T> args)
+        {
+#if MODIFY_NODE_BY_NORECURSIVE
+            Stack<NodeWalkInfo> traklist = new Stack<NodeWalkInfo>();
+            Node<T> current = this;
+            long currentIndex = index;
+
+            while (current != null && current.Left != null && current.Right != null)
+            {
+                long leftCount = current.Left.Count;
+                if (currentIndex < leftCount)
+                {
+                    traklist.Push(new NodeWalkInfo(current, NodeWalkDirection.Left));
+                    current = current.Left;
+                }
+                else
+                {
+                    traklist.Push(new NodeWalkInfo(current, NodeWalkDirection.Right));
+                    current = current.Right;
+                    currentIndex -= leftCount;
+                }
+            }
+
+            System.Diagnostics.Debug.Assert(currentIndex >= 0);
+            Node<T> resultNode = current.GetAndSetAtInPlace(currentIndex, leafNodeEnumrator, args);
+
+            NodeWalkInfo poped = null;
+
+            while (traklist.Count > 0)
+            {
+                poped = traklist.Pop();
+                var concatNodeCurrent = (ConcatNode<T>)poped.node;
+                if (poped.direction == NodeWalkDirection.Left)
+                {
+                    concatNodeCurrent.Left = resultNode;
+                    concatNodeCurrent.NewNodeInPlace(resultNode, concatNodeCurrent.Right);
+                    resultNode = concatNodeCurrent;
+                }
+                else
+                {
+                    concatNodeCurrent.Right = resultNode;
+                    concatNodeCurrent.NewNodeInPlace(concatNodeCurrent.Left, resultNode);
+                    resultNode = concatNodeCurrent;
+                }
+            }
+            if (poped != null)
+            {
+                return poped.node;
+            }
+            else
+            {
+                throw new Exception("something wrong");
+            }
+#else
+            long leftCount = Left.Count;
+
+            if (index < leftCount)
+            {
+                var newLeft = Left.GetAndSetAtInPlace(index, leafNodeEnumrator, args);
+                return NewNodeInPlace(newLeft, Right);
+            }
+            else
+            {
+                var newRight = Right.GetAndSetAtInPlace(index - leftCount, leafNodeEnumrator, args);
+                return NewNodeInPlace(Left, newRight);
+            }
+#endif
         }
 
         public override Node<T> SetAtInPlace(long index, T item,LeafNodeEnumrator<T> leafNodeEnumrator, BigListArgs<T> args)

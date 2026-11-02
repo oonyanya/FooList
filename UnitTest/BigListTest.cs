@@ -473,6 +473,35 @@ namespace UnitTest
         }
 
         [TestMethod]
+        public void GetAndSetTest()
+        {
+            BigList<int> list1, list2;
+            int i;
+
+            list1 = new BigList<int>();
+            for (i = 0; i < 100; ++i)
+                list1.Add(i);
+            for (i = 99; i >= 0; --i)
+                Assert.AreEqual(i, list1[i]);
+
+            list2 = new BigList<int>();
+            list2.AddRange(list1);
+            for (i = 44; i < 88; ++i)
+                list1[i] = i * 2;
+            for (i = 99; i >= 0; --i)
+            {
+                Assert.AreEqual(i, list2[i]);
+                list2.GetAndUpdate(i, (item) =>
+                {
+                    return 99 * i;
+                });
+            }
+            for (i = 44; i < 88; ++i)
+                Assert.AreEqual(i * 2, list1[i]);
+        }
+
+
+        [TestMethod]
         public void GetContainrInfoTest()
         {
             BigList<int> list1;
