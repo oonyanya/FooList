@@ -27,6 +27,8 @@ namespace FooProject.Collection
             get
             {
                 var root = (IRangeNode)this.Root;
+                if (root == null)
+                    return 0;
                 return root.TotalRangeCount;
             }
         }

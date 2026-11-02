@@ -46,6 +46,7 @@ namespace UnitTest
         public void GetEnumeratorTest()
         {
             var list = new BigRangeList<MyRange>();
+            Assert.AreEqual(0, list.TotalRangeCount);
             list.Add(new MyRange(0, 0));
             var expected = new MyRange[] { new MyRange(0, 0) };
             InterfaceTests.TestEnumerableElements(list, expected);
