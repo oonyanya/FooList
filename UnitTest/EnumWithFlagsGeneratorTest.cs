@@ -69,9 +69,7 @@ namespace UnitTest
             Assert.AreEqual(TestMarker.Important, collection.Get(1001));
 
             expected_list = new BigRleArrayRangeItem<TestMarker>[] {
-                new BigRleArrayRangeItem<TestMarker>(TestMarker.None, 0, 10),
-                new BigRleArrayRangeItem<TestMarker>(TestMarker.None, 10, 500),
-                new BigRleArrayRangeItem<TestMarker>(TestMarker.None, 510, 490),
+                new BigRleArrayRangeItem<TestMarker>(TestMarker.None, 0, 1000),
                 new BigRleArrayRangeItem<TestMarker>(TestMarker.Important, 1000, 100)
             };
             InterfaceTests.TestEnumerableElements<BigRleArrayRangeItem<TestMarker>>(collection.GetRanges(0, 1100), expected_list);
