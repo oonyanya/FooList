@@ -281,6 +281,11 @@ namespace Sgry.Azuki.Test
             Assert.AreEqual(0, nodeIndex);
             Assert.AreEqual(0, indexInNode);
 
+            list.FindNodeIndex(6, out nodeIndex, out indexInNode);
+            Assert.AreEqual(2, list.FindNodeIndex(6));
+            Assert.AreEqual(2, nodeIndex);
+            Assert.AreEqual(0, indexInNode);
+
             list.FindNodeIndex(7, out nodeIndex, out indexInNode);
             Assert.AreEqual(2, list.FindNodeIndex(7));
             Assert.AreEqual(2, nodeIndex);
