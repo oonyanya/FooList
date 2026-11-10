@@ -261,6 +261,37 @@ namespace Sgry.Azuki.Test
             }
         }
 
+        [TestMethod]
+        public void FindNode()
+        {
+            long nodeIndex, indexInNode;
+            var list = new BigRleArrayCollection<char>();
+
+            list.FindNodeIndex(0, out nodeIndex, out indexInNode);
+            Assert.AreEqual(-1, nodeIndex);
+            Assert.AreEqual(-1, indexInNode);
+
+            list.AddRange('a', 3);
+            list.AddRange('b', 3);
+            list.AddRange('c', 3);
+            list.AddRange('d', 3);
+
+            list.FindNodeIndex(0,out nodeIndex,out indexInNode);
+            Assert.AreEqual(0, list.FindNodeIndex(0));
+            Assert.AreEqual(0, nodeIndex);
+            Assert.AreEqual(0, indexInNode);
+
+            list.FindNodeIndex(7, out nodeIndex, out indexInNode);
+            Assert.AreEqual(2, list.FindNodeIndex(7));
+            Assert.AreEqual(2, nodeIndex);
+            Assert.AreEqual(1, indexInNode);
+
+            list.FindNodeIndex(12, out nodeIndex, out indexInNode);
+            Assert.AreEqual(-1, list.FindNodeIndex(12));
+            Assert.AreEqual(-1, nodeIndex);
+            Assert.AreEqual(-1, indexInNode);
+        }
+
         #region Utilities
         static void Set(BigRleArrayCollection<char> ary, IEnumerable<char> values)
         {

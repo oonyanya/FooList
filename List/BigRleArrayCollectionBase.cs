@@ -858,7 +858,7 @@ namespace FooProject.Collection
         #endregion
 
         #region Utilities
-        long FindNodeIndex(long index)
+        public long FindNodeIndex(long index)
         {
             long nodeIndex, indexInNode;
 
@@ -867,7 +867,7 @@ namespace FooProject.Collection
             return nodeIndex;
         }
 
-        void FindNodeIndex(long absolute_index, out long nodeIndex, out long indexInNode)
+        public void FindNodeIndex(long absolute_index, out long nodeIndex, out long indexInNode)
         {
             if(_Nodes.Count == 0)
             {
@@ -895,9 +895,11 @@ namespace FooProject.Collection
                 //末尾かつabsolute_index == node.start + node.lengthの場合はこうしないといけない
                 nodeIndex = -1;
                 indexInNode = -1;
-
             }
-            indexInNode = absolute_index - node.start;
+            else
+            {
+                indexInNode = absolute_index - node.start;
+            }
         }
 
         [Conditional("TEST")]
