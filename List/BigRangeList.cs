@@ -63,7 +63,7 @@ namespace FooProject.Collection
             var item = GetRawData(index);
 
             T result = (T)item.DeepCopy();
-            result.start = item.start + CustomConverter.customLeastFetch.absoluteIndexIntoRange;
+            result.start = item.start + CustomConverter.customLeastFetch.TotalAbsoluteIndexIntoRange;
             result.length = item.length;
             return result;
         }
@@ -105,7 +105,7 @@ namespace FooProject.Collection
                 {
                     relativeIndex -= leftCount;
                     var customNode = (IRangeNode)current.Left;
-                    myCustomConverter.customLeastFetch.absoluteIndexIntoRange += customNode.TotalRangeCount;
+                    myCustomConverter.customLeastFetch.TotalAbsoluteIndexIntoRange += customNode.TotalRangeCount;
                     return NodeWalkDirection.Right;
                 }
             });
@@ -143,7 +143,7 @@ namespace FooProject.Collection
                 {
                     relativeIndexIntoRange -= leftTotalSumCount;
                     myCustomConverter.customLeastFetch.TotalLeftCount += leftCount;
-                    myCustomConverter.customLeastFetch.absoluteIndexIntoRange += leftTotalSumCount;
+                    myCustomConverter.customLeastFetch.TotalAbsoluteIndexIntoRange += leftTotalSumCount;
                     return NodeWalkDirection.Right;
                 }
             });
@@ -315,7 +315,16 @@ namespace FooProject.Collection
 
         public long TotalLeftCount { get; set; }
 
-        public long absoluteIndexIntoRange { get; set; }
+        /// <summary>
+        /// ブロックの開始位置までの長さを合計した奴を返す
+        /// </summary>
+        public long TotalAbsoluteIndexIntoRange { get; set; }
+
+        /// <summary>
+        /// ブロックの開始位置までの長さを合計した奴を返す
+        /// </summary>
+        [Obsolete]
+        public long absoluteIndexIntoRange { get { return this.TotalAbsoluteIndexIntoRange; } }
 
         public RangeLeastFetch()
         {

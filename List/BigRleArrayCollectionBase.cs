@@ -190,15 +190,18 @@ namespace FooProject.Collection
         /// Creates a new instance.
         /// </summary>
         public BigRleArrayCollectionBase()
-            : this(32)
+            : this(0)
         { }
 
         /// <summary>
         /// Creates a new instance.
         /// </summary>
-        public BigRleArrayCollectionBase(int initCapacity)
+        /// <param name="block_size">ブロックサイズ</param>
+        public BigRleArrayCollectionBase(int block_size)
         {
             _Nodes = new BigRangeList<T>();
+            if (block_size > 0)
+                _Nodes.BlockSize = block_size;
             __check_sanity__();
         }
         #endregion
@@ -902,7 +905,9 @@ namespace FooProject.Collection
             }
 
             var node= _Nodes.Get(nodeIndex);
-            if(nodeIndex == _Nodes.Count - 1 && absolute_index == node.start + node.length)
+            var customLeastFetchStore = (RangeLeastFetch<T>)_Nodes.LeastFetchStore.LeastFetch;
+            var headIndexInBlock = customLeastFetchStore.TotalAbsoluteIndexIntoRange;
+            if(nodeIndex == _Nodes.Count - 1 && absolute_index == node.start + node.length + headIndexInBlock)
             {
                 //末尾かつabsolute_index == node.start + node.lengthの場合はこうしないといけない
                 nodeIndex = -1;
@@ -910,7 +915,7 @@ namespace FooProject.Collection
             }
             else
             {
-                indexInNode = absolute_index - node.start;
+                indexInNode = absolute_index - node.start - headIndexInBlock;
             }
         }
 

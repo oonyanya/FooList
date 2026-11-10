@@ -265,7 +265,7 @@ namespace Sgry.Azuki.Test
         public void FindNode()
         {
             long nodeIndex, indexInNode;
-            var list = new BigRleArrayCollection<char>();
+            var list = new BigRleArrayCollection<char>(2);
 
             list.FindNodeIndex(0, out nodeIndex, out indexInNode);
             Assert.AreEqual(-1, nodeIndex);
