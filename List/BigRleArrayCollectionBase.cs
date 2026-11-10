@@ -858,15 +858,27 @@ namespace FooProject.Collection
         #endregion
 
         #region Utilities
-        public long FindNodeIndex(long index)
+        /// <summary>
+        /// 対応するノードのインデックスを返す
+        /// </summary>
+        /// <param name="absolute_index"></param>
+        /// <remarks>末尾を指定した場合は-1を返す</remarks>
+        public long FindNodeIndex(long absolute_index)
         {
             long nodeIndex, indexInNode;
 
-            FindNodeIndex(index, out nodeIndex, out indexInNode);
+            FindNodeIndex(absolute_index, out nodeIndex, out indexInNode);
 
             return nodeIndex;
         }
 
+        /// <summary>
+        /// 対応するノードのインデックスを返す
+        /// </summary>
+        /// <param name="absolute_index"></param>
+        /// <param name="nodeIndex">ノードに対応するインデックスを返す</param>
+        /// <param name="indexInNode">ノードの先端からの相対的なインデックスが格納される</param>
+        /// <remarks>末尾を指定した場合はnodeIndex、indexInNodeともに-1となる。見つからない場合も同様となる</remarks>
         public void FindNodeIndex(long absolute_index, out long nodeIndex, out long indexInNode)
         {
             if(_Nodes.Count == 0)
