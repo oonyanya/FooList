@@ -177,6 +177,83 @@ namespace UnitTest
         }
 
         [TestMethod]
+        public void GetRangesAndClampWithPadding()
+        {
+            var list = new BigRleArrayCollection<char>();
+            list.AddRange('\0', 18);
+            var expected_list = new CharRleArray[] {
+                new CharRleArray('\0', 0, 18),
+            };
+            InterfaceTests.TestEnumerableElements(list.GetRangesAndClamp(0, 18), expected_list);
+
+            list.UpdateRange(6, 'a', 6);
+            expected_list = new CharRleArray[] {
+                new CharRleArray('\0', 0, 6),
+            };
+            InterfaceTests.TestEnumerableElements(list.GetRangesAndClamp(0, 6), expected_list);
+            expected_list = new CharRleArray[] {
+                new CharRleArray('a', 6, 6),
+            };
+            InterfaceTests.TestEnumerableElements(list.GetRangesAndClamp(6, 6), expected_list);
+            expected_list = new CharRleArray[] {
+                new CharRleArray('\0', 12, 6),
+            };
+            InterfaceTests.TestEnumerableElements(list.GetRangesAndClamp(12, 6), expected_list);
+
+            list.UpdateRange(6, 'a', 2);
+            list.UpdateRange(8, 'b', 1);
+            list.UpdateRange(9, 'a', 3);
+            expected_list = new CharRleArray[] {
+                new CharRleArray('\0', 0, 6),
+            };
+            InterfaceTests.TestEnumerableElements(list.GetRangesAndClamp(0, 6), expected_list);
+            expected_list = new CharRleArray[] {
+                new CharRleArray('a', 6, 2),
+                new CharRleArray('b', 8, 1),
+                new CharRleArray('a', 9, 3),
+            };
+            InterfaceTests.TestEnumerableElements(list.GetRangesAndClamp(6, 6), expected_list);
+
+            expected_list = new CharRleArray[] {
+                new CharRleArray('\0', 12, 6),
+            };
+            InterfaceTests.TestEnumerableElements(list.GetRangesAndClamp(12, 6), expected_list);
+
+            list.UpdateRange(6, 'a', 2);
+            list.UpdateRange(8, 'b', 2);
+            list.UpdateRange(10, 'a', 2);
+            expected_list = new CharRleArray[] {
+                new CharRleArray('\0', 0, 6),
+            };
+            InterfaceTests.TestEnumerableElements(list.GetRangesAndClamp(0, 6), expected_list);
+            expected_list = new CharRleArray[] {
+                new CharRleArray('a', 6, 2),
+                new CharRleArray('b', 8, 2),
+                new CharRleArray('a', 10, 2),
+            };
+            InterfaceTests.TestEnumerableElements(list.GetRangesAndClamp(6, 6), expected_list);
+            expected_list = new CharRleArray[] {
+                new CharRleArray('\0', 12, 6),
+            };
+            InterfaceTests.TestEnumerableElements(list.GetRangesAndClamp(12, 6), expected_list);
+
+            list.UpdateRange(6, 'a', 6);
+            expected_list = new CharRleArray[] {
+                new CharRleArray('\0', 0, 6),
+            };
+            InterfaceTests.TestEnumerableElements(list.GetRangesAndClamp(0, 6), expected_list);
+            expected_list = new CharRleArray[] {
+                new CharRleArray('a', 6, 6),
+            };
+            InterfaceTests.TestEnumerableElements(list.GetRangesAndClamp(6, 6), expected_list);
+            expected_list = new CharRleArray[] {
+                new CharRleArray('\0', 12, 6),
+            };
+            InterfaceTests.TestEnumerableElements(list.GetRangesAndClamp(12, 6), expected_list);
+        }
+
+
+        [TestMethod]
         public void AddItemTest()
         {
             var list = new BigRleArrayCollection<char>();
