@@ -163,6 +163,10 @@ namespace FooProject.Collection.DataStore
                     outed_item.Content = default(T);
                     outed_item.IsRequireWrited = false;
                 }
+                else
+                {
+                    outed_item.Content = default(T);
+                }
                 this.emptyList.ReleaseID(outed_item.CacheIndex);
                 outed_item.CacheIndex = PinableContainer<T>.NOTCACHED;
             };
@@ -301,10 +305,15 @@ namespace FooProject.Collection.DataStore
             }
 
 #if SAME_WRITE_AND_READ_CACHE
+            if (pinableContainer.CacheIndex == PinableContainer<T>.NOTCACHED)
+            {
+                pinableContainer.CacheIndex = this.emptyList.GetID();
+            }
+
+            this.writebackCacheList.Set(pinableContainer.CacheIndex, pinableContainer);
 #else
             if (this.readCacheList.TryGet(pinableContainer.CacheIndex, out _))
                 return;
-#endif
 
             if(pinableContainer.IsRequireWrited)
             {
@@ -315,6 +324,8 @@ namespace FooProject.Collection.DataStore
 
                 this.writebackCacheList.Set(pinableContainer.CacheIndex, pinableContainer);
             }
+#endif
+
             return;
         }
 
