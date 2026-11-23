@@ -4,16 +4,16 @@
     <TargetFrameworks>net8.0;netstandard2.0</TargetFrameworks>
     <ImplicitUsings>false</ImplicitUsings>
     <Nullable>disable</Nullable>
-	<VersionPrefix>-alpha8</VersionPrefix>
+	<VersionPrefix>-alpha9</VersionPrefix>
     <Version>1.0.13$(VersionPrefix)</Version>
     <IncludeSymbols>True</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <Title>FooList</Title>
     <PackageProjectUrl>https://github.com/oonyanya/FooList</PackageProjectUrl>
     <Copyright>FooProject(c)</Copyright>
-    <Description>Provides a huge list over 2^32 -1 in memory,disk,memory mapping and lazy loader based on Wintellect.PowerCollections.</Description>
+    <Description>Provides a huge list over 2^32 -1 in memory,disk and lazy loader based on Wintellect.PowerCollections.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageTags>Wintellect PowerCollections;Rope;BigList</PackageTags>
+    <PackageTags>Rope;BigList</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
