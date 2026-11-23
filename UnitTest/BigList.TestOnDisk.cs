@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Buffers;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -397,6 +399,47 @@ namespace UnitTest
             }
             InterfaceTests.TestEnumerableElements(buf, str);
             InterfaceTests.TestIndexerElements(buf, str);
+        }
+
+        [TestMethod]
+        public void GetSeqenceTest()
+        {
+            const string test_pattern = "this is a pen.this is a pen.this is a pen";
+            var memStream = new MemoryStream(TEST_SIZE);
+            var (list, expected_list, dataStore) = CreateList(test_pattern, TEST_SIZE, memStream);
+
+            for (int i = 0; i < TEST_SIZE; i++)
+            {
+                if (i % 10 == 0)
+                {
+                    list.Insert(i, 't');
+                    expected_list.Insert(i, "t");
+                }
+            }
+
+            Assert.AreEqual(expected_list.Length, list.Count);
+
+            var reader = new SequenceReader<char>(list.GetSeqence(0, expected_list.Length));
+
+            for (int i = 0; i < expected_list.Length; i++)
+            {
+                char c;
+                reader.TryRead(out c);
+                Assert.AreEqual(expected_list[i], c);
+            }
+
+            //キャッシュをすべて書き出しうえで中身を全て消す
+            dataStore.Commit();
+
+            reader.Rewind(expected_list.Length);
+
+            //消された状態でもメモリー上には存在するはず
+            for (int i = 0; i < expected_list.Length; i++)
+            {
+                char c;
+                reader.TryRead(out c);
+                Assert.AreEqual(expected_list[i], c);
+            }
         }
     }
 }

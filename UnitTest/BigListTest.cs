@@ -190,6 +190,37 @@ namespace UnitTest
         }
 
         [TestMethod]
+        public void GetSeqenceTest()
+        {
+            const int TEST_SIZE = 3000;
+            var list = new FooProject.Collection.BigList<char>();
+            var expected_list = new List<char>();
+            for (int i = 0; i < TEST_SIZE; i++)
+            {
+
+                list.Add('-');
+                expected_list.Add('-');
+            }
+            for (int i = 0; i < TEST_SIZE; i++)
+            {
+                if (i % 100 == 0)
+                {
+                    list.Insert(i, 'a');
+                    expected_list.Insert(i, 'a');
+                }
+            }
+
+            Assert.AreEqual(expected_list.Count, list.Count);
+            var reader = new SequenceReader<char>(list.GetSeqence(0, expected_list.Count));
+            for(int i = 0; i < expected_list.Count; i++)
+            {
+                char c;
+                reader.TryRead(out c);
+                Assert.AreEqual(expected_list[i], c);
+            }
+        }
+
+        [TestMethod]
         public void GetRangeEnumerable()
         {
             BigList<int> list1, list2, list3;

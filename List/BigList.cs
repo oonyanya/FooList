@@ -1058,6 +1058,27 @@ namespace FooProject.Collection
         }
 
         /// <summary>
+        /// 指定された範囲でReadOnlySequenceを作成する
+        /// </summary>
+        /// <param name="start">開始インデックス</param>
+        /// <param name="length">長さ</param>
+        /// <returns>ReadOnlySequence</returns>
+        /// <remarks>非常に長い範囲を列挙すると列挙したものがメモリー上に残り続ける</remarks>
+        public ReadOnlySequence<T> GetSeqence(long start, long length)
+        {
+            var chunked_seq = new ChunkedSequence<T>();
+            foreach (var item in this.GetContainer(start, length))
+            {
+                using(var pin = this.CustomBuilder.DataStore.Get(item.PinableContainer))
+                {
+                    var seq = pin.Content.Slice((int)item.RelativeIndex, (int)item.Count);
+                    chunked_seq.Append(seq);
+                }
+            }
+            return chunked_seq.GetSequence();
+        }
+
+        /// <summary>
         /// リードオンリーリストを返す
         /// </summary>
         /// <returns></returns>
